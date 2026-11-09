@@ -1,0 +1,73 @@
+{
+  "platform": "Linux-6.12.113+-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "cpu_count": 4,
+  "gpu": null,
+  "note": "Single-process CPU timings on this cloud VM. No GPU was available. peak_bytes is tracemalloc, not RSS.",
+  "episodes": [
+    {
+      "grid": 64,
+      "width": 8,
+      "humans": 8,
+      "machines": 2,
+      "budget": 8,
+      "seconds": 0.0976,
+      "peak_bytes": 554230,
+      "mae_causal": 6.727186169490449,
+      "successful_tasks": 7
+    },
+    {
+      "grid": 144,
+      "width": 12,
+      "humans": 12,
+      "machines": 3,
+      "budget": 12,
+      "seconds": 0.2125,
+      "peak_bytes": 3111791,
+      "mae_causal": 6.784358234715065,
+      "successful_tasks": 9
+    },
+    {
+      "grid": 256,
+      "width": 16,
+      "humans": 16,
+      "machines": 4,
+      "budget": 16,
+      "seconds": 0.433,
+      "peak_bytes": 11802770,
+      "mae_causal": 7.444667277726258,
+      "successful_tasks": 13
+    }
+  ],
+  "api": {
+    "health_ms": 4.58,
+    "health_status": 200,
+    "calls": [
+      {
+        "path": "/api/dashboard",
+        "status": 200,
+        "ms": 12.32
+      },
+      {
+        "path": "/api/map/frame?slot=20",
+        "status": 200,
+        "ms": 14.56
+      },
+      {
+        "path": "/api/tasks",
+        "status": 200,
+        "ms": 8.63
+      },
+      {
+        "path": "/api/predictions/noise?slot=20&model=idw",
+        "status": 200,
+        "ms": 8.21
+      },
+      {
+        "path": "POST /api/assignments/run",
+        "status": 200,
+        "ms": 22.27
+      }
+    ]
+  }
+}

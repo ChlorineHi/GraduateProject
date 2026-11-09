@@ -1,0 +1,8 @@
+---
+description: Use the CDRI research skill for literature research, cross-domain transfer, diagnosis and audits
+alwaysApply: false
+---
+<!-- installed by CDRI install.py -->
+For research tasks (literature landscape, paper deep reading, cross-domain method transfer, diagnosis of failing
+experiments, data/metric integrity audits, research ideas, scientific storytelling) read the `cdri` skill
+(SKILL.md) and use its CLI. Never fabricate citations; report search failures; label evidence.
