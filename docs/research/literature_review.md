@@ -1,5 +1,7 @@
 # 文献调研记录
 
+Phase II 的补充检索、缺口、假设和负结果写在同目录的 `research_gap.md`、`algorithm_hypotheses.md`、`evidence_chain.md`、`negative_results.md`。那一次 landscape 的阅读账本是空的，摘录不能当成全文精读。
+
 ## 检索过程
 
 CDRI 安装在 `.cursor/skills/cdri`。`config check` 的结果是：没有 mailto、OpenAlex 邮箱、Semantic Scholar key 或 Unpaywall 邮箱，也没有 PDF 解析库。因此没有做全文抓取，也没有把摘要写成“已精读方法”。
