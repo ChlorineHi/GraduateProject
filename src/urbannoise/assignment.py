@@ -3,6 +3,11 @@
 MU-PSA scores a feasible pair by
     P(reach) * P(accept) * quality * Value(task) - lambda * cost.
 Reach, acceptance and execution success are separate probabilities.
+
+eer scores a pair that clears the reach threshold by
+    P(reach) * P(accept) * quality * expected_error_drop - lambda * cost.
+expected_error_drop is a heuristic variance reduction. It is not mutual information.
+Pass-by probability is not acceptance.
 """
 
 from __future__ import annotations
@@ -11,6 +16,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+
+from urbannoise.information_gain import eer_pair_score, expected_error_drops, uncertainty_to_variance_proxy
 
 
 @dataclass
@@ -142,6 +149,14 @@ def _score_matrix(
     n_tasks = len(grids)
     scores = np.full((n_agents, n_tasks), -1e9, dtype=np.float64)
     distances = np.zeros((n_agents, n_tasks), dtype=np.float64)
+    eer_drop = None
+    if method == "eer":
+        eer_drop = expected_error_drops(
+            uncertainty_to_variance_proxy(unc_norm),
+            width,
+            grid_ids=np.asarray(grids),
+            duplicate=np.asarray(duplicate, dtype=np.float64),
+        )
     for i, agent in enumerate(agents):
         if not agent.online:
             continue
@@ -179,6 +194,18 @@ def _score_matrix(
                 scores[i, j] = p_success * value - weights.get("cost", 0.35) * agent.cost
             elif method == "mupsa_no_coverage":
                 scores[i, j] = p_success * value - weights.get("cost", 0.35) * agent.cost
+            elif method == "eer":
+                # Pass-by probability gates the pair and stays a separate factor.
+                # agent.accept is acceptance, not P(reach).
+                if p_reach >= min_reach:
+                    scores[i, j] = eer_pair_score(
+                        p_reach,
+                        agent.accept,
+                        agent.quality,
+                        float(eer_drop[j]),
+                        agent.cost,
+                        weights.get("cost", 0.35),
+                    )
             else:
                 raise ValueError(f"unknown assignment method: {method}")
     return scores, distances
