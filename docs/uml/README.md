@@ -20,9 +20,10 @@ java -jar plantuml.jar -charset UTF-8 -tpng -o docs/uml/png docs/uml/diagrams.pu
 | 10 采样时序图 | `assisted_sample` |
 | 11 重规划时序图 | `step_simulation` 与再次分配 |
 | 12 ER 图 | `models.py` 的表名 |
-| 13 部署图 | 已验证的 uvicorn + Vite；Docker 未执行 |
-| 14 数据处理图 | `safe_import` |
-| 15 算法流程图 | `distribution`、`predict_idw`、`combine_value`、`allocate` |
+| 13 部署图 | `scripts/start_linux.sh`、uvicorn、Vite、SQLite。Docker 文件标记为未使用 |
+| 14 数据处理图 | Parquet 预处理与 `resolve_world` 的四种模式 |
+| 15 算法流程图 | `expected_error_reduction` 与共享环境种子 |
 | 16 LinUCB 图 | `LinUCB.score` / `update`，不是 Gymnasium |
+| 17 场景数据流 | Synthetic、Real-Mobility、Real-Noise，以及不重叠时拒绝 Fully-Real |
 
 类图和 ER 图只画了说明关系所需的字段，不是数据库的全部列。

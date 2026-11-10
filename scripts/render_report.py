@@ -97,10 +97,12 @@ def add_image(pdf: FPDF, path: Path, caption: str) -> None:
     write_rich(pdf, caption, 9)
 
 
-def render() -> None:
+def render(source: Path | None = None, target: Path | None = None) -> None:
     if not FONT.exists():
         raise SystemExit(f"missing font {FONT}")
-    text = MD.read_text(encoding="utf-8")
+    md_path = source or MD
+    pdf_path = target or PDF
+    text = md_path.read_text(encoding="utf-8")
     pdf = Report(format="A4")
     pdf.set_auto_page_break(auto=True, margin=16)
     pdf.add_font("wqy", "", str(FONT))
@@ -122,7 +124,7 @@ def render() -> None:
             continue
         image = re.match(r"!\[(.+)\]\((.+)\)", line)
         if image:
-            add_image(pdf, (MD.parent / image.group(2)).resolve(), image.group(1))
+            add_image(pdf, (md_path.parent / image.group(2)).resolve(), image.group(1))
             i += 1
             continue
         if line.startswith("|"):
@@ -150,9 +152,12 @@ def render() -> None:
         elif line.strip():
             write_rich(pdf, line.strip())
         i += 1
-    pdf.output(str(PDF))
-    print(f"wrote {PDF} pages={pdf.page_no()}")
+    pdf.output(str(pdf_path))
+    print(f"wrote {pdf_path} pages={pdf.page_no()}")
 
 
 if __name__ == "__main__":
-    sys.exit(render())
+    if len(sys.argv) == 3:
+        render(Path(sys.argv[1]), Path(sys.argv[2]))
+    else:
+        render()

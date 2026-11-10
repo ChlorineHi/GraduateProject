@@ -1,6 +1,7 @@
-# This file was not executed in the development environment.
-# `docker` was not installed and no daemon was reachable on 2026-11-09.
-# The verified path is the local virtualenv and Vite commands in README.md.
+# UNUSED. Docker Compose is not a supported way to run UrbanNoiseLab.
+# Do not treat this file as a deployment path. Use scripts/setup_linux.sh
+# and scripts/start_linux.sh, or the Windows PowerShell scripts on Windows.
+# This file was not executed.
 
 services:
   api:
