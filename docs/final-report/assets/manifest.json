@@ -1,0 +1,192 @@
+[
+  {
+    "file": "docs/final-report/assets/fig_yjmob_day0_heatmap.png",
+    "source": "data/processed/yjmob/dataset1.parquet",
+    "caption": "Dataset 1 第 0 天网格到访"
+  },
+  {
+    "file": "docs/final-report/assets/fig_yjmob_timeslot.png",
+    "source": "data/processed/yjmob/dataset1.parquet",
+    "caption": "Dataset 1 时间片直方图"
+  },
+  {
+    "file": "docs/final-report/assets/fig_geolife_beijing.png",
+    "source": "data/processed/geolife/slots_all.parquet",
+    "caption": "GeoLife 北京附近轨迹箱"
+  },
+  {
+    "file": "docs/final-report/assets/fig_noise_countries.png",
+    "source": "data/processed/noisecapture/hourly_500m.parquet",
+    "caption": "进入本分支处理结果的国家"
+  },
+  {
+    "file": "docs/final-report/assets/fig_noise_france.png",
+    "source": "data/processed/noisecapture/hourly_500m.parquet",
+    "caption": "法国小时箱空间分布"
+  },
+  {
+    "file": "docs/final-report/assets/fig_noise_france_hour.png",
+    "source": "data/processed/noisecapture/hourly_500m.parquet",
+    "caption": "法国小时变化"
+  },
+  {
+    "file": "docs/final-report/assets/fig_synthetic_truth.png",
+    "source": "urbannoise.world.build_world seed=7 scenario=complex",
+    "caption": "合成真值，只用于评估"
+  },
+  {
+    "file": "docs/final-report/assets/fig_real_mobility_mae.png",
+    "source": "experiments/results/phase2/real_runs.json",
+    "caption": "真实移动子集误差"
+  },
+  {
+    "file": "docs/final-report/assets/fig_noise_holdout.png",
+    "source": "experiments/results/phase2/real_runs.json",
+    "caption": "真实噪声留出误差"
+  },
+  {
+    "file": "docs/final-report/assets/uml_architecture.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "总体架构"
+  },
+  {
+    "file": "docs/final-report/assets/uml_usecase.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "系统用例"
+  },
+  {
+    "file": "docs/final-report/assets/uml_class.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "核心类"
+  },
+  {
+    "file": "docs/final-report/assets/uml_sequence.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "采样时序"
+  },
+  {
+    "file": "docs/final-report/assets/uml_replan.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "重规划"
+  },
+  {
+    "file": "docs/final-report/assets/uml_er.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "ER"
+  },
+  {
+    "file": "docs/final-report/assets/uml_deploy.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "部署"
+  },
+  {
+    "file": "docs/final-report/assets/uml_dataflow.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "数据流"
+  },
+  {
+    "file": "docs/final-report/assets/uml_algorithm.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "算法流程"
+  },
+  {
+    "file": "docs/final-report/assets/uml_publish.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "任务发布"
+  },
+  {
+    "file": "docs/final-report/assets/uml_assign.png",
+    "source": "docs/uml/diagrams.puml",
+    "caption": "自动分配"
+  },
+  {
+    "file": "docs/final-report/assets/ui_login.png",
+    "source": "浏览器 phase2 第一轮",
+    "caption": "登录"
+  },
+  {
+    "file": "docs/final-report/assets/ui_data.png",
+    "source": "浏览器 phase2 第一轮",
+    "caption": "数据页"
+  },
+  {
+    "file": "docs/final-report/assets/ui_map_yjmob.png",
+    "source": "浏览器 phase2 第一轮",
+    "caption": "YJMob 地图"
+  },
+  {
+    "file": "docs/final-report/assets/ui_sim_yjmob.png",
+    "source": "浏览器 phase2 第一轮",
+    "caption": "YJMob 仿真"
+  },
+  {
+    "file": "docs/final-report/assets/ui_experiments.png",
+    "source": "浏览器 phase2 第一轮",
+    "caption": "实验页"
+  },
+  {
+    "file": "docs/final-report/assets/ui_tasks.png",
+    "source": "docs/screenshots 浏览器走查",
+    "caption": "任务发布"
+  },
+  {
+    "file": "docs/final-report/assets/ui_assign.png",
+    "source": "docs/screenshots 浏览器走查",
+    "caption": "分配"
+  },
+  {
+    "file": "docs/final-report/assets/ui_dashboard.png",
+    "source": "docs/screenshots 浏览器走查",
+    "caption": "总览"
+  },
+  {
+    "file": "docs/final-report/assets/ui_collector.png",
+    "source": "浏览器 phase2 第二轮",
+    "caption": "采集者"
+  },
+  {
+    "file": "docs/final-report/assets/ui_mobile.png",
+    "source": "浏览器 phase2 第二轮",
+    "caption": "移动端数据页"
+  },
+  {
+    "file": "docs/final-report/assets/ui_select_real.png",
+    "source": "cursor/phase2-simcheck 浏览器",
+    "caption": "选择 real_mobility"
+  },
+  {
+    "file": "docs/final-report/assets/ui_fully_real_409.png",
+    "source": "cursor/phase2-simcheck 浏览器",
+    "caption": "fully_real 被拒绝"
+  },
+  {
+    "file": "docs/final-report/assets/exp_regular_mae.png",
+    "source": "experiments/results/phase2/fair_main/summary.json",
+    "caption": "regular MAE"
+  },
+  {
+    "file": "docs/final-report/assets/exp_complex_mae.png",
+    "source": "experiments/results/phase2/fair_main/summary.json",
+    "caption": "complex MAE"
+  },
+  {
+    "file": "docs/final-report/assets/exp_ablation.png",
+    "source": "experiments/results/phase2/fair_main/summary.json",
+    "caption": "消融"
+  },
+  {
+    "file": "docs/final-report/assets/exp_cost.png",
+    "source": "experiments/results/phase2/fair_main/summary.json",
+    "caption": "成本与误差"
+  },
+  {
+    "file": "docs/final-report/assets/exp_bandit.png",
+    "source": "experiments/results/phase2/fair_main/summary.json",
+    "caption": "LinUCB 回报"
+  },
+  {
+    "file": "docs/final-report/assets/exp_legacy_robust.png",
+    "source": "experiments/results/main 旧协议",
+    "caption": "旧协议鲁棒性，不可与新协议直接比"
+  }
+]

@@ -1,0 +1,93 @@
+{
+  "note": "Five repeats of one shared 8x8 world after one warmup. Not an accuracy result.",
+  "rows": [
+    {
+      "method": "random",
+      "seconds_mean_of_5": 0.007886523400156876,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "nearest",
+      "seconds_mean_of_5": 0.007732712200231617,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "reach_nearest",
+      "seconds_mean_of_5": 0.007610151799963205,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "reach_random",
+      "seconds_mean_of_5": 0.00803029479975521,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "reach_greedy",
+      "seconds_mean_of_5": 0.008195680800054107,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "greedy",
+      "seconds_mean_of_5": 0.0077027840001392175,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "uncertainty",
+      "seconds_mean_of_5": 0.008973398399757571,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "min_cost",
+      "seconds_mean_of_5": 0.007670632200097316,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "mupsa",
+      "seconds_mean_of_5": 0.008029198399890447,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "eer_reach",
+      "seconds_mean_of_5": 0.007818627400047263,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    },
+    {
+      "method": "bandit",
+      "seconds_mean_of_5": 0.010998067000036827,
+      "grid": 8,
+      "budget": 8,
+      "scenario": "regular",
+      "seed": 0
+    }
+  ]
+}
