@@ -12,6 +12,9 @@ data/*.db
 data/*.db-*
 data/worlds/
 data/imports/
+data/raw/
+data/processed/
+data/reports/
 logs/
 .cdri/
 .agent-tools/
