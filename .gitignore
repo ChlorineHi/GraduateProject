@@ -12,6 +12,10 @@ data/*.db
 data/*.db-*
 data/worlds/
 data/imports/
+# Local dataset payloads. Small manifests and reports stay tracked.
+data/raw/
+data/processed/
+data/external/
 logs/
 .cdri/
 .agent-tools/

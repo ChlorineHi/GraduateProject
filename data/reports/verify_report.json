@@ -1,0 +1,4831 @@
+{
+  "ok": true,
+  "failed": 0,
+  "checks": [
+    {
+      "check": "manifest_exists",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/manifests/download_manifest.json"
+    },
+    {
+      "check": "exists:yjmob100k:yjmob100k-dataset1.csv.gz",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/yjmob100k/yjmob100k-dataset1.csv.gz"
+    },
+    {
+      "check": "size:yjmob100k:yjmob100k-dataset1.csv.gz",
+      "ok": true,
+      "detail": "disk=419026821 manifest=419026821"
+    },
+    {
+      "check": "official_md5_flag:yjmob100k:yjmob100k-dataset1.csv.gz",
+      "ok": true,
+      "detail": "{'algorithm': 'md5', 'value': '3781f6f03a118b5f639bdb4f94dcfdb8', 'source': 'zenodo file checksum field', 'match': True}"
+    },
+    {
+      "check": "sha256:yjmob100k:yjmob100k-dataset1.csv.gz",
+      "ok": true,
+      "detail": "fdf3d6bc8415debdca5fae1d9184a8e41743ca43528e2b7b050f114cb65b9551"
+    },
+    {
+      "check": "md5:yjmob100k:yjmob100k-dataset1.csv.gz",
+      "ok": true,
+      "detail": "3781f6f03a118b5f639bdb4f94dcfdb8"
+    },
+    {
+      "check": "official_md5_bytes:yjmob100k:yjmob100k-dataset1.csv.gz",
+      "ok": true,
+      "detail": "3781f6f03a118b5f639bdb4f94dcfdb8"
+    },
+    {
+      "check": "exists:yjmob100k:yjmob100k-dataset2.csv.gz",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/yjmob100k/yjmob100k-dataset2.csv.gz"
+    },
+    {
+      "check": "size:yjmob100k:yjmob100k-dataset2.csv.gz",
+      "ok": true,
+      "detail": "disk=111175823 manifest=111175823"
+    },
+    {
+      "check": "official_md5_flag:yjmob100k:yjmob100k-dataset2.csv.gz",
+      "ok": true,
+      "detail": "{'algorithm': 'md5', 'value': 'ec769fafa7a746caa3d48d2844b9735c', 'source': 'zenodo file checksum field', 'match': True}"
+    },
+    {
+      "check": "sha256:yjmob100k:yjmob100k-dataset2.csv.gz",
+      "ok": true,
+      "detail": "f477b3defb9511f8d326d7673eb1f436e36c7a136e49688557fcfabfcb28bb4e"
+    },
+    {
+      "check": "md5:yjmob100k:yjmob100k-dataset2.csv.gz",
+      "ok": true,
+      "detail": "ec769fafa7a746caa3d48d2844b9735c"
+    },
+    {
+      "check": "official_md5_bytes:yjmob100k:yjmob100k-dataset2.csv.gz",
+      "ok": true,
+      "detail": "ec769fafa7a746caa3d48d2844b9735c"
+    },
+    {
+      "check": "exists:yjmob100k:cell_POIcat.csv.gz",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/yjmob100k/cell_POIcat.csv.gz"
+    },
+    {
+      "check": "size:yjmob100k:cell_POIcat.csv.gz",
+      "ok": true,
+      "detail": "disk=626648 manifest=626648"
+    },
+    {
+      "check": "official_md5_flag:yjmob100k:cell_POIcat.csv.gz",
+      "ok": true,
+      "detail": "{'algorithm': 'md5', 'value': '93af4bb0b417cd20e95fdc1d8f7b459f', 'source': 'zenodo file checksum field', 'match': True}"
+    },
+    {
+      "check": "sha256:yjmob100k:cell_POIcat.csv.gz",
+      "ok": true,
+      "detail": "8d6a284896a95e49ebafddc06f583a4f61cd66ccb089cf985f3ec589bf348533"
+    },
+    {
+      "check": "md5:yjmob100k:cell_POIcat.csv.gz",
+      "ok": true,
+      "detail": "93af4bb0b417cd20e95fdc1d8f7b459f"
+    },
+    {
+      "check": "official_md5_bytes:yjmob100k:cell_POIcat.csv.gz",
+      "ok": true,
+      "detail": "93af4bb0b417cd20e95fdc1d8f7b459f"
+    },
+    {
+      "check": "exists:yjmob100k:POI_datacategories.csv",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/yjmob100k/POI_datacategories.csv"
+    },
+    {
+      "check": "size:yjmob100k:POI_datacategories.csv",
+      "ok": true,
+      "detail": "disk=1151 manifest=1151"
+    },
+    {
+      "check": "official_md5_flag:yjmob100k:POI_datacategories.csv",
+      "ok": true,
+      "detail": "{'algorithm': 'md5', 'value': 'fd024e10c1d1dd91356d010413ace390', 'source': 'zenodo file checksum field', 'match': True}"
+    },
+    {
+      "check": "sha256:yjmob100k:POI_datacategories.csv",
+      "ok": true,
+      "detail": "93296e7594070c3198e6f06a16b4942344fe2899fec27c363b0e5e00b8e14f89"
+    },
+    {
+      "check": "md5:yjmob100k:POI_datacategories.csv",
+      "ok": true,
+      "detail": "fd024e10c1d1dd91356d010413ace390"
+    },
+    {
+      "check": "official_md5_bytes:yjmob100k:POI_datacategories.csv",
+      "ok": true,
+      "detail": "fd024e10c1d1dd91356d010413ace390"
+    },
+    {
+      "check": "exists:geolife:Geolife Trajectories 1.3.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/geolife/Geolife Trajectories 1.3.zip"
+    },
+    {
+      "check": "size:geolife:Geolife Trajectories 1.3.zip",
+      "ok": true,
+      "detail": "disk=313164406 manifest=313164406"
+    },
+    {
+      "check": "sha256:geolife:Geolife Trajectories 1.3.zip",
+      "ok": true,
+      "detail": "1107c5ac064d0a23c8d021a8736a77e53abc75b227062e6260342c6a8d86bdb6"
+    },
+    {
+      "check": "md5:geolife:Geolife Trajectories 1.3.zip",
+      "ok": true,
+      "detail": "8ed344eeb6ffccc30da112d824f3fe21"
+    },
+    {
+      "check": "recorded_non_success:noisecapture:http-dump-index",
+      "ok": true,
+      "detail": "HTTP 200 from http://data.noise-planet.org/dump/ returned no .zip links. title='Metabase' content_type='text/html; charset=UTF-8' server='Jetty(9.2.z-SNAPSHOT)' excerpt='<!DOCTYPE html>\\n<html lang=\"en\">\\n    <head>\\n        <meta charset=\"utf-8\" />\\n        <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui\" />\\n        <meta name=\"apple-mobile-web-app-capable\" content=\"yes\" />\\n        <meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\" />\\n\\n        \\n\\n        <title>Metabase</title>\\n\\n        <base href=\"/\" />\\n\\n     '"
+    },
+    {
+      "check": "exists:noisecapture:Slovenia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Slovenia.zip"
+    },
+    {
+      "check": "size:noisecapture:Slovenia.zip",
+      "ok": true,
+      "detail": "disk=209642843 manifest=209642843"
+    },
+    {
+      "check": "sha256:noisecapture:Slovenia.zip",
+      "ok": true,
+      "detail": "70fdc702e99ff03efaf040a8bdcd6371d8803b1b308e76f54b497cc8a4e55310"
+    },
+    {
+      "check": "md5:noisecapture:Slovenia.zip",
+      "ok": true,
+      "detail": "0a80bf616f9e914dbfb6d71cca769663"
+    },
+    {
+      "check": "exists:noisecapture:Greece.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Greece.zip"
+    },
+    {
+      "check": "size:noisecapture:Greece.zip",
+      "ok": true,
+      "detail": "disk=284779450 manifest=284779450"
+    },
+    {
+      "check": "sha256:noisecapture:Greece.zip",
+      "ok": true,
+      "detail": "62fec8fa71e7d406d8fb50a03b1c5c56b5865a839a6cf916279efbe7bbf47e7e"
+    },
+    {
+      "check": "md5:noisecapture:Greece.zip",
+      "ok": true,
+      "detail": "6dba4c707490e0e5a5309fd9dbe57cf7"
+    },
+    {
+      "check": "exists:noisecapture:Germany.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Germany.zip"
+    },
+    {
+      "check": "size:noisecapture:Germany.zip",
+      "ok": true,
+      "detail": "disk=193453494 manifest=193453494"
+    },
+    {
+      "check": "sha256:noisecapture:Germany.zip",
+      "ok": true,
+      "detail": "2d276a995ee6bda7148435996f7dc20c58123b6b2d1f997c05374b6a6a4ed1eb"
+    },
+    {
+      "check": "md5:noisecapture:Germany.zip",
+      "ok": true,
+      "detail": "80a450f4b8d5a014020853d0f90980ea"
+    },
+    {
+      "check": "exists:noisecapture:United Kingdom.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/United Kingdom.zip"
+    },
+    {
+      "check": "size:noisecapture:United Kingdom.zip",
+      "ok": true,
+      "detail": "disk=157973023 manifest=157973023"
+    },
+    {
+      "check": "sha256:noisecapture:United Kingdom.zip",
+      "ok": true,
+      "detail": "9153e514cf7ee7173785c49111a6162a0128089be497c414ed5c32b09b45d50b"
+    },
+    {
+      "check": "md5:noisecapture:United Kingdom.zip",
+      "ok": true,
+      "detail": "5b0f80b813a97e69269bf0e4db7421ed"
+    },
+    {
+      "check": "exists:noisecapture:Canada.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Canada.zip"
+    },
+    {
+      "check": "size:noisecapture:Canada.zip",
+      "ok": true,
+      "detail": "disk=118737661 manifest=118737661"
+    },
+    {
+      "check": "sha256:noisecapture:Canada.zip",
+      "ok": true,
+      "detail": "4eb533c8fb39545d404616faea70dc28bf1124b1e925f03b1ef2ab8b0e804592"
+    },
+    {
+      "check": "md5:noisecapture:Canada.zip",
+      "ok": true,
+      "detail": "6b1ea97c666571da5c9885c58e4f0a34"
+    },
+    {
+      "check": "exists:noisecapture:Croatia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Croatia.zip"
+    },
+    {
+      "check": "size:noisecapture:Croatia.zip",
+      "ok": true,
+      "detail": "disk=87174783 manifest=87174783"
+    },
+    {
+      "check": "sha256:noisecapture:Croatia.zip",
+      "ok": true,
+      "detail": "87e9c15a3f28cb94911f7421d02e580e75201f31a59a5936c66d0447fa76bc72"
+    },
+    {
+      "check": "md5:noisecapture:Croatia.zip",
+      "ok": true,
+      "detail": "6fe3b432c0ac814ae03a82eda19ce1d4"
+    },
+    {
+      "check": "exists:noisecapture:Australia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Australia.zip"
+    },
+    {
+      "check": "size:noisecapture:Australia.zip",
+      "ok": true,
+      "detail": "disk=78260891 manifest=78260891"
+    },
+    {
+      "check": "sha256:noisecapture:Australia.zip",
+      "ok": true,
+      "detail": "7b0ef54f4a0803a32d8d42cc23a56b3102623b52b1d2b651ac3740f8ad3a7f70"
+    },
+    {
+      "check": "md5:noisecapture:Australia.zip",
+      "ok": true,
+      "detail": "fa48bc67c770d2fb52f57a55eacc694c"
+    },
+    {
+      "check": "exists:noisecapture:Switzerland.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Switzerland.zip"
+    },
+    {
+      "check": "size:noisecapture:Switzerland.zip",
+      "ok": true,
+      "detail": "disk=77771147 manifest=77771147"
+    },
+    {
+      "check": "sha256:noisecapture:Switzerland.zip",
+      "ok": true,
+      "detail": "e71c5c338e78ef051e4bd42eb4a6710eeed6d416adce88b677d47d83632bbbdd"
+    },
+    {
+      "check": "md5:noisecapture:Switzerland.zip",
+      "ok": true,
+      "detail": "fc9f3f571d7e73cb6700c8c743a58809"
+    },
+    {
+      "check": "exists:noisecapture:Norway.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Norway.zip"
+    },
+    {
+      "check": "size:noisecapture:Norway.zip",
+      "ok": true,
+      "detail": "disk=74293544 manifest=74293544"
+    },
+    {
+      "check": "sha256:noisecapture:Norway.zip",
+      "ok": true,
+      "detail": "5b246ba281599f38c95a541af18ad84f0cfc93b5a25f5fc1595b6615ddd0f0f9"
+    },
+    {
+      "check": "md5:noisecapture:Norway.zip",
+      "ok": true,
+      "detail": "c56243a714a9484de414909939cf836d"
+    },
+    {
+      "check": "exists:noisecapture:France.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/France.zip"
+    },
+    {
+      "check": "size:noisecapture:France.zip",
+      "ok": true,
+      "detail": "disk=876517026 manifest=876517026"
+    },
+    {
+      "check": "sha256:noisecapture:France.zip",
+      "ok": true,
+      "detail": "910a9343bf15a1f9e53b0d8f880a79c6c70aab1676fae4edb56daea5cd1a3f24"
+    },
+    {
+      "check": "md5:noisecapture:France.zip",
+      "ok": true,
+      "detail": "1fbbe545a3ae5f0111a6c1f9d9e6a575"
+    },
+    {
+      "check": "exists:noisecapture:Poland.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Poland.zip"
+    },
+    {
+      "check": "size:noisecapture:Poland.zip",
+      "ok": true,
+      "detail": "disk=71359502 manifest=71359502"
+    },
+    {
+      "check": "sha256:noisecapture:Poland.zip",
+      "ok": true,
+      "detail": "0d944b82b7807f844733e45453ee656e5933bb38bd2ed2113251efc570b0376a"
+    },
+    {
+      "check": "md5:noisecapture:Poland.zip",
+      "ok": true,
+      "detail": "5ee9c33ac162bc520d7da5f240c6af02"
+    },
+    {
+      "check": "exists:noisecapture:Spain.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Spain.zip"
+    },
+    {
+      "check": "size:noisecapture:Spain.zip",
+      "ok": true,
+      "detail": "disk=69283635 manifest=69283635"
+    },
+    {
+      "check": "sha256:noisecapture:Spain.zip",
+      "ok": true,
+      "detail": "a58616a66e6c109db6068e74620193e9b05b0b164b363f7cce3f428420a84476"
+    },
+    {
+      "check": "md5:noisecapture:Spain.zip",
+      "ok": true,
+      "detail": "856903e4d470f399d84c5595ad3cb157"
+    },
+    {
+      "check": "exists:noisecapture:Ecuador.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Ecuador.zip"
+    },
+    {
+      "check": "size:noisecapture:Ecuador.zip",
+      "ok": true,
+      "detail": "disk=65812616 manifest=65812616"
+    },
+    {
+      "check": "sha256:noisecapture:Ecuador.zip",
+      "ok": true,
+      "detail": "2174d0d79f71246a620220cef8621c1950bb407b6d3672c15e9657502ae92c32"
+    },
+    {
+      "check": "md5:noisecapture:Ecuador.zip",
+      "ok": true,
+      "detail": "6325c67b64f3448c5561b973557ae339"
+    },
+    {
+      "check": "exists:noisecapture:Malaysia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Malaysia.zip"
+    },
+    {
+      "check": "size:noisecapture:Malaysia.zip",
+      "ok": true,
+      "detail": "disk=56475451 manifest=56475451"
+    },
+    {
+      "check": "sha256:noisecapture:Malaysia.zip",
+      "ok": true,
+      "detail": "27936bb2adf5c5747e7ecb533d664a6f542355c22e169319bfadb00c9beab6c2"
+    },
+    {
+      "check": "md5:noisecapture:Malaysia.zip",
+      "ok": true,
+      "detail": "ef56615ce810e52c70285d7034077ffd"
+    },
+    {
+      "check": "exists:noisecapture:India.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/India.zip"
+    },
+    {
+      "check": "size:noisecapture:India.zip",
+      "ok": true,
+      "detail": "disk=65241436 manifest=65241436"
+    },
+    {
+      "check": "sha256:noisecapture:India.zip",
+      "ok": true,
+      "detail": "f7a2c206eca4d6ffdfc0524a5f7a54d99961601ad9b7bcd7097dce0c8120f293"
+    },
+    {
+      "check": "md5:noisecapture:India.zip",
+      "ok": true,
+      "detail": "bd07c1978d46ff154d4461e912ec41b5"
+    },
+    {
+      "check": "exists:noisecapture:Mexico.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Mexico.zip"
+    },
+    {
+      "check": "size:noisecapture:Mexico.zip",
+      "ok": true,
+      "detail": "disk=65506987 manifest=65506987"
+    },
+    {
+      "check": "sha256:noisecapture:Mexico.zip",
+      "ok": true,
+      "detail": "a17dce69a536283ed5b46ed1acff1b81878f619634295dff34413fcfe865e1ef"
+    },
+    {
+      "check": "md5:noisecapture:Mexico.zip",
+      "ok": true,
+      "detail": "2aa422da1ec30bebfb72ba5fbfd384e7"
+    },
+    {
+      "check": "exists:noisecapture:Colombia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Colombia.zip"
+    },
+    {
+      "check": "size:noisecapture:Colombia.zip",
+      "ok": true,
+      "detail": "disk=52534227 manifest=52534227"
+    },
+    {
+      "check": "sha256:noisecapture:Colombia.zip",
+      "ok": true,
+      "detail": "be676ebffd31a04908aa0fef7a599c3954ea949e2d275c0df06941becada248e"
+    },
+    {
+      "check": "md5:noisecapture:Colombia.zip",
+      "ok": true,
+      "detail": "005d69fe5cae322b3a21220a42d963ed"
+    },
+    {
+      "check": "exists:noisecapture:Netherlands.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Netherlands.zip"
+    },
+    {
+      "check": "size:noisecapture:Netherlands.zip",
+      "ok": true,
+      "detail": "disk=48857644 manifest=48857644"
+    },
+    {
+      "check": "sha256:noisecapture:Netherlands.zip",
+      "ok": true,
+      "detail": "4be34d640e235f23f97f93e63fa0bd57d458e051342766c4c4587f3f0aae5564"
+    },
+    {
+      "check": "md5:noisecapture:Netherlands.zip",
+      "ok": true,
+      "detail": "bb527a6871d26f98f265f2631c15c9ce"
+    },
+    {
+      "check": "exists:noisecapture:Austria.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Austria.zip"
+    },
+    {
+      "check": "size:noisecapture:Austria.zip",
+      "ok": true,
+      "detail": "disk=47364294 manifest=47364294"
+    },
+    {
+      "check": "sha256:noisecapture:Austria.zip",
+      "ok": true,
+      "detail": "a93e975557743e33f37413464755848a858dc317f50695016c1b1889fcc7f74e"
+    },
+    {
+      "check": "md5:noisecapture:Austria.zip",
+      "ok": true,
+      "detail": "2e948d152a590d6e50298705402d6bdd"
+    },
+    {
+      "check": "exists:noisecapture:Belgium.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Belgium.zip"
+    },
+    {
+      "check": "size:noisecapture:Belgium.zip",
+      "ok": true,
+      "detail": "disk=37893139 manifest=37893139"
+    },
+    {
+      "check": "sha256:noisecapture:Belgium.zip",
+      "ok": true,
+      "detail": "bfa1f2d69a05361614e16d58af3412dd8ec9444d07f40d54ca6de0558e6ec53a"
+    },
+    {
+      "check": "md5:noisecapture:Belgium.zip",
+      "ok": true,
+      "detail": "d60bc01d6233570902a2c991128c1002"
+    },
+    {
+      "check": "exists:noisecapture:Brazil.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Brazil.zip"
+    },
+    {
+      "check": "size:noisecapture:Brazil.zip",
+      "ok": true,
+      "detail": "disk=45844212 manifest=45844212"
+    },
+    {
+      "check": "sha256:noisecapture:Brazil.zip",
+      "ok": true,
+      "detail": "540aef978fd95a0fcb9e09a2a59bf91ba0ee98b2a85d771f3d7f6580181df9aa"
+    },
+    {
+      "check": "md5:noisecapture:Brazil.zip",
+      "ok": true,
+      "detail": "35c0a7bddcbc45c1a4a6e5672511fcdd"
+    },
+    {
+      "check": "exists:noisecapture:Thailand.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Thailand.zip"
+    },
+    {
+      "check": "size:noisecapture:Thailand.zip",
+      "ok": true,
+      "detail": "disk=33939832 manifest=33939832"
+    },
+    {
+      "check": "sha256:noisecapture:Thailand.zip",
+      "ok": true,
+      "detail": "d056af810b8a6933051d095b88d167ea62cf181e4eaa733d80834b64db88b4c0"
+    },
+    {
+      "check": "md5:noisecapture:Thailand.zip",
+      "ok": true,
+      "detail": "71853d2e54edb8106a0b3616893b20f4"
+    },
+    {
+      "check": "exists:noisecapture:Singapore.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Singapore.zip"
+    },
+    {
+      "check": "size:noisecapture:Singapore.zip",
+      "ok": true,
+      "detail": "disk=31512558 manifest=31512558"
+    },
+    {
+      "check": "sha256:noisecapture:Singapore.zip",
+      "ok": true,
+      "detail": "23d8234412aa5225c91b15545b1152291d7c7e0f8f29d703fcb33b038a148d81"
+    },
+    {
+      "check": "md5:noisecapture:Singapore.zip",
+      "ok": true,
+      "detail": "8be134a62c3ce41deb3b7d294efbe7f2"
+    },
+    {
+      "check": "exists:noisecapture:Italy.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Italy.zip"
+    },
+    {
+      "check": "size:noisecapture:Italy.zip",
+      "ok": true,
+      "detail": "disk=31402272 manifest=31402272"
+    },
+    {
+      "check": "sha256:noisecapture:Italy.zip",
+      "ok": true,
+      "detail": "a583f61ac498ebc619709c29212f875be31db82c795e22aad90b1bd697449cc9"
+    },
+    {
+      "check": "md5:noisecapture:Italy.zip",
+      "ok": true,
+      "detail": "16353b73a270408955f7543b8cb2d004"
+    },
+    {
+      "check": "exists:noisecapture:Turkey.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Turkey.zip"
+    },
+    {
+      "check": "size:noisecapture:Turkey.zip",
+      "ok": true,
+      "detail": "disk=24516660 manifest=24516660"
+    },
+    {
+      "check": "sha256:noisecapture:Turkey.zip",
+      "ok": true,
+      "detail": "b60eb95f6f1b7cdf73118df5939865d044572cbfa5b435064b83147282909655"
+    },
+    {
+      "check": "md5:noisecapture:Turkey.zip",
+      "ok": true,
+      "detail": "52fabee712659a36d50c779cd01c089d"
+    },
+    {
+      "check": "exists:noisecapture:New Zealand.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/New Zealand.zip"
+    },
+    {
+      "check": "size:noisecapture:New Zealand.zip",
+      "ok": true,
+      "detail": "disk=25411956 manifest=25411956"
+    },
+    {
+      "check": "sha256:noisecapture:New Zealand.zip",
+      "ok": true,
+      "detail": "66eda2e9e1abeeeae43c6e5bedd950de066bcbd606e566f78e016230a607631c"
+    },
+    {
+      "check": "md5:noisecapture:New Zealand.zip",
+      "ok": true,
+      "detail": "90284964259f9a63ca466906a17cb58b"
+    },
+    {
+      "check": "exists:noisecapture:Rwanda.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Rwanda.zip"
+    },
+    {
+      "check": "size:noisecapture:Rwanda.zip",
+      "ok": true,
+      "detail": "disk=22754828 manifest=22754828"
+    },
+    {
+      "check": "sha256:noisecapture:Rwanda.zip",
+      "ok": true,
+      "detail": "e9b2f962c5d0335273aee908fccc14abecb7770b55e7485d0ad8a5855a9912dd"
+    },
+    {
+      "check": "md5:noisecapture:Rwanda.zip",
+      "ok": true,
+      "detail": "606216669c648c3a9166508eee5e000b"
+    },
+    {
+      "check": "exists:noisecapture:Iran.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Iran.zip"
+    },
+    {
+      "check": "size:noisecapture:Iran.zip",
+      "ok": true,
+      "detail": "disk=21149215 manifest=21149215"
+    },
+    {
+      "check": "sha256:noisecapture:Iran.zip",
+      "ok": true,
+      "detail": "678e1c5f44cdf3107ec181b1ed8ba1883928dedd09713615162662c3e00c0202"
+    },
+    {
+      "check": "md5:noisecapture:Iran.zip",
+      "ok": true,
+      "detail": "557d39f02784b400a066ffe82fce3e8d"
+    },
+    {
+      "check": "exists:noisecapture:China.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/China.zip"
+    },
+    {
+      "check": "size:noisecapture:China.zip",
+      "ok": true,
+      "detail": "disk=19100109 manifest=19100109"
+    },
+    {
+      "check": "sha256:noisecapture:China.zip",
+      "ok": true,
+      "detail": "084b599fdf21039aad28c8dcd44a5dac4f7bbf38667d8a3b12fc8cb930d875a7"
+    },
+    {
+      "check": "md5:noisecapture:China.zip",
+      "ok": true,
+      "detail": "845213bc0b069b3d4a96cb2eb9ac2eb7"
+    },
+    {
+      "check": "exists:noisecapture:South Africa.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/South Africa.zip"
+    },
+    {
+      "check": "size:noisecapture:South Africa.zip",
+      "ok": true,
+      "detail": "disk=16687693 manifest=16687693"
+    },
+    {
+      "check": "sha256:noisecapture:South Africa.zip",
+      "ok": true,
+      "detail": "dd4b6c0c62b5226d44c8a3cdf3ebbc9a823a21d4ed06d57f6b102760ffd743cd"
+    },
+    {
+      "check": "md5:noisecapture:South Africa.zip",
+      "ok": true,
+      "detail": "7b37d898cc8ec728c945cf2cf376d72c"
+    },
+    {
+      "check": "exists:noisecapture:United States.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/United States.zip"
+    },
+    {
+      "check": "size:noisecapture:United States.zip",
+      "ok": true,
+      "detail": "disk=1098078043 manifest=1098078043"
+    },
+    {
+      "check": "sha256:noisecapture:United States.zip",
+      "ok": true,
+      "detail": "678359778869971715bb1db259dea29de8744507107e294d0c9dee605f52419a"
+    },
+    {
+      "check": "md5:noisecapture:United States.zip",
+      "ok": true,
+      "detail": "2b80d6f3cba8582790cc0711dd656e6c"
+    },
+    {
+      "check": "exists:noisecapture:Kenya.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Kenya.zip"
+    },
+    {
+      "check": "size:noisecapture:Kenya.zip",
+      "ok": true,
+      "detail": "disk=15305481 manifest=15305481"
+    },
+    {
+      "check": "sha256:noisecapture:Kenya.zip",
+      "ok": true,
+      "detail": "9be5f266461340751064a538d03e48f7ab5982cbacf14afe78c87f79a8927106"
+    },
+    {
+      "check": "md5:noisecapture:Kenya.zip",
+      "ok": true,
+      "detail": "f57bdaef1f2f057ba1109f15cd4fc435"
+    },
+    {
+      "check": "exists:noisecapture:Romania.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Romania.zip"
+    },
+    {
+      "check": "size:noisecapture:Romania.zip",
+      "ok": true,
+      "detail": "disk=16654182 manifest=16654182"
+    },
+    {
+      "check": "sha256:noisecapture:Romania.zip",
+      "ok": true,
+      "detail": "9b5406356f7802b3b4390269f93255e56216f25c88f36ec0fac90e71c422312c"
+    },
+    {
+      "check": "md5:noisecapture:Romania.zip",
+      "ok": true,
+      "detail": "a87967f49d66fe89468d949af2e65529"
+    },
+    {
+      "check": "exists:noisecapture:Egypt.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Egypt.zip"
+    },
+    {
+      "check": "size:noisecapture:Egypt.zip",
+      "ok": true,
+      "detail": "disk=14738002 manifest=14738002"
+    },
+    {
+      "check": "sha256:noisecapture:Egypt.zip",
+      "ok": true,
+      "detail": "2c46a4c9adf7c745a083f52fc22019c49beff42508c5402bea44f38e508eb60e"
+    },
+    {
+      "check": "md5:noisecapture:Egypt.zip",
+      "ok": true,
+      "detail": "26002806d8649b32ed4e4349679ed422"
+    },
+    {
+      "check": "exists:noisecapture:Pakistan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Pakistan.zip"
+    },
+    {
+      "check": "size:noisecapture:Pakistan.zip",
+      "ok": true,
+      "detail": "disk=14608200 manifest=14608200"
+    },
+    {
+      "check": "sha256:noisecapture:Pakistan.zip",
+      "ok": true,
+      "detail": "8078b3699791c0e7cbfb9d1ccb1f62c2e720ce92b8dbb3a2b4dda05bc75f27ee"
+    },
+    {
+      "check": "md5:noisecapture:Pakistan.zip",
+      "ok": true,
+      "detail": "09ac0cf17907d95318ec3f94657a8e83"
+    },
+    {
+      "check": "exists:noisecapture:Peru.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Peru.zip"
+    },
+    {
+      "check": "size:noisecapture:Peru.zip",
+      "ok": true,
+      "detail": "disk=14378297 manifest=14378297"
+    },
+    {
+      "check": "sha256:noisecapture:Peru.zip",
+      "ok": true,
+      "detail": "b965e0d7ffb69ae8fac427e6f0cd9484e3832d8377e2be0ab9dca83781c1efa8"
+    },
+    {
+      "check": "md5:noisecapture:Peru.zip",
+      "ok": true,
+      "detail": "e5646b1eabc03b731e1fd502a3aaa497"
+    },
+    {
+      "check": "exists:noisecapture:South Korea.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/South Korea.zip"
+    },
+    {
+      "check": "size:noisecapture:South Korea.zip",
+      "ok": true,
+      "detail": "disk=14154517 manifest=14154517"
+    },
+    {
+      "check": "sha256:noisecapture:South Korea.zip",
+      "ok": true,
+      "detail": "016936b7a375f21f0f42c73bfb18fcdac75a225e81d6637fed5f54f3de81851e"
+    },
+    {
+      "check": "md5:noisecapture:South Korea.zip",
+      "ok": true,
+      "detail": "0076bee47d90310db05a1ea5425924f1"
+    },
+    {
+      "check": "exists:noisecapture:Hungary.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Hungary.zip"
+    },
+    {
+      "check": "size:noisecapture:Hungary.zip",
+      "ok": true,
+      "detail": "disk=13607845 manifest=13607845"
+    },
+    {
+      "check": "sha256:noisecapture:Hungary.zip",
+      "ok": true,
+      "detail": "fff25a5d42324bef6a408de889f6afaf850f96b90ecd3f92d435e9b15905e84b"
+    },
+    {
+      "check": "md5:noisecapture:Hungary.zip",
+      "ok": true,
+      "detail": "27f657acca94402ad6c072d8d90f748a"
+    },
+    {
+      "check": "exists:noisecapture:Chile.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Chile.zip"
+    },
+    {
+      "check": "size:noisecapture:Chile.zip",
+      "ok": true,
+      "detail": "disk=11431669 manifest=11431669"
+    },
+    {
+      "check": "sha256:noisecapture:Chile.zip",
+      "ok": true,
+      "detail": "181671a10c5eac3de039c76d9e10808f47b26fec8fcb54380de90371404f26a3"
+    },
+    {
+      "check": "md5:noisecapture:Chile.zip",
+      "ok": true,
+      "detail": "e74ca515244e77e2a62e741a493e4866"
+    },
+    {
+      "check": "exists:noisecapture:Argentina.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Argentina.zip"
+    },
+    {
+      "check": "size:noisecapture:Argentina.zip",
+      "ok": true,
+      "detail": "disk=10576673 manifest=10576673"
+    },
+    {
+      "check": "sha256:noisecapture:Argentina.zip",
+      "ok": true,
+      "detail": "3a7ab45c17a0ea946584d7b1adf224dfaf36e18b95220e064538cdad8d75123c"
+    },
+    {
+      "check": "md5:noisecapture:Argentina.zip",
+      "ok": true,
+      "detail": "0cb5a18a024f90b03d634418c98961bc"
+    },
+    {
+      "check": "exists:noisecapture:Bangladesh.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bangladesh.zip"
+    },
+    {
+      "check": "size:noisecapture:Bangladesh.zip",
+      "ok": true,
+      "detail": "disk=9986460 manifest=9986460"
+    },
+    {
+      "check": "sha256:noisecapture:Bangladesh.zip",
+      "ok": true,
+      "detail": "a43355e405dfd019b0426b63da01d9c8e1dcada97bdce9515073db089deb5de9"
+    },
+    {
+      "check": "md5:noisecapture:Bangladesh.zip",
+      "ok": true,
+      "detail": "0ac47d615d649650a656c0f20aeb65c9"
+    },
+    {
+      "check": "exists:noisecapture:Algeria.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Algeria.zip"
+    },
+    {
+      "check": "size:noisecapture:Algeria.zip",
+      "ok": true,
+      "detail": "disk=9633701 manifest=9633701"
+    },
+    {
+      "check": "sha256:noisecapture:Algeria.zip",
+      "ok": true,
+      "detail": "06507dfda5474c271c513cab3f417f7743b6f38faad8136db1560ea45dfe4bf1"
+    },
+    {
+      "check": "md5:noisecapture:Algeria.zip",
+      "ok": true,
+      "detail": "9645f17bf941ae4bed46a516eed45146"
+    },
+    {
+      "check": "exists:noisecapture:Albania.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Albania.zip"
+    },
+    {
+      "check": "size:noisecapture:Albania.zip",
+      "ok": true,
+      "detail": "disk=12625587 manifest=12625587"
+    },
+    {
+      "check": "sha256:noisecapture:Albania.zip",
+      "ok": true,
+      "detail": "1665e2bbd5d8d8c99f5cd507b70393149ef7908b71c0a5a253a9df6f7c914527"
+    },
+    {
+      "check": "md5:noisecapture:Albania.zip",
+      "ok": true,
+      "detail": "42072e873d9de7c8eb2d2efcd9523dbb"
+    },
+    {
+      "check": "exists:noisecapture:Russia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Russia.zip"
+    },
+    {
+      "check": "size:noisecapture:Russia.zip",
+      "ok": true,
+      "detail": "disk=9318642 manifest=9318642"
+    },
+    {
+      "check": "sha256:noisecapture:Russia.zip",
+      "ok": true,
+      "detail": "c9ef8d591db074ff8b3b475b9a5431cc831670b909fa12a6fec00223733377cd"
+    },
+    {
+      "check": "md5:noisecapture:Russia.zip",
+      "ok": true,
+      "detail": "8ba7c770ee08212ff6d130223def6368"
+    },
+    {
+      "check": "exists:noisecapture:Portugal.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Portugal.zip"
+    },
+    {
+      "check": "size:noisecapture:Portugal.zip",
+      "ok": true,
+      "detail": "disk=8581877 manifest=8581877"
+    },
+    {
+      "check": "sha256:noisecapture:Portugal.zip",
+      "ok": true,
+      "detail": "7b6c41add059d07a297105496a4b9ce590f1f4e3cb969f6c2091ba5499cf04a2"
+    },
+    {
+      "check": "md5:noisecapture:Portugal.zip",
+      "ok": true,
+      "detail": "9c06cf53744e9f76b38fd20f46f2c123"
+    },
+    {
+      "check": "exists:noisecapture:Lithuania.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Lithuania.zip"
+    },
+    {
+      "check": "size:noisecapture:Lithuania.zip",
+      "ok": true,
+      "detail": "disk=8072159 manifest=8072159"
+    },
+    {
+      "check": "sha256:noisecapture:Lithuania.zip",
+      "ok": true,
+      "detail": "65725688277ff072cb7ec2362c95dddc50f6f5000844af5a84b0236e38da94e3"
+    },
+    {
+      "check": "md5:noisecapture:Lithuania.zip",
+      "ok": true,
+      "detail": "8eabf260ce07ca5e0061b4ededa3c8b8"
+    },
+    {
+      "check": "exists:noisecapture:Bosnia and Herzegovina.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bosnia and Herzegovina.zip"
+    },
+    {
+      "check": "size:noisecapture:Bosnia and Herzegovina.zip",
+      "ok": true,
+      "detail": "disk=7918860 manifest=7918860"
+    },
+    {
+      "check": "sha256:noisecapture:Bosnia and Herzegovina.zip",
+      "ok": true,
+      "detail": "0b8e3101a8d266092dba1c40e206417b78dc5709728d2b031b60e649378d0a2b"
+    },
+    {
+      "check": "md5:noisecapture:Bosnia and Herzegovina.zip",
+      "ok": true,
+      "detail": "cc5c9b6aeb174b5f25f1bf10bcf7db5e"
+    },
+    {
+      "check": "exists:noisecapture:Morocco.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Morocco.zip"
+    },
+    {
+      "check": "size:noisecapture:Morocco.zip",
+      "ok": true,
+      "detail": "disk=7887544 manifest=7887544"
+    },
+    {
+      "check": "sha256:noisecapture:Morocco.zip",
+      "ok": true,
+      "detail": "ad3fade8657b3233392928c5e7e453f4f643b731609f3338b196ce4aedaf440b"
+    },
+    {
+      "check": "md5:noisecapture:Morocco.zip",
+      "ok": true,
+      "detail": "fdc9b37d6f198aa9af96e3528f83091b"
+    },
+    {
+      "check": "exists:noisecapture:Philippines.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Philippines.zip"
+    },
+    {
+      "check": "size:noisecapture:Philippines.zip",
+      "ok": true,
+      "detail": "disk=7797503 manifest=7797503"
+    },
+    {
+      "check": "sha256:noisecapture:Philippines.zip",
+      "ok": true,
+      "detail": "e132edc10ea1e9441d3c532656b2da5bfd713ea6706a9e77727a0e149ec0fa5f"
+    },
+    {
+      "check": "md5:noisecapture:Philippines.zip",
+      "ok": true,
+      "detail": "3569fe2c9d5de40667317c07fb21738b"
+    },
+    {
+      "check": "exists:noisecapture:Cuba.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Cuba.zip"
+    },
+    {
+      "check": "size:noisecapture:Cuba.zip",
+      "ok": true,
+      "detail": "disk=6415915 manifest=6415915"
+    },
+    {
+      "check": "sha256:noisecapture:Cuba.zip",
+      "ok": true,
+      "detail": "7ee31439cfb4130a26d4fd496b4834b80b1cbdf4835b748383237369c2b24668"
+    },
+    {
+      "check": "md5:noisecapture:Cuba.zip",
+      "ok": true,
+      "detail": "fbbe583921dd713db1d5dd6419faa50c"
+    },
+    {
+      "check": "exists:noisecapture:Botswana.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Botswana.zip"
+    },
+    {
+      "check": "size:noisecapture:Botswana.zip",
+      "ok": true,
+      "detail": "disk=6050572 manifest=6050572"
+    },
+    {
+      "check": "sha256:noisecapture:Botswana.zip",
+      "ok": true,
+      "detail": "4ce1070cd6261d0bf7571804b431cd8bf75b1cff139225600e98fcf06d657140"
+    },
+    {
+      "check": "md5:noisecapture:Botswana.zip",
+      "ok": true,
+      "detail": "6fd865247767e6f7a0521c5a7d105f19"
+    },
+    {
+      "check": "exists:noisecapture:Saudi Arabia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Saudi Arabia.zip"
+    },
+    {
+      "check": "size:noisecapture:Saudi Arabia.zip",
+      "ok": true,
+      "detail": "disk=6356602 manifest=6356602"
+    },
+    {
+      "check": "sha256:noisecapture:Saudi Arabia.zip",
+      "ok": true,
+      "detail": "c902933ca1dda768a670977c127270bf86612dd5a083f0f126e50bb6b2c0df14"
+    },
+    {
+      "check": "md5:noisecapture:Saudi Arabia.zip",
+      "ok": true,
+      "detail": "5732bafd29102f8f43499b40120488de"
+    },
+    {
+      "check": "exists:noisecapture:Sweden.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Sweden.zip"
+    },
+    {
+      "check": "size:noisecapture:Sweden.zip",
+      "ok": true,
+      "detail": "disk=5534624 manifest=5534624"
+    },
+    {
+      "check": "sha256:noisecapture:Sweden.zip",
+      "ok": true,
+      "detail": "38d2663722f126395f0df1cfcd181c45139d87842055ba8c1cfdd8bfeb1f9337"
+    },
+    {
+      "check": "md5:noisecapture:Sweden.zip",
+      "ok": true,
+      "detail": "8546b22195b6328b71131df0d1fef210"
+    },
+    {
+      "check": "exists:noisecapture:Israel.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Israel.zip"
+    },
+    {
+      "check": "size:noisecapture:Israel.zip",
+      "ok": true,
+      "detail": "disk=4929655 manifest=4929655"
+    },
+    {
+      "check": "sha256:noisecapture:Israel.zip",
+      "ok": true,
+      "detail": "bc9b531ca6fdde7d1038eab3e9885eddad788e0c0c8972530c02c02ceb799c61"
+    },
+    {
+      "check": "md5:noisecapture:Israel.zip",
+      "ok": true,
+      "detail": "fea7ab464661a9c66d95cc6bea8b0ef2"
+    },
+    {
+      "check": "exists:noisecapture:Japan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Japan.zip"
+    },
+    {
+      "check": "size:noisecapture:Japan.zip",
+      "ok": true,
+      "detail": "disk=5598110 manifest=5598110"
+    },
+    {
+      "check": "sha256:noisecapture:Japan.zip",
+      "ok": true,
+      "detail": "7e6fe54f973efbf934a365bf7740fdb89b70a089cfc32df3a817812ea2ea4f85"
+    },
+    {
+      "check": "md5:noisecapture:Japan.zip",
+      "ok": true,
+      "detail": "7f49eef98b35dae31bb78ee1d9f7a5dd"
+    },
+    {
+      "check": "exists:noisecapture:Gabon.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Gabon.zip"
+    },
+    {
+      "check": "size:noisecapture:Gabon.zip",
+      "ok": true,
+      "detail": "disk=4691420 manifest=4691420"
+    },
+    {
+      "check": "sha256:noisecapture:Gabon.zip",
+      "ok": true,
+      "detail": "b3356702d34cbe37a1cf097a494e0f00587e1a4c7676aae6001619c3d5baa61f"
+    },
+    {
+      "check": "md5:noisecapture:Gabon.zip",
+      "ok": true,
+      "detail": "da21c0fef0d7ae15dedbb8be0d66e95f"
+    },
+    {
+      "check": "exists:noisecapture:Finland.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Finland.zip"
+    },
+    {
+      "check": "size:noisecapture:Finland.zip",
+      "ok": true,
+      "detail": "disk=4637494 manifest=4637494"
+    },
+    {
+      "check": "sha256:noisecapture:Finland.zip",
+      "ok": true,
+      "detail": "130df86ea71a56a8e35546e19ec61f6d7f01a3e9a9e0f363b5b105ea4ef8e58e"
+    },
+    {
+      "check": "md5:noisecapture:Finland.zip",
+      "ok": true,
+      "detail": "40c6297e1c28d099605b8545dbfc1f56"
+    },
+    {
+      "check": "exists:noisecapture:Indonesia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Indonesia.zip"
+    },
+    {
+      "check": "size:noisecapture:Indonesia.zip",
+      "ok": true,
+      "detail": "disk=4654935 manifest=4654935"
+    },
+    {
+      "check": "sha256:noisecapture:Indonesia.zip",
+      "ok": true,
+      "detail": "b992b6e48684fe994e580a315ac71a4d5bdc6f49140350c505fafc877ef7a516"
+    },
+    {
+      "check": "md5:noisecapture:Indonesia.zip",
+      "ok": true,
+      "detail": "b9c549969468f0d2507f11ef163689f8"
+    },
+    {
+      "check": "exists:noisecapture:Denmark.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Denmark.zip"
+    },
+    {
+      "check": "size:noisecapture:Denmark.zip",
+      "ok": true,
+      "detail": "disk=4235277 manifest=4235277"
+    },
+    {
+      "check": "sha256:noisecapture:Denmark.zip",
+      "ok": true,
+      "detail": "c03472d6379c56a00b06c7e45810faf20116a0f2f0f6c2563e47348d18348480"
+    },
+    {
+      "check": "md5:noisecapture:Denmark.zip",
+      "ok": true,
+      "detail": "9f17906b9c212a93e0399dde3d6f396c"
+    },
+    {
+      "check": "exists:noisecapture:Taiwan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Taiwan.zip"
+    },
+    {
+      "check": "size:noisecapture:Taiwan.zip",
+      "ok": true,
+      "detail": "disk=4342186 manifest=4342186"
+    },
+    {
+      "check": "sha256:noisecapture:Taiwan.zip",
+      "ok": true,
+      "detail": "3cbb84cb2e6cbd1b8fa6ef50dcd7a4d136be19d4abefa264f5df70329182e658"
+    },
+    {
+      "check": "md5:noisecapture:Taiwan.zip",
+      "ok": true,
+      "detail": "36b1deb5009c8cb344e22f407ee2166d"
+    },
+    {
+      "check": "exists:noisecapture:Reunion.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Reunion.zip"
+    },
+    {
+      "check": "size:noisecapture:Reunion.zip",
+      "ok": true,
+      "detail": "disk=3995818 manifest=3995818"
+    },
+    {
+      "check": "sha256:noisecapture:Reunion.zip",
+      "ok": true,
+      "detail": "55fcfca99e9de14a14a217529e43cb6dbd67d4120e36ef3ff09e177f0737e90f"
+    },
+    {
+      "check": "md5:noisecapture:Reunion.zip",
+      "ok": true,
+      "detail": "1a77f8334d57f4124e10dec766875cd2"
+    },
+    {
+      "check": "exists:noisecapture:Ukraine.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Ukraine.zip"
+    },
+    {
+      "check": "size:noisecapture:Ukraine.zip",
+      "ok": true,
+      "detail": "disk=3744229 manifest=3744229"
+    },
+    {
+      "check": "sha256:noisecapture:Ukraine.zip",
+      "ok": true,
+      "detail": "3eb339a3d042af67f674ee363b7470af51559570ab163618a61c56ab9acab011"
+    },
+    {
+      "check": "md5:noisecapture:Ukraine.zip",
+      "ok": true,
+      "detail": "c288be5e4894c303198b4cf5bbda044d"
+    },
+    {
+      "check": "exists:noisecapture:Czech Republic.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Czech Republic.zip"
+    },
+    {
+      "check": "size:noisecapture:Czech Republic.zip",
+      "ok": true,
+      "detail": "disk=3705677 manifest=3705677"
+    },
+    {
+      "check": "sha256:noisecapture:Czech Republic.zip",
+      "ok": true,
+      "detail": "65cd0512f13fb532cb547b0d30fae80f118f018dcdd1042e392d0a38fc4e93ae"
+    },
+    {
+      "check": "md5:noisecapture:Czech Republic.zip",
+      "ok": true,
+      "detail": "16232823bdf3678af7cdf6aceb7ca16c"
+    },
+    {
+      "check": "exists:noisecapture:Hong Kong.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Hong Kong.zip"
+    },
+    {
+      "check": "size:noisecapture:Hong Kong.zip",
+      "ok": true,
+      "detail": "disk=3557460 manifest=3557460"
+    },
+    {
+      "check": "sha256:noisecapture:Hong Kong.zip",
+      "ok": true,
+      "detail": "59291c2d40c763a3331379fc440b341c6fbb937c22f1b0359754d210d42dc338"
+    },
+    {
+      "check": "md5:noisecapture:Hong Kong.zip",
+      "ok": true,
+      "detail": "2197c5e7e78fa487719acc777592a1e1"
+    },
+    {
+      "check": "exists:noisecapture:Jamaica.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Jamaica.zip"
+    },
+    {
+      "check": "size:noisecapture:Jamaica.zip",
+      "ok": true,
+      "detail": "disk=3376564 manifest=3376564"
+    },
+    {
+      "check": "sha256:noisecapture:Jamaica.zip",
+      "ok": true,
+      "detail": "ba8cc3953453fd933c6b30dff40c1e854d86845f550fbd38529a43b94b6d3d8a"
+    },
+    {
+      "check": "md5:noisecapture:Jamaica.zip",
+      "ok": true,
+      "detail": "6a19d5a52cd52bbe2f046b743d10e116"
+    },
+    {
+      "check": "exists:noisecapture:Palestina.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Palestina.zip"
+    },
+    {
+      "check": "size:noisecapture:Palestina.zip",
+      "ok": true,
+      "detail": "disk=2883758 manifest=2883758"
+    },
+    {
+      "check": "sha256:noisecapture:Palestina.zip",
+      "ok": true,
+      "detail": "1985ce101af07624fa076d9e751c2b36b34cb9b9f27c68ff16bb9e05b376c225"
+    },
+    {
+      "check": "md5:noisecapture:Palestina.zip",
+      "ok": true,
+      "detail": "c21a5b11ebd3ce03cd665ad62264d094"
+    },
+    {
+      "check": "exists:noisecapture:Ghana.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Ghana.zip"
+    },
+    {
+      "check": "size:noisecapture:Ghana.zip",
+      "ok": true,
+      "detail": "disk=2377948 manifest=2377948"
+    },
+    {
+      "check": "sha256:noisecapture:Ghana.zip",
+      "ok": true,
+      "detail": "f68cf5884f15487dfea11cd878da5635e51e5ee38db4ec07ce24adf9912a02f4"
+    },
+    {
+      "check": "md5:noisecapture:Ghana.zip",
+      "ok": true,
+      "detail": "2c9e24e2d94b9d6d23d99619e3b4da48"
+    },
+    {
+      "check": "exists:noisecapture:Vietnam.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Vietnam.zip"
+    },
+    {
+      "check": "size:noisecapture:Vietnam.zip",
+      "ok": true,
+      "detail": "disk=2287110 manifest=2287110"
+    },
+    {
+      "check": "sha256:noisecapture:Vietnam.zip",
+      "ok": true,
+      "detail": "991a79db01d779ed6925b8215be5de3d11e7648252f08ab9aaa9ecca76c1c2ae"
+    },
+    {
+      "check": "md5:noisecapture:Vietnam.zip",
+      "ok": true,
+      "detail": "b14d3fa733e0a06fb76f41944fb7be6f"
+    },
+    {
+      "check": "exists:noisecapture:Tunisia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Tunisia.zip"
+    },
+    {
+      "check": "size:noisecapture:Tunisia.zip",
+      "ok": true,
+      "detail": "disk=2203558 manifest=2203558"
+    },
+    {
+      "check": "sha256:noisecapture:Tunisia.zip",
+      "ok": true,
+      "detail": "feaadb48287885d718e0c4f3659efc37ffd2759aa301308bfa1cb42b43dfbfc6"
+    },
+    {
+      "check": "md5:noisecapture:Tunisia.zip",
+      "ok": true,
+      "detail": "f594a52e2303b65f31259b37a484f6a9"
+    },
+    {
+      "check": "exists:noisecapture:Jersey.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Jersey.zip"
+    },
+    {
+      "check": "size:noisecapture:Jersey.zip",
+      "ok": true,
+      "detail": "disk=2070092 manifest=2070092"
+    },
+    {
+      "check": "sha256:noisecapture:Jersey.zip",
+      "ok": true,
+      "detail": "37c86245ce2c13cd0b99f7c274e731b25139917825c82534e43d514a8a1ae551"
+    },
+    {
+      "check": "md5:noisecapture:Jersey.zip",
+      "ok": true,
+      "detail": "01a4f43585c89ea8850eda52536b7f37"
+    },
+    {
+      "check": "exists:noisecapture:Nigeria.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Nigeria.zip"
+    },
+    {
+      "check": "size:noisecapture:Nigeria.zip",
+      "ok": true,
+      "detail": "disk=2100484 manifest=2100484"
+    },
+    {
+      "check": "sha256:noisecapture:Nigeria.zip",
+      "ok": true,
+      "detail": "3af0f338b5c9e9a3d39803b32f1ff7003fc73cd81818953ce0a26063e5e8955a"
+    },
+    {
+      "check": "md5:noisecapture:Nigeria.zip",
+      "ok": true,
+      "detail": "a390d8841ed1c3053e4e1600d39c6ee4"
+    },
+    {
+      "check": "exists:noisecapture:Bulgaria.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bulgaria.zip"
+    },
+    {
+      "check": "size:noisecapture:Bulgaria.zip",
+      "ok": true,
+      "detail": "disk=1949240 manifest=1949240"
+    },
+    {
+      "check": "sha256:noisecapture:Bulgaria.zip",
+      "ok": true,
+      "detail": "46dd3aaa390e3e79ebeeb628cf748fbdbb6d11c6afcd859c4f2f27de47c56260"
+    },
+    {
+      "check": "md5:noisecapture:Bulgaria.zip",
+      "ok": true,
+      "detail": "e2bce13b2ba0ccab93341a459f05bf97"
+    },
+    {
+      "check": "exists:noisecapture:Costa Rica.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Costa Rica.zip"
+    },
+    {
+      "check": "size:noisecapture:Costa Rica.zip",
+      "ok": true,
+      "detail": "disk=1950705 manifest=1950705"
+    },
+    {
+      "check": "sha256:noisecapture:Costa Rica.zip",
+      "ok": true,
+      "detail": "5229cf17719e4f0d2565af4daf4f5009636e22a20fba29905417d402c32b8186"
+    },
+    {
+      "check": "md5:noisecapture:Costa Rica.zip",
+      "ok": true,
+      "detail": "5e9617631f197cae6cbda6233b831a6c"
+    },
+    {
+      "check": "exists:noisecapture:Martinique.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Martinique.zip"
+    },
+    {
+      "check": "size:noisecapture:Martinique.zip",
+      "ok": true,
+      "detail": "disk=1949522 manifest=1949522"
+    },
+    {
+      "check": "sha256:noisecapture:Martinique.zip",
+      "ok": true,
+      "detail": "d98d66d52a40953d76a9deee35690684aa7aa02f26203ae09b4ad301349c092a"
+    },
+    {
+      "check": "md5:noisecapture:Martinique.zip",
+      "ok": true,
+      "detail": "ebe5e16deb0a96b94136958e32fffebc"
+    },
+    {
+      "check": "exists:noisecapture:Kosovo.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Kosovo.zip"
+    },
+    {
+      "check": "size:noisecapture:Kosovo.zip",
+      "ok": true,
+      "detail": "disk=1759278 manifest=1759278"
+    },
+    {
+      "check": "sha256:noisecapture:Kosovo.zip",
+      "ok": true,
+      "detail": "29f757d563bff781d78b751732a02b8138040387a9fdfa74632847afb0f9dfc5"
+    },
+    {
+      "check": "md5:noisecapture:Kosovo.zip",
+      "ok": true,
+      "detail": "75d38a5e9fbb6b3e1f8d8b5d5aa6ccbc"
+    },
+    {
+      "check": "exists:noisecapture:Panama.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Panama.zip"
+    },
+    {
+      "check": "size:noisecapture:Panama.zip",
+      "ok": true,
+      "detail": "disk=1768653 manifest=1768653"
+    },
+    {
+      "check": "sha256:noisecapture:Panama.zip",
+      "ok": true,
+      "detail": "d96314c82178657008ff95a3dcfdf045762aed015a81a923fab1c635167791e6"
+    },
+    {
+      "check": "md5:noisecapture:Panama.zip",
+      "ok": true,
+      "detail": "0c75b1e69c81fe032a2236f0af7b7548"
+    },
+    {
+      "check": "exists:noisecapture:Bhutan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bhutan.zip"
+    },
+    {
+      "check": "size:noisecapture:Bhutan.zip",
+      "ok": true,
+      "detail": "disk=1643344 manifest=1643344"
+    },
+    {
+      "check": "sha256:noisecapture:Bhutan.zip",
+      "ok": true,
+      "detail": "9c3c96fe84f1a89484740f252c9bbbbe996e4aacd5d7e31b64fb6c536130216d"
+    },
+    {
+      "check": "md5:noisecapture:Bhutan.zip",
+      "ok": true,
+      "detail": "e6212a2d31a1f76bc9b624b86280c265"
+    },
+    {
+      "check": "exists:noisecapture:Myanmar.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Myanmar.zip"
+    },
+    {
+      "check": "size:noisecapture:Myanmar.zip",
+      "ok": true,
+      "detail": "disk=1434487 manifest=1434487"
+    },
+    {
+      "check": "sha256:noisecapture:Myanmar.zip",
+      "ok": true,
+      "detail": "f51fccd152efbdd7d07f2c0a84709070d1073c00f78eb7921981d32e25550b9f"
+    },
+    {
+      "check": "md5:noisecapture:Myanmar.zip",
+      "ok": true,
+      "detail": "798e172bc3118436676c31a62c713ee1"
+    },
+    {
+      "check": "exists:noisecapture:Cambodia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Cambodia.zip"
+    },
+    {
+      "check": "size:noisecapture:Cambodia.zip",
+      "ok": true,
+      "detail": "disk=1566656 manifest=1566656"
+    },
+    {
+      "check": "sha256:noisecapture:Cambodia.zip",
+      "ok": true,
+      "detail": "da25c5fd455c35645366c92efc495ae4fe1e102739c7cef4e697cffe541fc141"
+    },
+    {
+      "check": "md5:noisecapture:Cambodia.zip",
+      "ok": true,
+      "detail": "7317d959c33b66eda3049420450df80f"
+    },
+    {
+      "check": "exists:noisecapture:Serbia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Serbia.zip"
+    },
+    {
+      "check": "size:noisecapture:Serbia.zip",
+      "ok": true,
+      "detail": "disk=1498364 manifest=1498364"
+    },
+    {
+      "check": "sha256:noisecapture:Serbia.zip",
+      "ok": true,
+      "detail": "d543abd0e8462f7ab95184f0e7502337b899aa8c46e074fd4f04dee028352bc1"
+    },
+    {
+      "check": "md5:noisecapture:Serbia.zip",
+      "ok": true,
+      "detail": "e6a631f6934f4bcff0a06631de8255be"
+    },
+    {
+      "check": "exists:noisecapture:Bolivia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bolivia.zip"
+    },
+    {
+      "check": "size:noisecapture:Bolivia.zip",
+      "ok": true,
+      "detail": "disk=1384473 manifest=1384473"
+    },
+    {
+      "check": "sha256:noisecapture:Bolivia.zip",
+      "ok": true,
+      "detail": "279a4a1914ef4b1d604f2ef5d151086393c8bae2c96f866802838a31ab7a871a"
+    },
+    {
+      "check": "md5:noisecapture:Bolivia.zip",
+      "ok": true,
+      "detail": "292c3adcb1534e0537ffc3c77c6020c0"
+    },
+    {
+      "check": "exists:noisecapture:Estonia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Estonia.zip"
+    },
+    {
+      "check": "size:noisecapture:Estonia.zip",
+      "ok": true,
+      "detail": "disk=1323404 manifest=1323404"
+    },
+    {
+      "check": "sha256:noisecapture:Estonia.zip",
+      "ok": true,
+      "detail": "d17064f96c4ac11b7384f3c3621ab0930d965216217719d6c2b45a7a2db8b926"
+    },
+    {
+      "check": "md5:noisecapture:Estonia.zip",
+      "ok": true,
+      "detail": "ed20a4fd5ac2d2364cb2688568488253"
+    },
+    {
+      "check": "exists:noisecapture:Luxembourg.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Luxembourg.zip"
+    },
+    {
+      "check": "size:noisecapture:Luxembourg.zip",
+      "ok": true,
+      "detail": "disk=1404650 manifest=1404650"
+    },
+    {
+      "check": "sha256:noisecapture:Luxembourg.zip",
+      "ok": true,
+      "detail": "be6e2608fe4b25dcabfce668f627a41980326224baa7c3f38d3e0fc410ed5821"
+    },
+    {
+      "check": "md5:noisecapture:Luxembourg.zip",
+      "ok": true,
+      "detail": "a0170e6b5e1e4f45612725e49320cc45"
+    },
+    {
+      "check": "exists:noisecapture:Slovakia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Slovakia.zip"
+    },
+    {
+      "check": "size:noisecapture:Slovakia.zip",
+      "ok": true,
+      "detail": "disk=1360808 manifest=1360808"
+    },
+    {
+      "check": "sha256:noisecapture:Slovakia.zip",
+      "ok": true,
+      "detail": "48c1582b141d4f4b170a1d0eb444c903bea62dd0fa4a4e2f097679108eb43b76"
+    },
+    {
+      "check": "md5:noisecapture:Slovakia.zip",
+      "ok": true,
+      "detail": "add02e201f25ca4b3ae8882773daaaf5"
+    },
+    {
+      "check": "exists:noisecapture:Cameroon.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Cameroon.zip"
+    },
+    {
+      "check": "size:noisecapture:Cameroon.zip",
+      "ok": true,
+      "detail": "disk=1229767 manifest=1229767"
+    },
+    {
+      "check": "sha256:noisecapture:Cameroon.zip",
+      "ok": true,
+      "detail": "1b3a515cca54f48c2b4e0aef7ca6e953fcf0259a4c7da7ee0ca0e2d5840ebd84"
+    },
+    {
+      "check": "md5:noisecapture:Cameroon.zip",
+      "ok": true,
+      "detail": "180df7ce1cab3da1ac2bf817144ccd42"
+    },
+    {
+      "check": "exists:noisecapture:French Guiana.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/French Guiana.zip"
+    },
+    {
+      "check": "size:noisecapture:French Guiana.zip",
+      "ok": true,
+      "detail": "disk=1241226 manifest=1241226"
+    },
+    {
+      "check": "sha256:noisecapture:French Guiana.zip",
+      "ok": true,
+      "detail": "f7a03c0f211ea622b3026c8799e5c16c4b24bb77c7bea61cb1eff83e3054c8f9"
+    },
+    {
+      "check": "md5:noisecapture:French Guiana.zip",
+      "ok": true,
+      "detail": "16f44c4aaf8fa6835d78bb6c0176ec2a"
+    },
+    {
+      "check": "exists:noisecapture:Malta.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Malta.zip"
+    },
+    {
+      "check": "size:noisecapture:Malta.zip",
+      "ok": true,
+      "detail": "disk=1273737 manifest=1273737"
+    },
+    {
+      "check": "sha256:noisecapture:Malta.zip",
+      "ok": true,
+      "detail": "069bf56d2854759ce5d72e0fff105039e5d3bd3ec62ddb6e85fbef31a69f3271"
+    },
+    {
+      "check": "md5:noisecapture:Malta.zip",
+      "ok": true,
+      "detail": "d041f89a831ed595dc086ef992be054d"
+    },
+    {
+      "check": "exists:noisecapture:Ireland.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Ireland.zip"
+    },
+    {
+      "check": "size:noisecapture:Ireland.zip",
+      "ok": true,
+      "detail": "disk=1105823 manifest=1105823"
+    },
+    {
+      "check": "sha256:noisecapture:Ireland.zip",
+      "ok": true,
+      "detail": "b54c313ddfc3d7d28212d6fe209ab9af9e2a11fb3fe682ee98424048435882bc"
+    },
+    {
+      "check": "md5:noisecapture:Ireland.zip",
+      "ok": true,
+      "detail": "7f220bf504ba1e7731aa5348a01c5ff2"
+    },
+    {
+      "check": "exists:noisecapture:Belarus.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Belarus.zip"
+    },
+    {
+      "check": "size:noisecapture:Belarus.zip",
+      "ok": true,
+      "detail": "disk=1080638 manifest=1080638"
+    },
+    {
+      "check": "sha256:noisecapture:Belarus.zip",
+      "ok": true,
+      "detail": "0a4c6b61a6cfcb8325da6d2143619dbc7bc3102eaa4244fbdb6135332c75434e"
+    },
+    {
+      "check": "md5:noisecapture:Belarus.zip",
+      "ok": true,
+      "detail": "c50ec31e7b56386ef5bc6c152d6ed0c4"
+    },
+    {
+      "check": "exists:noisecapture:Qatar.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Qatar.zip"
+    },
+    {
+      "check": "size:noisecapture:Qatar.zip",
+      "ok": true,
+      "detail": "disk=1081610 manifest=1081610"
+    },
+    {
+      "check": "sha256:noisecapture:Qatar.zip",
+      "ok": true,
+      "detail": "d94adfa87a9c11045260e1cbe620a038aaea38a0954c05d9905aea332b870250"
+    },
+    {
+      "check": "md5:noisecapture:Qatar.zip",
+      "ok": true,
+      "detail": "6b7178e5ce59c7f64cb8033ef2cdd116"
+    },
+    {
+      "check": "exists:noisecapture:C\u00f4te d'Ivoire.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/C\u00f4te d'Ivoire.zip"
+    },
+    {
+      "check": "size:noisecapture:C\u00f4te d'Ivoire.zip",
+      "ok": true,
+      "detail": "disk=1076244 manifest=1076244"
+    },
+    {
+      "check": "sha256:noisecapture:C\u00f4te d'Ivoire.zip",
+      "ok": true,
+      "detail": "51fb701c2bd2159ac07984f97e5df7138de75349c3c42b5de6239c9cdc6cccc0"
+    },
+    {
+      "check": "md5:noisecapture:C\u00f4te d'Ivoire.zip",
+      "ok": true,
+      "detail": "6a71dda97284096f9be9980fdfa98369"
+    },
+    {
+      "check": "exists:noisecapture:Sri Lanka.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Sri Lanka.zip"
+    },
+    {
+      "check": "size:noisecapture:Sri Lanka.zip",
+      "ok": true,
+      "detail": "disk=1080935 manifest=1080935"
+    },
+    {
+      "check": "sha256:noisecapture:Sri Lanka.zip",
+      "ok": true,
+      "detail": "a86d0a6370476758c5e4869d5c521e545d21d164b1b13b83ef4b2e34785dbf17"
+    },
+    {
+      "check": "md5:noisecapture:Sri Lanka.zip",
+      "ok": true,
+      "detail": "b3927309acdd6d541ea97d0ec336c0c3"
+    },
+    {
+      "check": "exists:noisecapture:Norfolk Island.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Norfolk Island.zip"
+    },
+    {
+      "check": "size:noisecapture:Norfolk Island.zip",
+      "ok": true,
+      "detail": "disk=1004323 manifest=1004323"
+    },
+    {
+      "check": "sha256:noisecapture:Norfolk Island.zip",
+      "ok": true,
+      "detail": "b4d79965b9cd25d4a875548dacfe96490d85076be87d0d6125c00c0e078c2706"
+    },
+    {
+      "check": "md5:noisecapture:Norfolk Island.zip",
+      "ok": true,
+      "detail": "bcbe45894aa8b62f2661efc2ca221cd4"
+    },
+    {
+      "check": "exists:noisecapture:Monaco.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Monaco.zip"
+    },
+    {
+      "check": "size:noisecapture:Monaco.zip",
+      "ok": true,
+      "detail": "disk=904534 manifest=904534"
+    },
+    {
+      "check": "sha256:noisecapture:Monaco.zip",
+      "ok": true,
+      "detail": "2fa801e1c02b80d75285d8449d538a8b9513cbf70b8c1b431e7635357aad537b"
+    },
+    {
+      "check": "md5:noisecapture:Monaco.zip",
+      "ok": true,
+      "detail": "f89e06a63ee69438fbaf89aaf80a35aa"
+    },
+    {
+      "check": "exists:noisecapture:Namibia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Namibia.zip"
+    },
+    {
+      "check": "size:noisecapture:Namibia.zip",
+      "ok": true,
+      "detail": "disk=1001357 manifest=1001357"
+    },
+    {
+      "check": "sha256:noisecapture:Namibia.zip",
+      "ok": true,
+      "detail": "c40f77d0ccb1766ed6fd64af64976c99b09ac81056cdd44d3f77cf4eab4a59e5"
+    },
+    {
+      "check": "md5:noisecapture:Namibia.zip",
+      "ok": true,
+      "detail": "947f6998d50f491dc0415d2cff680f10"
+    },
+    {
+      "check": "exists:noisecapture:Latvia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Latvia.zip"
+    },
+    {
+      "check": "size:noisecapture:Latvia.zip",
+      "ok": true,
+      "detail": "disk=935616 manifest=935616"
+    },
+    {
+      "check": "sha256:noisecapture:Latvia.zip",
+      "ok": true,
+      "detail": "25d9b6f725ab42ae31ded83b731dc743636efabb27c4b2e92cc3ac13de03bb9e"
+    },
+    {
+      "check": "md5:noisecapture:Latvia.zip",
+      "ok": true,
+      "detail": "96d8c4cfaf24ae5864541701701a0248"
+    },
+    {
+      "check": "exists:noisecapture:Democratic Republic of the Congo.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Democratic Republic of the Congo.zip"
+    },
+    {
+      "check": "size:noisecapture:Democratic Republic of the Congo.zip",
+      "ok": true,
+      "detail": "disk=862180 manifest=862180"
+    },
+    {
+      "check": "sha256:noisecapture:Democratic Republic of the Congo.zip",
+      "ok": true,
+      "detail": "85098e2c3f51554e72b913c39f721c7c1291e3ddd6310e1924f0ebf99e161f87"
+    },
+    {
+      "check": "md5:noisecapture:Democratic Republic of the Congo.zip",
+      "ok": true,
+      "detail": "9affea3acf6b77e3ad2bd74e786b0f37"
+    },
+    {
+      "check": "exists:noisecapture:Nepal.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Nepal.zip"
+    },
+    {
+      "check": "size:noisecapture:Nepal.zip",
+      "ok": true,
+      "detail": "disk=891146 manifest=891146"
+    },
+    {
+      "check": "sha256:noisecapture:Nepal.zip",
+      "ok": true,
+      "detail": "560f83289a14de9d360597f055e546b11660678eb5fbda5772a10ba21def61a7"
+    },
+    {
+      "check": "md5:noisecapture:Nepal.zip",
+      "ok": true,
+      "detail": "37f99c951915fddae72079bc9c8acc5b"
+    },
+    {
+      "check": "exists:noisecapture:Benin.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Benin.zip"
+    },
+    {
+      "check": "size:noisecapture:Benin.zip",
+      "ok": true,
+      "detail": "disk=783249 manifest=783249"
+    },
+    {
+      "check": "sha256:noisecapture:Benin.zip",
+      "ok": true,
+      "detail": "047729483e43e3aad7b2d4a3165b49ddabd6bdd398bf833823b36508765e70a4"
+    },
+    {
+      "check": "md5:noisecapture:Benin.zip",
+      "ok": true,
+      "detail": "2ece8cc308dda389e4c31de73d078f9a"
+    },
+    {
+      "check": "exists:noisecapture:Oman.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Oman.zip"
+    },
+    {
+      "check": "size:noisecapture:Oman.zip",
+      "ok": true,
+      "detail": "disk=787567 manifest=787567"
+    },
+    {
+      "check": "sha256:noisecapture:Oman.zip",
+      "ok": true,
+      "detail": "aef9d77ea4fe77ceed3d38a98c449ad0e3686fc872a92e1738da864959a47355"
+    },
+    {
+      "check": "md5:noisecapture:Oman.zip",
+      "ok": true,
+      "detail": "49094cf2613fc58059fd0d7ce6d2f9ea"
+    },
+    {
+      "check": "exists:noisecapture:Guatemala.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Guatemala.zip"
+    },
+    {
+      "check": "size:noisecapture:Guatemala.zip",
+      "ok": true,
+      "detail": "disk=751804 manifest=751804"
+    },
+    {
+      "check": "sha256:noisecapture:Guatemala.zip",
+      "ok": true,
+      "detail": "8908e6bcf9e8b5e2fe58bb3363b8064b19c47e1956de453bdc6189a97b0e3177"
+    },
+    {
+      "check": "md5:noisecapture:Guatemala.zip",
+      "ok": true,
+      "detail": "1f20c7fde8c9f808461065074541e2b3"
+    },
+    {
+      "check": "exists:noisecapture:Lebanon.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Lebanon.zip"
+    },
+    {
+      "check": "size:noisecapture:Lebanon.zip",
+      "ok": true,
+      "detail": "disk=779988 manifest=779988"
+    },
+    {
+      "check": "sha256:noisecapture:Lebanon.zip",
+      "ok": true,
+      "detail": "af2686440f5d14ad011f83c2743b6f8035c0198dacf5952872cb91c7f31af9c7"
+    },
+    {
+      "check": "md5:noisecapture:Lebanon.zip",
+      "ok": true,
+      "detail": "06ae4e8b15e11be17751b58724f8a822"
+    },
+    {
+      "check": "exists:noisecapture:Tanzania.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Tanzania.zip"
+    },
+    {
+      "check": "size:noisecapture:Tanzania.zip",
+      "ok": true,
+      "detail": "disk=706859 manifest=706859"
+    },
+    {
+      "check": "sha256:noisecapture:Tanzania.zip",
+      "ok": true,
+      "detail": "87c976711a741abe4b02d7cabff79a645ca5ebaf2a2d7eedb4e4481d08794928"
+    },
+    {
+      "check": "md5:noisecapture:Tanzania.zip",
+      "ok": true,
+      "detail": "78d2afc7f8ad0b8de6b00b723549f489"
+    },
+    {
+      "check": "exists:noisecapture:Guadeloupe.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Guadeloupe.zip"
+    },
+    {
+      "check": "size:noisecapture:Guadeloupe.zip",
+      "ok": true,
+      "detail": "disk=629650 manifest=629650"
+    },
+    {
+      "check": "sha256:noisecapture:Guadeloupe.zip",
+      "ok": true,
+      "detail": "06abc59904658066fb86e92d41317bc1c91f028413986b8df8977eedaa62b5e1"
+    },
+    {
+      "check": "md5:noisecapture:Guadeloupe.zip",
+      "ok": true,
+      "detail": "8b0ab2eb4218e5fb42aaacd5fe6ee19b"
+    },
+    {
+      "check": "exists:noisecapture:Afghanistan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Afghanistan.zip"
+    },
+    {
+      "check": "size:noisecapture:Afghanistan.zip",
+      "ok": true,
+      "detail": "disk=567665 manifest=567665"
+    },
+    {
+      "check": "sha256:noisecapture:Afghanistan.zip",
+      "ok": true,
+      "detail": "13927e679f5454001ea18723b49c4687c61b5254393b2e80abd4d709cc2eec86"
+    },
+    {
+      "check": "md5:noisecapture:Afghanistan.zip",
+      "ok": true,
+      "detail": "920de31e15819cabce476be826945d05"
+    },
+    {
+      "check": "exists:noisecapture:Venezuela.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Venezuela.zip"
+    },
+    {
+      "check": "size:noisecapture:Venezuela.zip",
+      "ok": true,
+      "detail": "disk=599674 manifest=599674"
+    },
+    {
+      "check": "sha256:noisecapture:Venezuela.zip",
+      "ok": true,
+      "detail": "2777957f1a0c7da71782373a0846dbedd73f51c694b103279f032135a95fe484"
+    },
+    {
+      "check": "md5:noisecapture:Venezuela.zip",
+      "ok": true,
+      "detail": "9842e0713dece6779f254810549ecb0b"
+    },
+    {
+      "check": "exists:noisecapture:Uruguay.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Uruguay.zip"
+    },
+    {
+      "check": "size:noisecapture:Uruguay.zip",
+      "ok": true,
+      "detail": "disk=502852 manifest=502852"
+    },
+    {
+      "check": "sha256:noisecapture:Uruguay.zip",
+      "ok": true,
+      "detail": "777b19d46ece952a75bbfd66c3915b73305f5cc6989c6b7988d1df50b6dc593d"
+    },
+    {
+      "check": "md5:noisecapture:Uruguay.zip",
+      "ok": true,
+      "detail": "4753dce64941684fb30533899321c951"
+    },
+    {
+      "check": "exists:noisecapture:Mali.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Mali.zip"
+    },
+    {
+      "check": "size:noisecapture:Mali.zip",
+      "ok": true,
+      "detail": "disk=526410 manifest=526410"
+    },
+    {
+      "check": "sha256:noisecapture:Mali.zip",
+      "ok": true,
+      "detail": "6fb7458b26d24ced008d4953e260a3e60f631063083fd77c4ec1759a810cd619"
+    },
+    {
+      "check": "md5:noisecapture:Mali.zip",
+      "ok": true,
+      "detail": "cd88068b0e4c644c7beb47561ac65617"
+    },
+    {
+      "check": "exists:noisecapture:Dominican Republic.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Dominican Republic.zip"
+    },
+    {
+      "check": "size:noisecapture:Dominican Republic.zip",
+      "ok": true,
+      "detail": "disk=489396 manifest=489396"
+    },
+    {
+      "check": "sha256:noisecapture:Dominican Republic.zip",
+      "ok": true,
+      "detail": "a2aafd6169a0c007d4d61a70a5719a2efbc953eab6b8687d76ac65890a7dfabe"
+    },
+    {
+      "check": "md5:noisecapture:Dominican Republic.zip",
+      "ok": true,
+      "detail": "6b8245afd340aa535e04b2726b48ea13"
+    },
+    {
+      "check": "exists:noisecapture:Kazakhstan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Kazakhstan.zip"
+    },
+    {
+      "check": "size:noisecapture:Kazakhstan.zip",
+      "ok": true,
+      "detail": "disk=449698 manifest=449698"
+    },
+    {
+      "check": "sha256:noisecapture:Kazakhstan.zip",
+      "ok": true,
+      "detail": "61615260cdd181efb3d3efac9f1fafb4b1b7861d7623fbecf2d3156ed26e11fe"
+    },
+    {
+      "check": "md5:noisecapture:Kazakhstan.zip",
+      "ok": true,
+      "detail": "a03c59e01c3d92d075bde49d71afbc17"
+    },
+    {
+      "check": "exists:noisecapture:Jordan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Jordan.zip"
+    },
+    {
+      "check": "size:noisecapture:Jordan.zip",
+      "ok": true,
+      "detail": "disk=449285 manifest=449285"
+    },
+    {
+      "check": "sha256:noisecapture:Jordan.zip",
+      "ok": true,
+      "detail": "40a3df630ae21a6a413ad8154a22c17bbef95f1085a4b02cc4bbb0990385ab61"
+    },
+    {
+      "check": "md5:noisecapture:Jordan.zip",
+      "ok": true,
+      "detail": "9864f762a1c1bd457aa748e8b6946fdf"
+    },
+    {
+      "check": "exists:noisecapture:North Korea.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/North Korea.zip"
+    },
+    {
+      "check": "size:noisecapture:North Korea.zip",
+      "ok": true,
+      "detail": "disk=415296 manifest=415296"
+    },
+    {
+      "check": "sha256:noisecapture:North Korea.zip",
+      "ok": true,
+      "detail": "1f17ade999207efca5cea0ab9a49edd7ff7b4d611b6515f095a25a8990f8418b"
+    },
+    {
+      "check": "md5:noisecapture:North Korea.zip",
+      "ok": true,
+      "detail": "5c8f7ae883c39fc463238ca22d713bb6"
+    },
+    {
+      "check": "exists:noisecapture:Madagascar.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Madagascar.zip"
+    },
+    {
+      "check": "size:noisecapture:Madagascar.zip",
+      "ok": true,
+      "detail": "disk=401194 manifest=401194"
+    },
+    {
+      "check": "sha256:noisecapture:Madagascar.zip",
+      "ok": true,
+      "detail": "1cb0e53591390d687dbd99b2a1ea7bc2e7960bbfc041ba95ce7325474ba0f6e9"
+    },
+    {
+      "check": "md5:noisecapture:Madagascar.zip",
+      "ok": true,
+      "detail": "c19c102dcacef7872c73af2e96f92b69"
+    },
+    {
+      "check": "exists:noisecapture:Mauritius.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Mauritius.zip"
+    },
+    {
+      "check": "size:noisecapture:Mauritius.zip",
+      "ok": true,
+      "detail": "disk=396843 manifest=396843"
+    },
+    {
+      "check": "sha256:noisecapture:Mauritius.zip",
+      "ok": true,
+      "detail": "761933c9d2d0e03e2272192db2a9c1ee352723d5059cc8f5a0bba57276c62df1"
+    },
+    {
+      "check": "md5:noisecapture:Mauritius.zip",
+      "ok": true,
+      "detail": "2d4bbdd086ba22e9d6189e53fda62168"
+    },
+    {
+      "check": "exists:noisecapture:Iceland.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Iceland.zip"
+    },
+    {
+      "check": "size:noisecapture:Iceland.zip",
+      "ok": true,
+      "detail": "disk=389904 manifest=389904"
+    },
+    {
+      "check": "sha256:noisecapture:Iceland.zip",
+      "ok": true,
+      "detail": "2e495839fb422940b816b27bbbbdee4f91e4d57da43b4e309255a7055a51fd5f"
+    },
+    {
+      "check": "md5:noisecapture:Iceland.zip",
+      "ok": true,
+      "detail": "fe064a15f7565e26a4046365d42a8bdd"
+    },
+    {
+      "check": "exists:noisecapture:Iraq.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Iraq.zip"
+    },
+    {
+      "check": "size:noisecapture:Iraq.zip",
+      "ok": true,
+      "detail": "disk=388437 manifest=388437"
+    },
+    {
+      "check": "sha256:noisecapture:Iraq.zip",
+      "ok": true,
+      "detail": "3869493c324479ace3f37268c953a40ae33619bb2df0e3c9ca394c5188aadedb"
+    },
+    {
+      "check": "md5:noisecapture:Iraq.zip",
+      "ok": true,
+      "detail": "6b5fc634c015b5f5f2fd5758e4167fd2"
+    },
+    {
+      "check": "exists:noisecapture:Angola.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Angola.zip"
+    },
+    {
+      "check": "size:noisecapture:Angola.zip",
+      "ok": true,
+      "detail": "disk=383919 manifest=383919"
+    },
+    {
+      "check": "sha256:noisecapture:Angola.zip",
+      "ok": true,
+      "detail": "6b3d6d4bd3a0038a92f24a6b97b6afee5b4b0908a49072223ebc1e6c20153eb9"
+    },
+    {
+      "check": "md5:noisecapture:Angola.zip",
+      "ok": true,
+      "detail": "a5720bf0f3e5498dd38f8bb30b3ae151"
+    },
+    {
+      "check": "exists:noisecapture:Burkina Faso.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Burkina Faso.zip"
+    },
+    {
+      "check": "size:noisecapture:Burkina Faso.zip",
+      "ok": true,
+      "detail": "disk=371778 manifest=371778"
+    },
+    {
+      "check": "sha256:noisecapture:Burkina Faso.zip",
+      "ok": true,
+      "detail": "9b6c97dc14d85bfff5ec56eb71255903980035ba4ddc225d32053c24c346706a"
+    },
+    {
+      "check": "md5:noisecapture:Burkina Faso.zip",
+      "ok": true,
+      "detail": "4249378ae3cc7f98f3d2f347054cc2a6"
+    },
+    {
+      "check": "exists:noisecapture:Puerto Rico.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Puerto Rico.zip"
+    },
+    {
+      "check": "size:noisecapture:Puerto Rico.zip",
+      "ok": true,
+      "detail": "disk=337991 manifest=337991"
+    },
+    {
+      "check": "sha256:noisecapture:Puerto Rico.zip",
+      "ok": true,
+      "detail": "fd28962708a4df9913dc1299c9e4c1aacbcd1071acfcc435d5e8f198ddaf84d2"
+    },
+    {
+      "check": "md5:noisecapture:Puerto Rico.zip",
+      "ok": true,
+      "detail": "7229e7e6bbffe249fa283ca40bc18e3e"
+    },
+    {
+      "check": "exists:noisecapture:Laos.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Laos.zip"
+    },
+    {
+      "check": "size:noisecapture:Laos.zip",
+      "ok": true,
+      "detail": "disk=353642 manifest=353642"
+    },
+    {
+      "check": "sha256:noisecapture:Laos.zip",
+      "ok": true,
+      "detail": "1c26321776c7b4e35e6d30cc3d57119a37af952237411d6ff0565ff6ab1027fe"
+    },
+    {
+      "check": "md5:noisecapture:Laos.zip",
+      "ok": true,
+      "detail": "8eeb9ae32c5752f441295a8e4815946d"
+    },
+    {
+      "check": "exists:noisecapture:Guam.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Guam.zip"
+    },
+    {
+      "check": "size:noisecapture:Guam.zip",
+      "ok": true,
+      "detail": "disk=330801 manifest=330801"
+    },
+    {
+      "check": "sha256:noisecapture:Guam.zip",
+      "ok": true,
+      "detail": "59ec1d9c5107bf136d7e98f1ff339d487d66a1eb2741c0ad620abd272ce91f22"
+    },
+    {
+      "check": "md5:noisecapture:Guam.zip",
+      "ok": true,
+      "detail": "1bcc16fdbdfe336212687618634fb610"
+    },
+    {
+      "check": "exists:noisecapture:Georgia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Georgia.zip"
+    },
+    {
+      "check": "size:noisecapture:Georgia.zip",
+      "ok": true,
+      "detail": "disk=330345 manifest=330345"
+    },
+    {
+      "check": "sha256:noisecapture:Georgia.zip",
+      "ok": true,
+      "detail": "4b21fdad56245450e083fec3e895ac8fb714eb50dee81814ed0b9fb880bfe60b"
+    },
+    {
+      "check": "md5:noisecapture:Georgia.zip",
+      "ok": true,
+      "detail": "1f8d028985b038ed9a9cafec05341a9c"
+    },
+    {
+      "check": "exists:noisecapture:Ethiopia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Ethiopia.zip"
+    },
+    {
+      "check": "size:noisecapture:Ethiopia.zip",
+      "ok": true,
+      "detail": "disk=320590 manifest=320590"
+    },
+    {
+      "check": "sha256:noisecapture:Ethiopia.zip",
+      "ok": true,
+      "detail": "388bf069047f9844be8c9909f2eb7213b1a18a23dcd6e3cfb21d672ede083c3c"
+    },
+    {
+      "check": "md5:noisecapture:Ethiopia.zip",
+      "ok": true,
+      "detail": "cc50673d278cf5064ceffe0aee9b0046"
+    },
+    {
+      "check": "exists:noisecapture:Haiti.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Haiti.zip"
+    },
+    {
+      "check": "size:noisecapture:Haiti.zip",
+      "ok": true,
+      "detail": "disk=321850 manifest=321850"
+    },
+    {
+      "check": "sha256:noisecapture:Haiti.zip",
+      "ok": true,
+      "detail": "bcb61fdca268543cc7f87c46627eef611f85686c601bc3f5942cde5ad0671332"
+    },
+    {
+      "check": "md5:noisecapture:Haiti.zip",
+      "ok": true,
+      "detail": "0521c546805c4cab833638f44cc32325"
+    },
+    {
+      "check": "exists:noisecapture:Senegal.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Senegal.zip"
+    },
+    {
+      "check": "size:noisecapture:Senegal.zip",
+      "ok": true,
+      "detail": "disk=317690 manifest=317690"
+    },
+    {
+      "check": "sha256:noisecapture:Senegal.zip",
+      "ok": true,
+      "detail": "d29cf99bd050ccffc812c41bab0fa37ea54093867f4f6f40b8ce6b85a5e5df7a"
+    },
+    {
+      "check": "md5:noisecapture:Senegal.zip",
+      "ok": true,
+      "detail": "d273a95ce0fccbd356209a63e793c059"
+    },
+    {
+      "check": "exists:noisecapture:New Caledonia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/New Caledonia.zip"
+    },
+    {
+      "check": "size:noisecapture:New Caledonia.zip",
+      "ok": true,
+      "detail": "disk=314152 manifest=314152"
+    },
+    {
+      "check": "sha256:noisecapture:New Caledonia.zip",
+      "ok": true,
+      "detail": "196840f7f24f10c1c3728590ea727fdad032ba97cfa534f88c4bd2c63f585e42"
+    },
+    {
+      "check": "md5:noisecapture:New Caledonia.zip",
+      "ok": true,
+      "detail": "31fe0ca759c785491d96cec43a954e07"
+    },
+    {
+      "check": "exists:noisecapture:Paraguay.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Paraguay.zip"
+    },
+    {
+      "check": "size:noisecapture:Paraguay.zip",
+      "ok": true,
+      "detail": "disk=313938 manifest=313938"
+    },
+    {
+      "check": "sha256:noisecapture:Paraguay.zip",
+      "ok": true,
+      "detail": "64b23e6589c68872bc779add73c6357732120862436c5c907c8f0890250b487c"
+    },
+    {
+      "check": "md5:noisecapture:Paraguay.zip",
+      "ok": true,
+      "detail": "24e361e71d5d496fdb72a9cc68a90458"
+    },
+    {
+      "check": "exists:noisecapture:Cyprus.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Cyprus.zip"
+    },
+    {
+      "check": "size:noisecapture:Cyprus.zip",
+      "ok": true,
+      "detail": "disk=306584 manifest=306584"
+    },
+    {
+      "check": "sha256:noisecapture:Cyprus.zip",
+      "ok": true,
+      "detail": "211794ba9a2b7a8d688691e5a335b1c2dce346120820fc08044e5eaeab601e30"
+    },
+    {
+      "check": "md5:noisecapture:Cyprus.zip",
+      "ok": true,
+      "detail": "4088f508f91b10cde45c5ab9afb55216"
+    },
+    {
+      "check": "exists:noisecapture:Comoros.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Comoros.zip"
+    },
+    {
+      "check": "size:noisecapture:Comoros.zip",
+      "ok": true,
+      "detail": "disk=300982 manifest=300982"
+    },
+    {
+      "check": "sha256:noisecapture:Comoros.zip",
+      "ok": true,
+      "detail": "38bf9d47e2705da041371061503122eb55c8f68c18828c73622ff105b9a12d7a"
+    },
+    {
+      "check": "md5:noisecapture:Comoros.zip",
+      "ok": true,
+      "detail": "d6bf0a09618d7ad0bc689f8583e29000"
+    },
+    {
+      "check": "exists:noisecapture:Uganda.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Uganda.zip"
+    },
+    {
+      "check": "size:noisecapture:Uganda.zip",
+      "ok": true,
+      "detail": "disk=292647 manifest=292647"
+    },
+    {
+      "check": "sha256:noisecapture:Uganda.zip",
+      "ok": true,
+      "detail": "9735475c5a0df495dd7e5e70e452eb7444dfbc438d86463499c57872474e7aff"
+    },
+    {
+      "check": "md5:noisecapture:Uganda.zip",
+      "ok": true,
+      "detail": "c148b177c613e412c1e9b1b29344896d"
+    },
+    {
+      "check": "exists:noisecapture:French Polynesia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/French Polynesia.zip"
+    },
+    {
+      "check": "size:noisecapture:French Polynesia.zip",
+      "ok": true,
+      "detail": "disk=263439 manifest=263439"
+    },
+    {
+      "check": "sha256:noisecapture:French Polynesia.zip",
+      "ok": true,
+      "detail": "7113a129542b337ee8099538cbc3783551c7b401f6e133ad3c581ee3a7474dd5"
+    },
+    {
+      "check": "md5:noisecapture:French Polynesia.zip",
+      "ok": true,
+      "detail": "621d89ab30c8a092fee3c03f3987eed0"
+    },
+    {
+      "check": "exists:noisecapture:Guinea.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Guinea.zip"
+    },
+    {
+      "check": "size:noisecapture:Guinea.zip",
+      "ok": true,
+      "detail": "disk=253937 manifest=253937"
+    },
+    {
+      "check": "sha256:noisecapture:Guinea.zip",
+      "ok": true,
+      "detail": "a4bc6d67a57ed84b561a004ee740c973b70692766e83f4fb6c47389eb6021a1d"
+    },
+    {
+      "check": "md5:noisecapture:Guinea.zip",
+      "ok": true,
+      "detail": "4ce4ee4d4ad0bc13772ec752f9661d1d"
+    },
+    {
+      "check": "exists:noisecapture:Mayotte.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Mayotte.zip"
+    },
+    {
+      "check": "size:noisecapture:Mayotte.zip",
+      "ok": true,
+      "detail": "disk=229017 manifest=229017"
+    },
+    {
+      "check": "sha256:noisecapture:Mayotte.zip",
+      "ok": true,
+      "detail": "5b2c50646a3c71b3aff330953289b6fcb09ab09920df9a40b835e3c72d357f58"
+    },
+    {
+      "check": "md5:noisecapture:Mayotte.zip",
+      "ok": true,
+      "detail": "28f265e73cd68ed0d38cc83d7e451438"
+    },
+    {
+      "check": "exists:noisecapture:United Arab Emirates.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/United Arab Emirates.zip"
+    },
+    {
+      "check": "size:noisecapture:United Arab Emirates.zip",
+      "ok": true,
+      "detail": "disk=227705 manifest=227705"
+    },
+    {
+      "check": "sha256:noisecapture:United Arab Emirates.zip",
+      "ok": true,
+      "detail": "098d064e2ae4ef7a28976ca1735ea3794bc94fd115e5c636319fe3257f383962"
+    },
+    {
+      "check": "md5:noisecapture:United Arab Emirates.zip",
+      "ok": true,
+      "detail": "79d60d39c90fe44c237bbdfead341c17"
+    },
+    {
+      "check": "exists:noisecapture:Syria.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Syria.zip"
+    },
+    {
+      "check": "size:noisecapture:Syria.zip",
+      "ok": true,
+      "detail": "disk=220067 manifest=220067"
+    },
+    {
+      "check": "sha256:noisecapture:Syria.zip",
+      "ok": true,
+      "detail": "169750fb7d53ffb123d545e2bfc4420b6ccf15140766f20b1d422f6e3b262299"
+    },
+    {
+      "check": "md5:noisecapture:Syria.zip",
+      "ok": true,
+      "detail": "e047509661b00c2daacb5aa2c79925ac"
+    },
+    {
+      "check": "exists:noisecapture:Liechtenstein.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Liechtenstein.zip"
+    },
+    {
+      "check": "size:noisecapture:Liechtenstein.zip",
+      "ok": true,
+      "detail": "disk=211107 manifest=211107"
+    },
+    {
+      "check": "sha256:noisecapture:Liechtenstein.zip",
+      "ok": true,
+      "detail": "606418aa7545dd75f830dc5a6b228699253ca4dce65a18bd64ec71ad6959a24a"
+    },
+    {
+      "check": "md5:noisecapture:Liechtenstein.zip",
+      "ok": true,
+      "detail": "437dabffd921c56973268c3764d5c6e9"
+    },
+    {
+      "check": "exists:noisecapture:Timor-Leste.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Timor-Leste.zip"
+    },
+    {
+      "check": "size:noisecapture:Timor-Leste.zip",
+      "ok": true,
+      "detail": "disk=197211 manifest=197211"
+    },
+    {
+      "check": "sha256:noisecapture:Timor-Leste.zip",
+      "ok": true,
+      "detail": "4e3e6175a5ab4aa7f4a70dcb7bcf1f01f94ec7bfcf0009a5fcf2103a0e0e5f38"
+    },
+    {
+      "check": "md5:noisecapture:Timor-Leste.zip",
+      "ok": true,
+      "detail": "01d25991e201f83d23a2f8d6de8566c0"
+    },
+    {
+      "check": "exists:noisecapture:Virgin Islands, U.S..zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Virgin Islands, U.S..zip"
+    },
+    {
+      "check": "size:noisecapture:Virgin Islands, U.S..zip",
+      "ok": true,
+      "detail": "disk=190405 manifest=190405"
+    },
+    {
+      "check": "sha256:noisecapture:Virgin Islands, U.S..zip",
+      "ok": true,
+      "detail": "23edbbba97dc2184b20892b04f78ad5a13f8f1de5048f0af058f13e84cd43971"
+    },
+    {
+      "check": "md5:noisecapture:Virgin Islands, U.S..zip",
+      "ok": true,
+      "detail": "55aeb5047875cb97fb145a38427fb3c2"
+    },
+    {
+      "check": "exists:noisecapture:Djibouti.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Djibouti.zip"
+    },
+    {
+      "check": "size:noisecapture:Djibouti.zip",
+      "ok": true,
+      "detail": "disk=184958 manifest=184958"
+    },
+    {
+      "check": "sha256:noisecapture:Djibouti.zip",
+      "ok": true,
+      "detail": "af7625a775feb36a8e3baddb887ac277f71345e3e1cecd66fe25a35317edb7d7"
+    },
+    {
+      "check": "md5:noisecapture:Djibouti.zip",
+      "ok": true,
+      "detail": "8142cc15dda6db9ce8496c15d540247f"
+    },
+    {
+      "check": "exists:noisecapture:Saint-Barth\u00e9lemy.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Saint-Barth\u00e9lemy.zip"
+    },
+    {
+      "check": "size:noisecapture:Saint-Barth\u00e9lemy.zip",
+      "ok": true,
+      "detail": "disk=145495 manifest=145495"
+    },
+    {
+      "check": "sha256:noisecapture:Saint-Barth\u00e9lemy.zip",
+      "ok": true,
+      "detail": "f570a000e91822241a8495e5354b638de325271b362f53d0d154ec74fcf0f90b"
+    },
+    {
+      "check": "md5:noisecapture:Saint-Barth\u00e9lemy.zip",
+      "ok": true,
+      "detail": "001631fa2cd3737ce8eb7fafa5270949"
+    },
+    {
+      "check": "exists:noisecapture:Maldives.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Maldives.zip"
+    },
+    {
+      "check": "size:noisecapture:Maldives.zip",
+      "ok": true,
+      "detail": "disk=124266 manifest=124266"
+    },
+    {
+      "check": "sha256:noisecapture:Maldives.zip",
+      "ok": true,
+      "detail": "3ba04ac95926477b7563e7501c8032a25cb07897816b367a0a7796689212e9e0"
+    },
+    {
+      "check": "md5:noisecapture:Maldives.zip",
+      "ok": true,
+      "detail": "99caa82ce73b5beb677dffd406c9014d"
+    },
+    {
+      "check": "exists:noisecapture:Swaziland.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Swaziland.zip"
+    },
+    {
+      "check": "size:noisecapture:Swaziland.zip",
+      "ok": true,
+      "detail": "disk=123391 manifest=123391"
+    },
+    {
+      "check": "sha256:noisecapture:Swaziland.zip",
+      "ok": true,
+      "detail": "e61457c75266815bb0c43763a619af1e9bfe4a01f6dab4a6a44f0fc0a9d36f3a"
+    },
+    {
+      "check": "md5:noisecapture:Swaziland.zip",
+      "ok": true,
+      "detail": "90793e66a47594902abf51a695f0e870"
+    },
+    {
+      "check": "exists:noisecapture:Honduras.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Honduras.zip"
+    },
+    {
+      "check": "size:noisecapture:Honduras.zip",
+      "ok": true,
+      "detail": "disk=117857 manifest=117857"
+    },
+    {
+      "check": "sha256:noisecapture:Honduras.zip",
+      "ok": true,
+      "detail": "f5a4fb01dd88ca8346755a289c20fee2d3f32eba9d25bba82bd5e914c78d4751"
+    },
+    {
+      "check": "md5:noisecapture:Honduras.zip",
+      "ok": true,
+      "detail": "2a99f05654f8ae6214dc0d6b5b81cc72"
+    },
+    {
+      "check": "exists:noisecapture:Central African Republic.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Central African Republic.zip"
+    },
+    {
+      "check": "size:noisecapture:Central African Republic.zip",
+      "ok": true,
+      "detail": "disk=117406 manifest=117406"
+    },
+    {
+      "check": "sha256:noisecapture:Central African Republic.zip",
+      "ok": true,
+      "detail": "97be000edeadef26dd2cf6acd72e2560766d92e76f7c3f68601a1443022eaf6e"
+    },
+    {
+      "check": "md5:noisecapture:Central African Republic.zip",
+      "ok": true,
+      "detail": "2728f0cc0a2f3b739cb8c255734d0c4f"
+    },
+    {
+      "check": "exists:noisecapture:Brunei.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Brunei.zip"
+    },
+    {
+      "check": "size:noisecapture:Brunei.zip",
+      "ok": true,
+      "detail": "disk=114515 manifest=114515"
+    },
+    {
+      "check": "sha256:noisecapture:Brunei.zip",
+      "ok": true,
+      "detail": "9ade120d53c33903658a4fdbd579c9fa52c71ca1d7460975c4169f943771baad"
+    },
+    {
+      "check": "md5:noisecapture:Brunei.zip",
+      "ok": true,
+      "detail": "9ee8687c238bf4b3e071c6e25610b4fc"
+    },
+    {
+      "check": "exists:noisecapture:Eritrea.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Eritrea.zip"
+    },
+    {
+      "check": "size:noisecapture:Eritrea.zip",
+      "ok": true,
+      "detail": "disk=112022 manifest=112022"
+    },
+    {
+      "check": "sha256:noisecapture:Eritrea.zip",
+      "ok": true,
+      "detail": "9f912c3577bf03c0958d291bfb941c4d513792199c2fe28a42d50a0808f15fed"
+    },
+    {
+      "check": "md5:noisecapture:Eritrea.zip",
+      "ok": true,
+      "detail": "edf7918bef7e1eb2416469a78d2fb725"
+    },
+    {
+      "check": "exists:noisecapture:Isle of Man.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Isle of Man.zip"
+    },
+    {
+      "check": "size:noisecapture:Isle of Man.zip",
+      "ok": true,
+      "detail": "disk=111763 manifest=111763"
+    },
+    {
+      "check": "sha256:noisecapture:Isle of Man.zip",
+      "ok": true,
+      "detail": "3925627235313d6a1dbad3331d2748bf84e5838d0148543b9fa44353ec532c1e"
+    },
+    {
+      "check": "md5:noisecapture:Isle of Man.zip",
+      "ok": true,
+      "detail": "9098490ca254b6fd1864272212f1c24e"
+    },
+    {
+      "check": "exists:noisecapture:Solomon Islands.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Solomon Islands.zip"
+    },
+    {
+      "check": "size:noisecapture:Solomon Islands.zip",
+      "ok": true,
+      "detail": "disk=103813 manifest=103813"
+    },
+    {
+      "check": "sha256:noisecapture:Solomon Islands.zip",
+      "ok": true,
+      "detail": "6b16b5f5367db133ae54a29b4990b225d8536f7641291808bbed01f22b3643e3"
+    },
+    {
+      "check": "md5:noisecapture:Solomon Islands.zip",
+      "ok": true,
+      "detail": "d9a6567bd45d8696eb8be923f6a9f72c"
+    },
+    {
+      "check": "exists:noisecapture:Uzbekistan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Uzbekistan.zip"
+    },
+    {
+      "check": "size:noisecapture:Uzbekistan.zip",
+      "ok": true,
+      "detail": "disk=95956 manifest=95956"
+    },
+    {
+      "check": "sha256:noisecapture:Uzbekistan.zip",
+      "ok": true,
+      "detail": "2ac88befcf284ab18d49502061e56f4d6be7d21643221f78042725a5b877b6e4"
+    },
+    {
+      "check": "md5:noisecapture:Uzbekistan.zip",
+      "ok": true,
+      "detail": "6ff6f649f01d16e70d3a0ec4023daff1"
+    },
+    {
+      "check": "exists:noisecapture:Guyana.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Guyana.zip"
+    },
+    {
+      "check": "size:noisecapture:Guyana.zip",
+      "ok": true,
+      "detail": "disk=102413 manifest=102413"
+    },
+    {
+      "check": "sha256:noisecapture:Guyana.zip",
+      "ok": true,
+      "detail": "e684097597b8c9a7fe1dd3b0783df20d3051f843a5075e1c6b663a5d3eb3e686"
+    },
+    {
+      "check": "md5:noisecapture:Guyana.zip",
+      "ok": true,
+      "detail": "675f0c66f148c471676dbc3369f84ad6"
+    },
+    {
+      "check": "exists:noisecapture:El Salvador.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/El Salvador.zip"
+    },
+    {
+      "check": "size:noisecapture:El Salvador.zip",
+      "ok": true,
+      "detail": "disk=93496 manifest=93496"
+    },
+    {
+      "check": "sha256:noisecapture:El Salvador.zip",
+      "ok": true,
+      "detail": "dee9ddcb1417bb95a93c2e8421148fa56f5d229b51efc0952330c555729ebe5b"
+    },
+    {
+      "check": "md5:noisecapture:El Salvador.zip",
+      "ok": true,
+      "detail": "26f80f6c02cbb2fe79ba979227b5b3b5"
+    },
+    {
+      "check": "exists:noisecapture:Trinidad and Tobago.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Trinidad and Tobago.zip"
+    },
+    {
+      "check": "size:noisecapture:Trinidad and Tobago.zip",
+      "ok": true,
+      "detail": "disk=84785 manifest=84785"
+    },
+    {
+      "check": "sha256:noisecapture:Trinidad and Tobago.zip",
+      "ok": true,
+      "detail": "45336775cc911a763187d51f0d4ee35518ab8f78eb887fb449c91260786c8afa"
+    },
+    {
+      "check": "md5:noisecapture:Trinidad and Tobago.zip",
+      "ok": true,
+      "detail": "56e7dc6f66e6da808cfc707f508f2eef"
+    },
+    {
+      "check": "exists:noisecapture:Togo.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Togo.zip"
+    },
+    {
+      "check": "size:noisecapture:Togo.zip",
+      "ok": true,
+      "detail": "disk=86743 manifest=86743"
+    },
+    {
+      "check": "sha256:noisecapture:Togo.zip",
+      "ok": true,
+      "detail": "e0fe577fe807c91fec4683de381eea4faf7c7c067ae08f2f6c0914da827e6b55"
+    },
+    {
+      "check": "md5:noisecapture:Togo.zip",
+      "ok": true,
+      "detail": "985b26fc9b979f6a2a645769cfb45789"
+    },
+    {
+      "check": "exists:noisecapture:Cape Verde.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Cape Verde.zip"
+    },
+    {
+      "check": "size:noisecapture:Cape Verde.zip",
+      "ok": true,
+      "detail": "disk=84337 manifest=84337"
+    },
+    {
+      "check": "sha256:noisecapture:Cape Verde.zip",
+      "ok": true,
+      "detail": "72b831b9e2d98aab4ea15b03433db44c193aad1a3be2523fcb57acbdf96adaab"
+    },
+    {
+      "check": "md5:noisecapture:Cape Verde.zip",
+      "ok": true,
+      "detail": "5b3970c9e621a320c308edc9196163e8"
+    },
+    {
+      "check": "exists:noisecapture:Moldova.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Moldova.zip"
+    },
+    {
+      "check": "size:noisecapture:Moldova.zip",
+      "ok": true,
+      "detail": "disk=82512 manifest=82512"
+    },
+    {
+      "check": "sha256:noisecapture:Moldova.zip",
+      "ok": true,
+      "detail": "c536b66f0c4b35ae9bff6c914f5e3e53466041e56fc00a232a2a6b581dcb9459"
+    },
+    {
+      "check": "md5:noisecapture:Moldova.zip",
+      "ok": true,
+      "detail": "de3e9faab4b3cdaa6192b2cb217eff5b"
+    },
+    {
+      "check": "exists:noisecapture:Bahrain.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bahrain.zip"
+    },
+    {
+      "check": "size:noisecapture:Bahrain.zip",
+      "ok": true,
+      "detail": "disk=81983 manifest=81983"
+    },
+    {
+      "check": "sha256:noisecapture:Bahrain.zip",
+      "ok": true,
+      "detail": "e2f9c2febca9c889ba90e59fb6da56fc6eeb787da3313c1c0672efc4f13b4c04"
+    },
+    {
+      "check": "md5:noisecapture:Bahrain.zip",
+      "ok": true,
+      "detail": "7108ac0cba4d6e8e3fc465dc5418d7c0"
+    },
+    {
+      "check": "exists:noisecapture:Chad.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Chad.zip"
+    },
+    {
+      "check": "size:noisecapture:Chad.zip",
+      "ok": true,
+      "detail": "disk=78576 manifest=78576"
+    },
+    {
+      "check": "sha256:noisecapture:Chad.zip",
+      "ok": true,
+      "detail": "d89065d01a28f1ad61959567114bda4c8c481a334df2e89a26590da156b994dd"
+    },
+    {
+      "check": "md5:noisecapture:Chad.zip",
+      "ok": true,
+      "detail": "d55ac9e754a416a3acd693c58bbeeb26"
+    },
+    {
+      "check": "exists:noisecapture:Kuwait.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Kuwait.zip"
+    },
+    {
+      "check": "size:noisecapture:Kuwait.zip",
+      "ok": true,
+      "detail": "disk=77322 manifest=77322"
+    },
+    {
+      "check": "sha256:noisecapture:Kuwait.zip",
+      "ok": true,
+      "detail": "5ed034b93a7268456ad1f51a3eb13e0bf406859306a3978c41ba9d569d9d4845"
+    },
+    {
+      "check": "md5:noisecapture:Kuwait.zip",
+      "ok": true,
+      "detail": "b88a8b636176d37479efa772682cea6a"
+    },
+    {
+      "check": "exists:noisecapture:Caspian Sea.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Caspian Sea.zip"
+    },
+    {
+      "check": "size:noisecapture:Caspian Sea.zip",
+      "ok": true,
+      "detail": "disk=72962 manifest=72962"
+    },
+    {
+      "check": "sha256:noisecapture:Caspian Sea.zip",
+      "ok": true,
+      "detail": "225a1babbc395b2387aa798eb7d1738fdb464bebca5242a0c88fade6f3dd0ad0"
+    },
+    {
+      "check": "md5:noisecapture:Caspian Sea.zip",
+      "ok": true,
+      "detail": "b90767ac9254afe076427f6c0db8d062"
+    },
+    {
+      "check": "exists:noisecapture:Sudan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Sudan.zip"
+    },
+    {
+      "check": "size:noisecapture:Sudan.zip",
+      "ok": true,
+      "detail": "disk=72899 manifest=72899"
+    },
+    {
+      "check": "sha256:noisecapture:Sudan.zip",
+      "ok": true,
+      "detail": "6c419b8d575067ae12d6bbae39314ef2b8e35c08da34af8ac483f8c755156e7d"
+    },
+    {
+      "check": "md5:noisecapture:Sudan.zip",
+      "ok": true,
+      "detail": "99517ce45ddf4430327236b1f37b41db"
+    },
+    {
+      "check": "exists:noisecapture:Svalbard and Jan Mayen.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Svalbard and Jan Mayen.zip"
+    },
+    {
+      "check": "size:noisecapture:Svalbard and Jan Mayen.zip",
+      "ok": true,
+      "detail": "disk=67239 manifest=67239"
+    },
+    {
+      "check": "sha256:noisecapture:Svalbard and Jan Mayen.zip",
+      "ok": true,
+      "detail": "b9cd6ed8356d7448cae16571718fcbdefb2399318605b288b60565a1fd11650b"
+    },
+    {
+      "check": "md5:noisecapture:Svalbard and Jan Mayen.zip",
+      "ok": true,
+      "detail": "d3f3f4b21df7b7132c98308d0ec3ccc4"
+    },
+    {
+      "check": "exists:noisecapture:Libya.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Libya.zip"
+    },
+    {
+      "check": "size:noisecapture:Libya.zip",
+      "ok": true,
+      "detail": "disk=65970 manifest=65970"
+    },
+    {
+      "check": "sha256:noisecapture:Libya.zip",
+      "ok": true,
+      "detail": "c92d4d7758833943e5f21a96f8b577dcafa88fca76714a3a0b35510834bc451e"
+    },
+    {
+      "check": "md5:noisecapture:Libya.zip",
+      "ok": true,
+      "detail": "c49d57b2aedb985b505d933bce8c83db"
+    },
+    {
+      "check": "exists:noisecapture:Zimbabwe.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Zimbabwe.zip"
+    },
+    {
+      "check": "size:noisecapture:Zimbabwe.zip",
+      "ok": true,
+      "detail": "disk=64312 manifest=64312"
+    },
+    {
+      "check": "sha256:noisecapture:Zimbabwe.zip",
+      "ok": true,
+      "detail": "881d1115d061250be9c12f5a8219211d1d6747bb72cab2bb16ab85912a0251f1"
+    },
+    {
+      "check": "md5:noisecapture:Zimbabwe.zip",
+      "ok": true,
+      "detail": "b99bd594dde191935d8397c65d68e054"
+    },
+    {
+      "check": "exists:noisecapture:Northern Cyprus.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Northern Cyprus.zip"
+    },
+    {
+      "check": "size:noisecapture:Northern Cyprus.zip",
+      "ok": true,
+      "detail": "disk=59009 manifest=59009"
+    },
+    {
+      "check": "sha256:noisecapture:Northern Cyprus.zip",
+      "ok": true,
+      "detail": "d24b1117e235de7e59ce77a31865adde53412b76dfb7886adace469200880400"
+    },
+    {
+      "check": "md5:noisecapture:Northern Cyprus.zip",
+      "ok": true,
+      "detail": "62f558f7fff56ea63ff53343f3b01382"
+    },
+    {
+      "check": "exists:noisecapture:Macedonia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Macedonia.zip"
+    },
+    {
+      "check": "size:noisecapture:Macedonia.zip",
+      "ok": true,
+      "detail": "disk=57955 manifest=57955"
+    },
+    {
+      "check": "sha256:noisecapture:Macedonia.zip",
+      "ok": true,
+      "detail": "590d3c8e565b0ecabfe7a10c6144971fd19e6816606781e8e4d6bf89187146d9"
+    },
+    {
+      "check": "md5:noisecapture:Macedonia.zip",
+      "ok": true,
+      "detail": "eaa0cd104be8179b0e1d1abde8dbb12e"
+    },
+    {
+      "check": "exists:noisecapture:Liberia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Liberia.zip"
+    },
+    {
+      "check": "size:noisecapture:Liberia.zip",
+      "ok": true,
+      "detail": "disk=51428 manifest=51428"
+    },
+    {
+      "check": "sha256:noisecapture:Liberia.zip",
+      "ok": true,
+      "detail": "fe745b1505700e654c43b1e15aaafd0de4fa2756994d4a7858834e7255062af5"
+    },
+    {
+      "check": "md5:noisecapture:Liberia.zip",
+      "ok": true,
+      "detail": "c2851b12adf858aff4d32c7e0e664e3d"
+    },
+    {
+      "check": "exists:noisecapture:Nicaragua.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Nicaragua.zip"
+    },
+    {
+      "check": "size:noisecapture:Nicaragua.zip",
+      "ok": true,
+      "detail": "disk=50832 manifest=50832"
+    },
+    {
+      "check": "sha256:noisecapture:Nicaragua.zip",
+      "ok": true,
+      "detail": "f644098b0875f820657b4e969f35f6d55f0b677de6a9debf1df2b13bde7e21b4"
+    },
+    {
+      "check": "md5:noisecapture:Nicaragua.zip",
+      "ok": true,
+      "detail": "121bee09b29c84998515575da9edcaa4"
+    },
+    {
+      "check": "exists:noisecapture:Republic of Congo.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Republic of Congo.zip"
+    },
+    {
+      "check": "size:noisecapture:Republic of Congo.zip",
+      "ok": true,
+      "detail": "disk=50369 manifest=50369"
+    },
+    {
+      "check": "sha256:noisecapture:Republic of Congo.zip",
+      "ok": true,
+      "detail": "94895c925499199d1b896a2173ef75e5609585445b750436f569a55de8282fc5"
+    },
+    {
+      "check": "md5:noisecapture:Republic of Congo.zip",
+      "ok": true,
+      "detail": "1694ce2e80c9036f47277f5ea62a1c38"
+    },
+    {
+      "check": "exists:noisecapture:Yemen.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Yemen.zip"
+    },
+    {
+      "check": "size:noisecapture:Yemen.zip",
+      "ok": true,
+      "detail": "disk=48438 manifest=48438"
+    },
+    {
+      "check": "sha256:noisecapture:Yemen.zip",
+      "ok": true,
+      "detail": "466832773ed60583c795147b956fcf6fa8308a50906dbdd46155ded43b94789e"
+    },
+    {
+      "check": "md5:noisecapture:Yemen.zip",
+      "ok": true,
+      "detail": "b3923400a8c14db2df30631ee7b2e27b"
+    },
+    {
+      "check": "exists:noisecapture:Zambia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Zambia.zip"
+    },
+    {
+      "check": "size:noisecapture:Zambia.zip",
+      "ok": true,
+      "detail": "disk=45220 manifest=45220"
+    },
+    {
+      "check": "sha256:noisecapture:Zambia.zip",
+      "ok": true,
+      "detail": "9793fbe48e30432ebe488edc5bf0b01e89ffbe385937885ada4055c87b4f42a6"
+    },
+    {
+      "check": "md5:noisecapture:Zambia.zip",
+      "ok": true,
+      "detail": "1a98ab34d9133d9f2eb16893ff5977ec"
+    },
+    {
+      "check": "exists:noisecapture:Azerbaijan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Azerbaijan.zip"
+    },
+    {
+      "check": "size:noisecapture:Azerbaijan.zip",
+      "ok": true,
+      "detail": "disk=45144 manifest=45144"
+    },
+    {
+      "check": "sha256:noisecapture:Azerbaijan.zip",
+      "ok": true,
+      "detail": "372bf30829a83accc7b7f7bb92a2b0dcd8e9e6cf8f6cee1ede6c4a745d38a8e4"
+    },
+    {
+      "check": "md5:noisecapture:Azerbaijan.zip",
+      "ok": true,
+      "detail": "9b673d39683e6b9862da53242d8ce904"
+    },
+    {
+      "check": "exists:noisecapture:Armenia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Armenia.zip"
+    },
+    {
+      "check": "size:noisecapture:Armenia.zip",
+      "ok": true,
+      "detail": "disk=40904 manifest=40904"
+    },
+    {
+      "check": "sha256:noisecapture:Armenia.zip",
+      "ok": true,
+      "detail": "e9edd54e0c93a19223924d102a6f7df55d4bdf960099474c09debf183ff11484"
+    },
+    {
+      "check": "md5:noisecapture:Armenia.zip",
+      "ok": true,
+      "detail": "0ccce388827cf9840de0083a5105ec69"
+    },
+    {
+      "check": "exists:noisecapture:Montenegro.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Montenegro.zip"
+    },
+    {
+      "check": "size:noisecapture:Montenegro.zip",
+      "ok": true,
+      "detail": "disk=41331 manifest=41331"
+    },
+    {
+      "check": "sha256:noisecapture:Montenegro.zip",
+      "ok": true,
+      "detail": "631892f90788a6e1b0be21bc830d68944723e2eeb539a57e36fb6b777256f41b"
+    },
+    {
+      "check": "md5:noisecapture:Montenegro.zip",
+      "ok": true,
+      "detail": "5925764320d3db1ea9ebcde37b664e61"
+    },
+    {
+      "check": "exists:noisecapture:Macao.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Macao.zip"
+    },
+    {
+      "check": "size:noisecapture:Macao.zip",
+      "ok": true,
+      "detail": "disk=38428 manifest=38428"
+    },
+    {
+      "check": "sha256:noisecapture:Macao.zip",
+      "ok": true,
+      "detail": "2f7f08212806d72a489828e298b9646d56df5dee987cf19abbd9ac0db5ad3be1"
+    },
+    {
+      "check": "md5:noisecapture:Macao.zip",
+      "ok": true,
+      "detail": "4889f8a36c33f090fafff57ca4301335"
+    },
+    {
+      "check": "exists:noisecapture:Somalia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Somalia.zip"
+    },
+    {
+      "check": "size:noisecapture:Somalia.zip",
+      "ok": true,
+      "detail": "disk=34958 manifest=34958"
+    },
+    {
+      "check": "sha256:noisecapture:Somalia.zip",
+      "ok": true,
+      "detail": "cee1b9d84829513d79c1355879251aa47359ce94a2e62ff16839cf7fd8ba76f6"
+    },
+    {
+      "check": "md5:noisecapture:Somalia.zip",
+      "ok": true,
+      "detail": "2bce97d8cde7508fe0b632fa5d83f56b"
+    },
+    {
+      "check": "exists:noisecapture:Suriname.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Suriname.zip"
+    },
+    {
+      "check": "size:noisecapture:Suriname.zip",
+      "ok": true,
+      "detail": "disk=32016 manifest=32016"
+    },
+    {
+      "check": "sha256:noisecapture:Suriname.zip",
+      "ok": true,
+      "detail": "be45886e9f794baf96c7e900df2b837fd47d9eafbaf43467f7718f230fe318c4"
+    },
+    {
+      "check": "md5:noisecapture:Suriname.zip",
+      "ok": true,
+      "detail": "cdbc20b69e71541bd87185247e6207ac"
+    },
+    {
+      "check": "exists:noisecapture:Papua New Guinea.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Papua New Guinea.zip"
+    },
+    {
+      "check": "size:noisecapture:Papua New Guinea.zip",
+      "ok": true,
+      "detail": "disk=32030 manifest=32030"
+    },
+    {
+      "check": "sha256:noisecapture:Papua New Guinea.zip",
+      "ok": true,
+      "detail": "baa9ec459a120deb19945976b4b7b8d629e0c55b970c702bef2f74704632a090"
+    },
+    {
+      "check": "md5:noisecapture:Papua New Guinea.zip",
+      "ok": true,
+      "detail": "4152a0975c77218629bf6ae5ed8d3850"
+    },
+    {
+      "check": "exists:noisecapture:Niger.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Niger.zip"
+    },
+    {
+      "check": "size:noisecapture:Niger.zip",
+      "ok": true,
+      "detail": "disk=30584 manifest=30584"
+    },
+    {
+      "check": "sha256:noisecapture:Niger.zip",
+      "ok": true,
+      "detail": "b57ca20b3a85be3fe7e5822cb1c7e8d1c1902377f361d763291043b3d2a77ba4"
+    },
+    {
+      "check": "md5:noisecapture:Niger.zip",
+      "ok": true,
+      "detail": "aed35d7f0316843c44b1dd27596ee15a"
+    },
+    {
+      "check": "exists:noisecapture:Palau.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Palau.zip"
+    },
+    {
+      "check": "size:noisecapture:Palau.zip",
+      "ok": true,
+      "detail": "disk=29885 manifest=29885"
+    },
+    {
+      "check": "sha256:noisecapture:Palau.zip",
+      "ok": true,
+      "detail": "083ad224343319828d9d5359d3643c3d69add5295b788177847297bc4d31d678"
+    },
+    {
+      "check": "md5:noisecapture:Palau.zip",
+      "ok": true,
+      "detail": "75bd809e2c70a7ebfc0350d542072d01"
+    },
+    {
+      "check": "exists:noisecapture:Malawi.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Malawi.zip"
+    },
+    {
+      "check": "size:noisecapture:Malawi.zip",
+      "ok": true,
+      "detail": "disk=23633 manifest=23633"
+    },
+    {
+      "check": "sha256:noisecapture:Malawi.zip",
+      "ok": true,
+      "detail": "224cd6ffb79c210f1b6909d9c531f1e7fc1a3029522e570e783bf260d161390c"
+    },
+    {
+      "check": "md5:noisecapture:Malawi.zip",
+      "ok": true,
+      "detail": "ecdebd488e3cfcee3ce50f684be6c2fe"
+    },
+    {
+      "check": "exists:noisecapture:San Marino.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/San Marino.zip"
+    },
+    {
+      "check": "size:noisecapture:San Marino.zip",
+      "ok": true,
+      "detail": "disk=21517 manifest=21517"
+    },
+    {
+      "check": "sha256:noisecapture:San Marino.zip",
+      "ok": true,
+      "detail": "da9f6b68990f21d5fc5cf5142a5304bc3010329d594372202c216199310a51ee"
+    },
+    {
+      "check": "md5:noisecapture:San Marino.zip",
+      "ok": true,
+      "detail": "9fa35e78a973516b1d74abd0b92de30b"
+    },
+    {
+      "check": "exists:noisecapture:Andorra.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Andorra.zip"
+    },
+    {
+      "check": "size:noisecapture:Andorra.zip",
+      "ok": true,
+      "detail": "disk=28610 manifest=28610"
+    },
+    {
+      "check": "sha256:noisecapture:Andorra.zip",
+      "ok": true,
+      "detail": "935deef514d9d1dba573bf9173d7c4d9bd6893be989dc25394b8e3afef6c8a5d"
+    },
+    {
+      "check": "md5:noisecapture:Andorra.zip",
+      "ok": true,
+      "detail": "89bead28c427a3fbe106369bdfa73366"
+    },
+    {
+      "check": "exists:noisecapture:Antarctica.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Antarctica.zip"
+    },
+    {
+      "check": "size:noisecapture:Antarctica.zip",
+      "ok": true,
+      "detail": "disk=21309 manifest=21309"
+    },
+    {
+      "check": "sha256:noisecapture:Antarctica.zip",
+      "ok": true,
+      "detail": "bbbd5854716747f01c29f4eb7c6542ef8684cdf90ed51d2bea49d5fea2147627"
+    },
+    {
+      "check": "md5:noisecapture:Antarctica.zip",
+      "ok": true,
+      "detail": "a4ad8143d67539cac54250f3a575a573"
+    },
+    {
+      "check": "exists:noisecapture:Saint Pierre and Miquelon.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Saint Pierre and Miquelon.zip"
+    },
+    {
+      "check": "size:noisecapture:Saint Pierre and Miquelon.zip",
+      "ok": true,
+      "detail": "disk=20458 manifest=20458"
+    },
+    {
+      "check": "sha256:noisecapture:Saint Pierre and Miquelon.zip",
+      "ok": true,
+      "detail": "1d2f40e607033774a5b605aa6bf87c473f41a00f7133019b20367201dbb24e6c"
+    },
+    {
+      "check": "md5:noisecapture:Saint Pierre and Miquelon.zip",
+      "ok": true,
+      "detail": "243205eefa6b9866e8d0c39a2e833fa2"
+    },
+    {
+      "check": "exists:noisecapture:Mauritania.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Mauritania.zip"
+    },
+    {
+      "check": "size:noisecapture:Mauritania.zip",
+      "ok": true,
+      "detail": "disk=15053 manifest=15053"
+    },
+    {
+      "check": "sha256:noisecapture:Mauritania.zip",
+      "ok": true,
+      "detail": "83f1c3c884a2778a02f36ee9e080e4dc78f33fa80bbd9243fe1d0103678ac0e8"
+    },
+    {
+      "check": "md5:noisecapture:Mauritania.zip",
+      "ok": true,
+      "detail": "51c5242af133dcb194ed5f7e2b754905"
+    },
+    {
+      "check": "exists:noisecapture:Kyrgyzstan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Kyrgyzstan.zip"
+    },
+    {
+      "check": "size:noisecapture:Kyrgyzstan.zip",
+      "ok": true,
+      "detail": "disk=20212 manifest=20212"
+    },
+    {
+      "check": "sha256:noisecapture:Kyrgyzstan.zip",
+      "ok": true,
+      "detail": "1e823a73434391a65cad60979e98f22bed76b27dde75f7cef6f4041572cc119c"
+    },
+    {
+      "check": "md5:noisecapture:Kyrgyzstan.zip",
+      "ok": true,
+      "detail": "527d3b1ef053bb289b8a6315a396183a"
+    },
+    {
+      "check": "exists:noisecapture:Vatican City.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Vatican City.zip"
+    },
+    {
+      "check": "size:noisecapture:Vatican City.zip",
+      "ok": true,
+      "detail": "disk=14899 manifest=14899"
+    },
+    {
+      "check": "sha256:noisecapture:Vatican City.zip",
+      "ok": true,
+      "detail": "1fcf2f1c315b9d347aff1ed0eca7b50053e305137898add77fd9841f89f9db2e"
+    },
+    {
+      "check": "md5:noisecapture:Vatican City.zip",
+      "ok": true,
+      "detail": "b9d147266bb3acd1c453d5908b172367"
+    },
+    {
+      "check": "exists:noisecapture:Mongolia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Mongolia.zip"
+    },
+    {
+      "check": "size:noisecapture:Mongolia.zip",
+      "ok": true,
+      "detail": "disk=10857 manifest=10857"
+    },
+    {
+      "check": "sha256:noisecapture:Mongolia.zip",
+      "ok": true,
+      "detail": "297455286bc2e05a68b65835a7808da0e259ef54ea75c4fb7c96a5b083d3937a"
+    },
+    {
+      "check": "md5:noisecapture:Mongolia.zip",
+      "ok": true,
+      "detail": "3b70f345f84706c9d52fe768882ea231"
+    },
+    {
+      "check": "exists:noisecapture:Belize.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Belize.zip"
+    },
+    {
+      "check": "size:noisecapture:Belize.zip",
+      "ok": true,
+      "detail": "disk=14204 manifest=14204"
+    },
+    {
+      "check": "sha256:noisecapture:Belize.zip",
+      "ok": true,
+      "detail": "0d721f0c8cdf3f938c4b2069a01e8f6ed0e8ab18981fb8d1ea0ce4eef32912ce"
+    },
+    {
+      "check": "md5:noisecapture:Belize.zip",
+      "ok": true,
+      "detail": "8c8ccce9f4234edf9a8f2cb5b317adda"
+    },
+    {
+      "check": "exists:noisecapture:Saint-Martin.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Saint-Martin.zip"
+    },
+    {
+      "check": "size:noisecapture:Saint-Martin.zip",
+      "ok": true,
+      "detail": "disk=12773 manifest=12773"
+    },
+    {
+      "check": "sha256:noisecapture:Saint-Martin.zip",
+      "ok": true,
+      "detail": "d6f99ba4463b857c2ce380d8ed1963dff2e4850520c2acdf552d2a7a0e7cbb86"
+    },
+    {
+      "check": "md5:noisecapture:Saint-Martin.zip",
+      "ok": true,
+      "detail": "5bb82d13aa26f603d8e58806d18dd28f"
+    },
+    {
+      "check": "exists:noisecapture:Northern Mariana Islands.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Northern Mariana Islands.zip"
+    },
+    {
+      "check": "size:noisecapture:Northern Mariana Islands.zip",
+      "ok": true,
+      "detail": "disk=10741 manifest=10741"
+    },
+    {
+      "check": "sha256:noisecapture:Northern Mariana Islands.zip",
+      "ok": true,
+      "detail": "909979e87648de193f5f0a6c0bc331f12b6134446fc9f4c9d0f5f5e80b7f7f9e"
+    },
+    {
+      "check": "md5:noisecapture:Northern Mariana Islands.zip",
+      "ok": true,
+      "detail": "786c9784561bd976dc65581b487c3cc0"
+    },
+    {
+      "check": "exists:noisecapture:Barbados.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Barbados.zip"
+    },
+    {
+      "check": "size:noisecapture:Barbados.zip",
+      "ok": true,
+      "detail": "disk=10553 manifest=10553"
+    },
+    {
+      "check": "sha256:noisecapture:Barbados.zip",
+      "ok": true,
+      "detail": "04c452c6f3b81d9a4da89f7fbdb430bccfb149d95e0a5898dc6e9c55d24ecdc0"
+    },
+    {
+      "check": "md5:noisecapture:Barbados.zip",
+      "ok": true,
+      "detail": "f99644ec8702683382adebe56aff39b0"
+    },
+    {
+      "check": "exists:noisecapture:Seychelles.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Seychelles.zip"
+    },
+    {
+      "check": "size:noisecapture:Seychelles.zip",
+      "ok": true,
+      "detail": "disk=10399 manifest=10399"
+    },
+    {
+      "check": "sha256:noisecapture:Seychelles.zip",
+      "ok": true,
+      "detail": "adc9fb5475a78d7759e07fee03a8cd5ebb9da5ee8e873cc7bb443889daef4c55"
+    },
+    {
+      "check": "md5:noisecapture:Seychelles.zip",
+      "ok": true,
+      "detail": "2b479a93ade7b25c1c6b1edad55e613f"
+    },
+    {
+      "check": "exists:noisecapture:Tonga.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Tonga.zip"
+    },
+    {
+      "check": "size:noisecapture:Tonga.zip",
+      "ok": true,
+      "detail": "disk=9590 manifest=9590"
+    },
+    {
+      "check": "sha256:noisecapture:Tonga.zip",
+      "ok": true,
+      "detail": "dcc6644edf38c7d9370cfb0663680eb3f4bbd4d673ed8c7ffd49d3fc732252ab"
+    },
+    {
+      "check": "md5:noisecapture:Tonga.zip",
+      "ok": true,
+      "detail": "a9f75813b75b4c537d0c84150705178c"
+    },
+    {
+      "check": "exists:noisecapture:Western Sahara.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Western Sahara.zip"
+    },
+    {
+      "check": "size:noisecapture:Western Sahara.zip",
+      "ok": true,
+      "detail": "disk=9582 manifest=9582"
+    },
+    {
+      "check": "sha256:noisecapture:Western Sahara.zip",
+      "ok": true,
+      "detail": "41827ad159f82bca57408f9a71c8f56abc51187993d548273756afe42d58a3f4"
+    },
+    {
+      "check": "md5:noisecapture:Western Sahara.zip",
+      "ok": true,
+      "detail": "ac26a66bbc625dc1ddb45fd970c515cb"
+    },
+    {
+      "check": "exists:noisecapture:Sierra Leone.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Sierra Leone.zip"
+    },
+    {
+      "check": "size:noisecapture:Sierra Leone.zip",
+      "ok": true,
+      "detail": "disk=9467 manifest=9467"
+    },
+    {
+      "check": "sha256:noisecapture:Sierra Leone.zip",
+      "ok": true,
+      "detail": "bd5e17dfc89c1c4cff047057094bb21e5f546fab502c0db35ff1563ad350af1d"
+    },
+    {
+      "check": "md5:noisecapture:Sierra Leone.zip",
+      "ok": true,
+      "detail": "cf549ae981a9fca461be2ea763959392"
+    },
+    {
+      "check": "exists:noisecapture:Mozambique.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Mozambique.zip"
+    },
+    {
+      "check": "size:noisecapture:Mozambique.zip",
+      "ok": true,
+      "detail": "disk=9232 manifest=9232"
+    },
+    {
+      "check": "sha256:noisecapture:Mozambique.zip",
+      "ok": true,
+      "detail": "156367681ffad0176f7085f51e2a18524e53b849fe7231e9dc504543460803c1"
+    },
+    {
+      "check": "md5:noisecapture:Mozambique.zip",
+      "ok": true,
+      "detail": "320d4cd3255a2e81a06e3f67577fee8d"
+    },
+    {
+      "check": "exists:noisecapture:Bahamas.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bahamas.zip"
+    },
+    {
+      "check": "size:noisecapture:Bahamas.zip",
+      "ok": true,
+      "detail": "disk=8947 manifest=8947"
+    },
+    {
+      "check": "sha256:noisecapture:Bahamas.zip",
+      "ok": true,
+      "detail": "f5e84f6c67fc742115a0646a0f23c0adc886a7f62811a7fd3a60e6ac143045e5"
+    },
+    {
+      "check": "md5:noisecapture:Bahamas.zip",
+      "ok": true,
+      "detail": "cb2f1c05a6a080e786bc086137c4db22"
+    },
+    {
+      "check": "exists:noisecapture:Saint Kitts and Nevis.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Saint Kitts and Nevis.zip"
+    },
+    {
+      "check": "size:noisecapture:Saint Kitts and Nevis.zip",
+      "ok": true,
+      "detail": "disk=8628 manifest=8628"
+    },
+    {
+      "check": "sha256:noisecapture:Saint Kitts and Nevis.zip",
+      "ok": true,
+      "detail": "5b469768eed0917316d78bc9e5e3098e13885e9f2595ab1db2889ea3bab60a18"
+    },
+    {
+      "check": "md5:noisecapture:Saint Kitts and Nevis.zip",
+      "ok": true,
+      "detail": "4c85f01130078acf9ca45f4b2019824b"
+    },
+    {
+      "check": "exists:noisecapture:Sint Maarten.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Sint Maarten.zip"
+    },
+    {
+      "check": "size:noisecapture:Sint Maarten.zip",
+      "ok": true,
+      "detail": "disk=7503 manifest=7503"
+    },
+    {
+      "check": "sha256:noisecapture:Sint Maarten.zip",
+      "ok": true,
+      "detail": "3a4310ea32a5679987474146df28889954724f64181f8f51473076a6b0078f90"
+    },
+    {
+      "check": "md5:noisecapture:Sint Maarten.zip",
+      "ok": true,
+      "detail": "b332e170bd054e521ac6b85832fbca49"
+    },
+    {
+      "check": "exists:noisecapture:Guernsey.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Guernsey.zip"
+    },
+    {
+      "check": "size:noisecapture:Guernsey.zip",
+      "ok": true,
+      "detail": "disk=7093 manifest=7093"
+    },
+    {
+      "check": "sha256:noisecapture:Guernsey.zip",
+      "ok": true,
+      "detail": "77df44283f3142751a066215c274beafd144c91040ebcba49f3fa83b86e94451"
+    },
+    {
+      "check": "md5:noisecapture:Guernsey.zip",
+      "ok": true,
+      "detail": "a3e14c2669190ae073bda8540f4b2920"
+    },
+    {
+      "check": "exists:noisecapture:Nauru.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Nauru.zip"
+    },
+    {
+      "check": "size:noisecapture:Nauru.zip",
+      "ok": true,
+      "detail": "disk=6940 manifest=6940"
+    },
+    {
+      "check": "sha256:noisecapture:Nauru.zip",
+      "ok": true,
+      "detail": "dd5ab6cdf0dd7a641a285a6e8eaea0b6646e3571f0ebbca6d8ab5105e7112ac4"
+    },
+    {
+      "check": "md5:noisecapture:Nauru.zip",
+      "ok": true,
+      "detail": "82f79077d98be0eb01240c9fea57a51f"
+    },
+    {
+      "check": "exists:noisecapture:Gambia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Gambia.zip"
+    },
+    {
+      "check": "size:noisecapture:Gambia.zip",
+      "ok": true,
+      "detail": "disk=5975 manifest=5975"
+    },
+    {
+      "check": "sha256:noisecapture:Gambia.zip",
+      "ok": true,
+      "detail": "bd09dd152dc36cdb372fd8fe127e4aef7287d69cb4f0a685af53cc7ab56c0c44"
+    },
+    {
+      "check": "md5:noisecapture:Gambia.zip",
+      "ok": true,
+      "detail": "9f39edf6524286a8c72568925e4dd762"
+    },
+    {
+      "check": "exists:noisecapture:Burundi.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Burundi.zip"
+    },
+    {
+      "check": "size:noisecapture:Burundi.zip",
+      "ok": true,
+      "detail": "disk=6682 manifest=6682"
+    },
+    {
+      "check": "sha256:noisecapture:Burundi.zip",
+      "ok": true,
+      "detail": "3d880aa83acb47382c8d085690739fc70830de1124c00110d574c5947597947a"
+    },
+    {
+      "check": "md5:noisecapture:Burundi.zip",
+      "ok": true,
+      "detail": "19f7d5389d232efd045bcfa3f85f88ef"
+    },
+    {
+      "check": "exists:noisecapture:Dominica.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Dominica.zip"
+    },
+    {
+      "check": "size:noisecapture:Dominica.zip",
+      "ok": true,
+      "detail": "disk=5866 manifest=5866"
+    },
+    {
+      "check": "sha256:noisecapture:Dominica.zip",
+      "ok": true,
+      "detail": "1e8e913906021da45d67cb4078a4d82c86f2108c8996098d884a310faf39174d"
+    },
+    {
+      "check": "md5:noisecapture:Dominica.zip",
+      "ok": true,
+      "detail": "ea7d406d906f1866d1232cd5dab08cc3"
+    },
+    {
+      "check": "exists:noisecapture:American Samoa.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/American Samoa.zip"
+    },
+    {
+      "check": "size:noisecapture:American Samoa.zip",
+      "ok": true,
+      "detail": "disk=5545 manifest=5545"
+    },
+    {
+      "check": "sha256:noisecapture:American Samoa.zip",
+      "ok": true,
+      "detail": "d5572f78340f31bbd07f933d4b3f3f1b33a092b8b83046a84a1c104110a6049d"
+    },
+    {
+      "check": "md5:noisecapture:American Samoa.zip",
+      "ok": true,
+      "detail": "57c682ee730e6bb790848a341f201d6c"
+    },
+    {
+      "check": "exists:noisecapture:Gibraltar.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Gibraltar.zip"
+    },
+    {
+      "check": "size:noisecapture:Gibraltar.zip",
+      "ok": true,
+      "detail": "disk=5306 manifest=5306"
+    },
+    {
+      "check": "sha256:noisecapture:Gibraltar.zip",
+      "ok": true,
+      "detail": "1ea351cafff7f23d9d5fd2a60b1d42d300d6fd1cef3a9770b31863cb3957b237"
+    },
+    {
+      "check": "md5:noisecapture:Gibraltar.zip",
+      "ok": true,
+      "detail": "56206686ece2213729623d2b70bbe4af"
+    },
+    {
+      "check": "exists:noisecapture:Micronesia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Micronesia.zip"
+    },
+    {
+      "check": "size:noisecapture:Micronesia.zip",
+      "ok": true,
+      "detail": "disk=4962 manifest=4962"
+    },
+    {
+      "check": "sha256:noisecapture:Micronesia.zip",
+      "ok": true,
+      "detail": "9b328558b7e0e70a1c2dfe5d10f737907fba5e99714166407694679706579a52"
+    },
+    {
+      "check": "md5:noisecapture:Micronesia.zip",
+      "ok": true,
+      "detail": "c25aa49081cdfb1b8ad7a5e5f6e3f37f"
+    },
+    {
+      "check": "exists:noisecapture:Tajikistan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Tajikistan.zip"
+    },
+    {
+      "check": "size:noisecapture:Tajikistan.zip",
+      "ok": true,
+      "detail": "disk=4920 manifest=4920"
+    },
+    {
+      "check": "sha256:noisecapture:Tajikistan.zip",
+      "ok": true,
+      "detail": "261abd62aa11ee1d07a2af96aa0fe0c05c0a7161fb0c142a4af7a41c4c6604ba"
+    },
+    {
+      "check": "md5:noisecapture:Tajikistan.zip",
+      "ok": true,
+      "detail": "0371f872970488144d719a09ad789820"
+    },
+    {
+      "check": "exists:noisecapture:Antigua and Barbuda.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Antigua and Barbuda.zip"
+    },
+    {
+      "check": "size:noisecapture:Antigua and Barbuda.zip",
+      "ok": true,
+      "detail": "disk=4786 manifest=4786"
+    },
+    {
+      "check": "sha256:noisecapture:Antigua and Barbuda.zip",
+      "ok": true,
+      "detail": "c5cb9703a77192b862e34073f122a299afa7d4a0beb03641c57eaa2b596eb782"
+    },
+    {
+      "check": "md5:noisecapture:Antigua and Barbuda.zip",
+      "ok": true,
+      "detail": "0cda1fac466baeb5b7056b2b80be51cc"
+    },
+    {
+      "check": "exists:noisecapture:Turkmenistan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Turkmenistan.zip"
+    },
+    {
+      "check": "size:noisecapture:Turkmenistan.zip",
+      "ok": true,
+      "detail": "disk=4820 manifest=4820"
+    },
+    {
+      "check": "sha256:noisecapture:Turkmenistan.zip",
+      "ok": true,
+      "detail": "ca6d8308ea056178eb8f4611df6b1ba32c3b64ca4d8f61b2bb925f2906f8f0d4"
+    },
+    {
+      "check": "md5:noisecapture:Turkmenistan.zip",
+      "ok": true,
+      "detail": "ba402f85974106d856a81b4716871812"
+    },
+    {
+      "check": "exists:noisecapture:Aruba.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Aruba.zip"
+    },
+    {
+      "check": "size:noisecapture:Aruba.zip",
+      "ok": true,
+      "detail": "disk=4637 manifest=4637"
+    },
+    {
+      "check": "sha256:noisecapture:Aruba.zip",
+      "ok": true,
+      "detail": "1b5d359857d46743484dbb5bbe8b84b11515395932c8db3d82df2f68553d2731"
+    },
+    {
+      "check": "md5:noisecapture:Aruba.zip",
+      "ok": true,
+      "detail": "b06a428516ed7e4d431dd0de758b00a8"
+    },
+    {
+      "check": "exists:noisecapture:Guinea-Bissau.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Guinea-Bissau.zip"
+    },
+    {
+      "check": "size:noisecapture:Guinea-Bissau.zip",
+      "ok": true,
+      "detail": "disk=4627 manifest=4627"
+    },
+    {
+      "check": "sha256:noisecapture:Guinea-Bissau.zip",
+      "ok": true,
+      "detail": "047b2683eb981414717e6e59bcbca7be480366979aecdd067352812565a673e4"
+    },
+    {
+      "check": "md5:noisecapture:Guinea-Bissau.zip",
+      "ok": true,
+      "detail": "ccb6af3cf157f65c0c67e05c9ed7718b"
+    },
+    {
+      "check": "exists:noisecapture:Equatorial Guinea.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Equatorial Guinea.zip"
+    },
+    {
+      "check": "size:noisecapture:Equatorial Guinea.zip",
+      "ok": true,
+      "detail": "disk=4551 manifest=4551"
+    },
+    {
+      "check": "sha256:noisecapture:Equatorial Guinea.zip",
+      "ok": true,
+      "detail": "9a3bb4e08ddbe40a773dfc02d8a230cd8d533501b7e0ca359d87f0ad53a86b2f"
+    },
+    {
+      "check": "md5:noisecapture:Equatorial Guinea.zip",
+      "ok": true,
+      "detail": "2ee5bf072269a4d39ae345ec755afd2a"
+    },
+    {
+      "check": "exists:noisecapture:Samoa.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Samoa.zip"
+    },
+    {
+      "check": "size:noisecapture:Samoa.zip",
+      "ok": true,
+      "detail": "disk=4551 manifest=4551"
+    },
+    {
+      "check": "sha256:noisecapture:Samoa.zip",
+      "ok": true,
+      "detail": "ab4c069eb2656f604e1209b2023da97b6bcb45429c63bb4e8b9fd682a6c8f5e7"
+    },
+    {
+      "check": "md5:noisecapture:Samoa.zip",
+      "ok": true,
+      "detail": "f68d99550949c129e4dcd91657019f06"
+    },
+    {
+      "check": "exists:noisecapture:Akrotiri and Dhekelia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Akrotiri and Dhekelia.zip"
+    },
+    {
+      "check": "size:noisecapture:Akrotiri and Dhekelia.zip",
+      "ok": true,
+      "detail": "disk=4047 manifest=4047"
+    },
+    {
+      "check": "sha256:noisecapture:Akrotiri and Dhekelia.zip",
+      "ok": true,
+      "detail": "debde0d39fadf657fa8c9f63e45cd999659f2bbbdac72bc031e48bd9f52ef1f9"
+    },
+    {
+      "check": "md5:noisecapture:Akrotiri and Dhekelia.zip",
+      "ok": true,
+      "detail": "e5315b849f9f2664e9ff27204d9b5689"
+    },
+    {
+      "check": "exists:noisecapture:Fiji.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Fiji.zip"
+    },
+    {
+      "check": "size:noisecapture:Fiji.zip",
+      "ok": true,
+      "detail": "disk=4242 manifest=4242"
+    },
+    {
+      "check": "sha256:noisecapture:Fiji.zip",
+      "ok": true,
+      "detail": "e4793216eb03556d7f71e4fd07b9b0eab08106752bfb92a394b74581e428834e"
+    },
+    {
+      "check": "md5:noisecapture:Fiji.zip",
+      "ok": true,
+      "detail": "523efd9f58750229726d0d788942e0f6"
+    },
+    {
+      "check": "exists:noisecapture:Christmas Island.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Christmas Island.zip"
+    },
+    {
+      "check": "size:noisecapture:Christmas Island.zip",
+      "ok": true,
+      "detail": "disk=3956 manifest=3956"
+    },
+    {
+      "check": "sha256:noisecapture:Christmas Island.zip",
+      "ok": true,
+      "detail": "6253c43825a51fcb51462cea97eddfd763d9ec020ba7f15ab9cf21dabf6d61f2"
+    },
+    {
+      "check": "md5:noisecapture:Christmas Island.zip",
+      "ok": true,
+      "detail": "b50e0b42100ee7accc88170977f1848d"
+    },
+    {
+      "check": "exists:noisecapture:Lesotho.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Lesotho.zip"
+    },
+    {
+      "check": "size:noisecapture:Lesotho.zip",
+      "ok": true,
+      "detail": "disk=3942 manifest=3942"
+    },
+    {
+      "check": "sha256:noisecapture:Lesotho.zip",
+      "ok": true,
+      "detail": "4411fd25da3b7aa74a760777a9ea8969fa2ccdfb4ebe3f514d65bf9820782f8b"
+    },
+    {
+      "check": "md5:noisecapture:Lesotho.zip",
+      "ok": true,
+      "detail": "cce70b0dd97c3b57773f180a93ef3c97"
+    },
+    {
+      "check": "exists:noisecapture:Bonaire, Sint Eustatius and Saba.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Bonaire, Sint Eustatius and Saba.zip"
+    },
+    {
+      "check": "size:noisecapture:Bonaire, Sint Eustatius and Saba.zip",
+      "ok": true,
+      "detail": "disk=3749 manifest=3749"
+    },
+    {
+      "check": "sha256:noisecapture:Bonaire, Sint Eustatius and Saba.zip",
+      "ok": true,
+      "detail": "316b7fbc36f9c24cbc778092f0f65ae75cd5d93d0f255b759cd3165ee3680bee"
+    },
+    {
+      "check": "md5:noisecapture:Bonaire, Sint Eustatius and Saba.zip",
+      "ok": true,
+      "detail": "af15f6c2a0e9ff1d740a26181eb05a3f"
+    },
+    {
+      "check": "exists:noisecapture:Greenland.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Greenland.zip"
+    },
+    {
+      "check": "size:noisecapture:Greenland.zip",
+      "ok": true,
+      "detail": "disk=3790 manifest=3790"
+    },
+    {
+      "check": "sha256:noisecapture:Greenland.zip",
+      "ok": true,
+      "detail": "37730cf65794a79f23f6fbf4237d234b59ac65c39588ac15aec9d09876d9fb44"
+    },
+    {
+      "check": "md5:noisecapture:Greenland.zip",
+      "ok": true,
+      "detail": "78b266b26a14e0fdccd3cbd1b14a39b2"
+    },
+    {
+      "check": "exists:noisecapture:Cook Islands.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Cook Islands.zip"
+    },
+    {
+      "check": "size:noisecapture:Cook Islands.zip",
+      "ok": true,
+      "detail": "disk=3708 manifest=3708"
+    },
+    {
+      "check": "sha256:noisecapture:Cook Islands.zip",
+      "ok": true,
+      "detail": "52f270d7b86e5c435c79d09f19db7657567b8a5ec3fb6c4c88345a4043059184"
+    },
+    {
+      "check": "md5:noisecapture:Cook Islands.zip",
+      "ok": true,
+      "detail": "a48cfc0ed91793fde2e92051431850b9"
+    },
+    {
+      "check": "exists:noisecapture:British Virgin Islands.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/British Virgin Islands.zip"
+    },
+    {
+      "check": "size:noisecapture:British Virgin Islands.zip",
+      "ok": true,
+      "detail": "disk=3432 manifest=3432"
+    },
+    {
+      "check": "sha256:noisecapture:British Virgin Islands.zip",
+      "ok": true,
+      "detail": "93f8f3c51d26d700c26da2ca1e2f8cbbe22716116fa7f7e41274407fe0302713"
+    },
+    {
+      "check": "md5:noisecapture:British Virgin Islands.zip",
+      "ok": true,
+      "detail": "72ee442de103602bd37ba348b87b19a7"
+    },
+    {
+      "check": "exists:noisecapture:Faroe Islands.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Faroe Islands.zip"
+    },
+    {
+      "check": "size:noisecapture:Faroe Islands.zip",
+      "ok": true,
+      "detail": "disk=3382 manifest=3382"
+    },
+    {
+      "check": "sha256:noisecapture:Faroe Islands.zip",
+      "ok": true,
+      "detail": "3d10ddbed3b576e7085825803713e76299c398ab76c1255b6b296b6f91d77d24"
+    },
+    {
+      "check": "md5:noisecapture:Faroe Islands.zip",
+      "ok": true,
+      "detail": "9207d80056f87b12b5bdba6a3385f291"
+    },
+    {
+      "check": "exists:noisecapture:South Sudan.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/South Sudan.zip"
+    },
+    {
+      "check": "size:noisecapture:South Sudan.zip",
+      "ok": true,
+      "detail": "disk=3385 manifest=3385"
+    },
+    {
+      "check": "sha256:noisecapture:South Sudan.zip",
+      "ok": true,
+      "detail": "ba5ddc5286aabb413195c0a920af4829b50e59b2bfb495068da05d082ae92b0d"
+    },
+    {
+      "check": "md5:noisecapture:South Sudan.zip",
+      "ok": true,
+      "detail": "0f7f04d26e20554a95dc9eb4baff38db"
+    },
+    {
+      "check": "exists:noisecapture:Saint Lucia.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Saint Lucia.zip"
+    },
+    {
+      "check": "size:noisecapture:Saint Lucia.zip",
+      "ok": true,
+      "detail": "disk=3229 manifest=3229"
+    },
+    {
+      "check": "sha256:noisecapture:Saint Lucia.zip",
+      "ok": true,
+      "detail": "51f58707afca229eb2832284acfb8699745f7873635159cf3c8d5824ee1d8c3b"
+    },
+    {
+      "check": "md5:noisecapture:Saint Lucia.zip",
+      "ok": true,
+      "detail": "4861763c8eb6b742199452ec23603736"
+    },
+    {
+      "check": "exists:noisecapture:Turks and Caicos Islands.zip",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/raw/noisecapture/Turks and Caicos Islands.zip"
+    },
+    {
+      "check": "size:noisecapture:Turks and Caicos Islands.zip",
+      "ok": true,
+      "detail": "disk=3194 manifest=3194"
+    },
+    {
+      "check": "sha256:noisecapture:Turks and Caicos Islands.zip",
+      "ok": true,
+      "detail": "3345497300a23d2936d39de5fb3a63b69f1084d412859b1325280fc90bd677da"
+    },
+    {
+      "check": "md5:noisecapture:Turks and Caicos Islands.zip",
+      "ok": true,
+      "detail": "9413c0a987f193a5da0953a6b3a79df6"
+    },
+    {
+      "check": "preprocess_summary",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/data/reports/preprocess_summary.json"
+    },
+    {
+      "check": "yjmob_no_latlon:yjmob100k-dataset1.csv.gz:10",
+      "ok": true,
+      "detail": "['uid', 'd', 't', 'x', 'y']"
+    },
+    {
+      "check": "yjmob_subset_count:yjmob100k-dataset1.csv.gz:10",
+      "ok": true,
+      "detail": "parquet rows=15718 users=10 summary rows=15718 users=10"
+    },
+    {
+      "check": "yjmob_no_latlon:yjmob100k-dataset1.csv.gz:100",
+      "ok": true,
+      "detail": "['uid', 'd', 't', 'x', 'y']"
+    },
+    {
+      "check": "yjmob_subset_count:yjmob100k-dataset1.csv.gz:100",
+      "ok": true,
+      "detail": "parquet rows=134306 users=100 summary rows=134306 users=100"
+    },
+    {
+      "check": "yjmob_no_latlon:yjmob100k-dataset1.csv.gz:1000",
+      "ok": true,
+      "detail": "['uid', 'd', 't', 'x', 'y']"
+    },
+    {
+      "check": "yjmob_subset_count:yjmob100k-dataset1.csv.gz:1000",
+      "ok": true,
+      "detail": "parquet rows=1228051 users=1000 summary rows=1228051 users=1000"
+    },
+    {
+      "check": "yjmob_no_latlon:yjmob100k-dataset2.csv.gz:10",
+      "ok": true,
+      "detail": "['uid', 'd', 't', 'x', 'y']"
+    },
+    {
+      "check": "yjmob_subset_count:yjmob100k-dataset2.csv.gz:10",
+      "ok": true,
+      "detail": "parquet rows=16256 users=10 summary rows=16256 users=10"
+    },
+    {
+      "check": "yjmob_no_latlon:yjmob100k-dataset2.csv.gz:100",
+      "ok": true,
+      "detail": "['uid', 'd', 't', 'x', 'y']"
+    },
+    {
+      "check": "yjmob_subset_count:yjmob100k-dataset2.csv.gz:100",
+      "ok": true,
+      "detail": "parquet rows=136175 users=100 summary rows=136175 users=100"
+    },
+    {
+      "check": "yjmob_no_latlon:yjmob100k-dataset2.csv.gz:1000",
+      "ok": true,
+      "detail": "['uid', 'd', 't', 'x', 'y']"
+    },
+    {
+      "check": "yjmob_subset_count:yjmob100k-dataset2.csv.gz:1000",
+      "ok": true,
+      "detail": "parquet rows=1261183 users=1000 summary rows=1261183 users=1000"
+    },
+    {
+      "check": "geolife_balance",
+      "ok": true,
+      "detail": "24876978"
+    },
+    {
+      "check": "geolife_grids",
+      "ok": true,
+      "detail": "{'250': 345712, '500': 184473, '1000': 96923}"
+    },
+    {
+      "check": "geolife_wgs_columns",
+      "ok": true,
+      "detail": "['participant_id', 'trajectory_file', 'latitude', 'longitude', 'altitude', 'unused_field', 'excel_serial', 'date', 'time', 'timestamp', 'step_distance_m', 'speed_m_s', 'grid_250_x', 'grid_250_y', 'grid_500_x', 'grid_500_y', 'grid_1000_x', 'grid_1000_y']"
+    },
+    {
+      "check": "geolife_row_count",
+      "ok": true,
+      "detail": "written=24173770 accepted=24173770"
+    },
+    {
+      "check": "noise_indicators_separate",
+      "ok": true,
+      "detail": "points.noise_level,tracks.noise_level,areas.la50,areas.laeq,areas.lden"
+    },
+    {
+      "check": "noise_means:points.noise_level",
+      "ok": true,
+      "detail": "energy=94.70398035425374 arithmetic=59.028483658127605"
+    },
+    {
+      "check": "noise_means:tracks.noise_level",
+      "ok": true,
+      "detail": "energy=100.52389829537951 arithmetic=63.766380572852796"
+    },
+    {
+      "check": "noise_means:areas.laeq",
+      "ok": true,
+      "detail": "energy=93.76446180359176 arithmetic=71.5615423705615"
+    },
+    {
+      "check": "noise_means:areas.la50",
+      "ok": true,
+      "detail": "energy=93.16732762164938 arithmetic=69.45443960987147"
+    },
+    {
+      "check": "noise_means:areas.lden",
+      "ok": true,
+      "detail": "energy=0.0 arithmetic=0.0"
+    },
+    {
+      "check": "noise_point_count_recorded",
+      "ok": true,
+      "detail": "{'point_features': 158222603, 'track_features': 511161, 'area_features': 2395782, 'other_features': 0, 'parse_errors': 0, 'invalid_coordinates': 0}"
+    },
+    {
+      "check": "quality_report",
+      "ok": true,
+      "detail": "/tmp/unlab-wt-data/docs/data/dataset_quality_report.md"
+    },
+    {
+      "check": "quality_mentions:yjmob100k-dataset1.csv.gz",
+      "ok": true,
+      "detail": "Rows: 111535175"
+    },
+    {
+      "check": "quality_mentions:yjmob100k-dataset2.csv.gz",
+      "ok": true,
+      "detail": "Rows: 29389749"
+    }
+  ]
+}
