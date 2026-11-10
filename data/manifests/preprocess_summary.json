@@ -1,0 +1,95 @@
+{
+  "generated_at": "2026-11-10T01:43:25+00:00",
+  "data_dir": "/workspace/data",
+  "yjmob": {
+    "dataset1": {
+      "rows": 111535175,
+      "users": 100000,
+      "day_min": 0,
+      "day_max": 74,
+      "days": 75,
+      "slot_min": 0,
+      "slot_max": 47,
+      "x_min": 1,
+      "x_max": 200,
+      "y_min": 1,
+      "y_max": 200,
+      "status": "processed",
+      "source_bytes": 419026821,
+      "parquet": "/workspace/data/processed/yjmob/dataset1.parquet",
+      "columns": [
+        "user_id",
+        "day",
+        "timeslot",
+        "x",
+        "y"
+      ],
+      "latitude_assigned": false,
+      "coordinate_system": "yjmob_virtual_500m",
+      "real_city": false
+    },
+    "dataset2": {
+      "rows": 29389749,
+      "users": 25000,
+      "day_min": 0,
+      "day_max": 74,
+      "days": 75,
+      "slot_min": 0,
+      "slot_max": 47,
+      "x_min": 1,
+      "x_max": 200,
+      "y_min": 1,
+      "y_max": 200,
+      "status": "processed",
+      "source_bytes": 111175823,
+      "parquet": "/workspace/data/processed/yjmob/dataset2.parquet",
+      "columns": [
+        "user_id",
+        "day",
+        "timeslot",
+        "x",
+        "y"
+      ],
+      "latitude_assigned": false,
+      "coordinate_system": "yjmob_virtual_500m",
+      "real_city": false
+    },
+    "poi": {
+      "cell_POIcat_bytes": 626648,
+      "categories_bytes": 1151,
+      "used_as_noise_truth": false,
+      "note": "POI categories are not converted into longitude, latitude, or a noise field."
+    }
+  },
+  "geolife": {
+    "status": "processed",
+    "plt_files": 18670,
+    "user_folders": 182,
+    "point_rows": 24876978,
+    "bin_rows": 84742,
+    "episode_rows": 544,
+    "episode_users": 32,
+    "episode_dates": {
+      "day0": "2009-02-14",
+      "day1": "2009-02-15"
+    },
+    "time_min": "2000-01-01T23:12:19",
+    "time_max": "2012-07-27T08:31:20",
+    "bbox": {
+      "lat_min": 1.044024,
+      "lat_max": 400.166666666667,
+      "lon_min": -179.9695933,
+      "lon_max": 179.9969416
+    },
+    "lat0": 1.044024,
+    "lon0": -179.9695933,
+    "projection": "equirectangular meters, radius 6371000, origin at minimum latitude/longitude of the parsed points",
+    "binning": "mean latitude/longitude of points inside each user, calendar date, and 30-minute slot",
+    "parquet": "/workspace/data/processed/geolife/slots.parquet",
+    "parquet_all": "/workspace/data/processed/geolife/slots_all.parquet",
+    "coordinate_system": "WGS84"
+  },
+  "noise": {
+    "status": "see processed/noisecapture/summary.json"
+  }
+}

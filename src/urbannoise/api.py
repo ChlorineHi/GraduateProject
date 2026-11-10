@@ -98,6 +98,13 @@ class SimulationBody(BaseModel):
     n_human: int | None = None
     n_machine: int | None = None
     accept_human: float | None = None
+    mode: str | None = None
+    mobility_source: str | None = None
+    noise_source: str | None = None
+    n_users: int | None = None
+    grid_m: int | None = None
+    noise_country: str | None = None
+    day_min: int | None = None
 
 
 class UserBody(BaseModel):
@@ -308,12 +315,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return _device(row)
 
     @app.get("/api/trajectories")
-    def trajectories(participant_id: int | None = None, limit: int = Query(default=500, le=5000), db: Session = Depends(get_db), _user: User = Depends(current_user)):
+    def trajectories(participant_id: int | None = None, limit: int = Query(default=500, le=5000), db: Session = Depends(get_db), user: User = Depends(current_user)):
         from urbannoise.models import TrajectoryPoint
 
         query = db.query(TrajectoryPoint).order_by(TrajectoryPoint.slot.asc())
         if participant_id:
             query = query.filter(TrajectoryPoint.participant_id == participant_id)
+        if user.role == "collector":
+            run = active_run(db)
+            query = query.filter(TrajectoryPoint.slot < int(run.current_slot))
         rows = query.limit(limit).all()
         return {
             "items": [
@@ -493,7 +503,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return step_simulation(db, user, body.steps)
         elif body.action == "reset":
             params = json.loads(run.config_json)
-            for field in ("scenario", "seed", "algorithm", "budget", "n_human", "n_machine", "accept_human"):
+            for field in (
+                "scenario",
+                "seed",
+                "algorithm",
+                "budget",
+                "n_human",
+                "n_machine",
+                "accept_human",
+                "mode",
+                "mobility_source",
+                "noise_source",
+                "n_users",
+                "grid_m",
+                "noise_country",
+                "day_min",
+            ):
                 value = getattr(body, field)
                 if value is not None:
                     params[field] = value
@@ -503,17 +528,39 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise AppError("bad_action", "不支持的仿真操作", 422)
         return simulation_dict(db, run)
 
+    @app.get("/api/data/platform")
+    def data_platform(_user: User = Depends(current_user)):
+        return _platform_status(settings)
+
+    @app.get("/api/predictions/real-noise")
+    def real_noise(country: str | None = None, _user: User = Depends(current_user)):
+        from urbannoise.noiseeval import predict_parquet
+
+        hourly = Path(settings.data_dir) / "processed" / "noisecapture" / "hourly_500m.parquet"
+        if not hourly.exists():
+            raise AppError("noise_missing", f"没有 NoiseCapture 小时聚合表：{hourly}", 404)
+        try:
+            result = predict_parquet(hourly, indicator="laeq_1s", country=country)
+        except Exception as exc:
+            raise AppError("noise_predict_failed", str(exc), 422) from exc
+        result["synthetic_demo_used"] = False
+        return result
+
     @app.get("/api/experiments")
     def experiments(db: Session = Depends(get_db), _user: User = Depends(current_user)):
         rows = db.query(ExperimentRun).order_by(ExperimentRun.id.desc()).limit(20).all()
-        archived = _archived_summary()
-        return {"items": [_experiment(row) for row in rows], "archived": archived}
+        legacy = _load_archived("experiments/results/main/summary.json", "legacy_protocol")
+        phase2 = _load_archived("experiments/results/phase2/fair_main/summary.json", "mae_available_at_t")
+        return {"items": [_experiment(row) for row in rows], "archived": legacy, "legacy": legacy, "phase2": phase2}
 
     @app.post("/api/experiments")
     def start_experiment(body: ExperimentBody, db: Session = Depends(get_db), user: User = Depends(require("admin", "publisher"))):
-        if body.profile not in {"smoke", "main"}:
-            raise AppError("bad_profile", "只提供 smoke 与 main 两种已保存配置", 422)
-        config_path = Path(f"experiments/configs/{body.profile}.json")
+        profiles = {"smoke": "experiments/configs/smoke.json", "phase2": "experiments/configs/phase2_fair.json"}
+        if body.profile == "main":
+            raise AppError("legacy_profile", "main 是旧协议归档，不会覆盖 experiments/results/main。请运行 phase2。", 409)
+        if body.profile not in profiles:
+            raise AppError("bad_profile", "只提供 smoke 与 phase2 两种新运行配置", 422)
+        config_path = Path(profiles[body.profile])
         if not config_path.exists():
             raise AppError("missing_config", "实验配置文件不存在", 500)
         if not EXPERIMENT_LOCK.acquire(blocking=False):
@@ -652,14 +699,55 @@ def _experiment(row: ExperimentRun) -> dict:
     }
 
 
-def _archived_summary() -> dict | None:
-    path = Path("experiments/results/main/summary.json")
-    if not path.exists():
-        path = Path("experiments/results/smoke/results.json")
+def _load_archived(path_text: str, protocol: str) -> dict | None:
+    path = Path(path_text)
     if not path.exists():
         return None
     payload = json.loads(path.read_text(encoding="utf-8"))
-    return {"path": str(path), "summary": payload.get("summary", [])[:40], "mobility": payload.get("mobility"), "noise_models": payload.get("noise_models")}
+    summary = payload.get("summary", [])
+    return {
+        "path": str(path),
+        "protocol": payload.get("protocol") or protocol,
+        "summary": summary,
+        "mobility": payload.get("mobility"),
+        "noise_models": payload.get("noise_models"),
+        "metric_definitions": payload.get("metric_definitions"),
+    }
+
+
+def _platform_status(settings: Settings) -> dict:
+    root = Path(settings.data_dir)
+    manifest_path = root / "manifests" / "download_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else None
+    blocks = {}
+    for name in ("yjmob", "geolife", "noisecapture"):
+        summary = root / "processed" / name / "summary.json"
+        if name == "yjmob":
+            summary = root / "processed" / "yjmob" / "dataset1_stats.json"
+        blocks[name] = json.loads(summary.read_text(encoding="utf-8")) if summary.exists() else {"status": "not_processed"}
+    dataset2 = root / "processed" / "yjmob" / "dataset2_stats.json"
+    if dataset2.exists():
+        blocks["yjmob_dataset2"] = json.loads(dataset2.read_text(encoding="utf-8"))
+    return {
+        "data_dir": str(root),
+        "download_manifest": str(manifest_path) if manifest_path.exists() else None,
+        "downloads": None
+        if manifest is None
+        else [
+            {
+                "dataset": item.get("dataset"),
+                "name": item.get("name"),
+                "status": item.get("status"),
+                "bytes": item.get("bytes"),
+                "sha256": item.get("sha256"),
+                "md5": item.get("md5"),
+                "error": item.get("error"),
+                "license": item.get("license"),
+            }
+            for item in manifest.get("items", [])
+        ],
+        "processed": blocks,
+    }
 
 
 def _csv_response(rows: list[dict], filename: str) -> StreamingResponse:

@@ -1,8 +1,19 @@
 # 部署说明
 
-2026-11-09 的开发机没有 Docker 命令，`docker compose up` 没有执行。不要把本目录当成已经通过的部署证明。
+Docker、Docker Compose 和 Kubernetes 不是本系统的支持路径。`deploy/Dockerfile.api`、`deploy/Dockerfile.web` 和仓库根目录的 `docker-compose.yml` 保留为未使用文件，没有在本环境执行，也不要安装 Docker 来运行它们。
 
-已经启动并返回健康检查的方式：
+在 Linux 上：
+
+```bash
+bash scripts/setup_linux.sh
+bash scripts/start_linux.sh
+bash scripts/test_linux.sh
+bash scripts/stop_linux.sh
+```
+
+Windows 脚本在 `scripts/*_windows.ps1`。它们在这台 Linux 机器上没有执行。
+
+已经用过的手工命令：
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m uvicorn urbannoise.api:app --host 127.0.0.1 --port 8000

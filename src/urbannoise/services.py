@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 
 from urbannoise.acoustics import clip_measurement, energy_mean_db
 from urbannoise.experiment import METHOD_LABELS
+from urbannoise.geo import cell_center
+from urbannoise.scenarios import ScenarioDataError, prepare_real_noise, resolve_world
 from urbannoise.dataio import (
     quality_report,
     read_geolife_plt,
@@ -72,6 +74,14 @@ DEFAULT_WORLD = {
     "algorithm": "mupsa",
     "lead": 1,
     "per_slot_cap": 3,
+    "mode": "synthetic",
+    "mobility_source": "synthetic",
+    "noise_source": "synthetic",
+    "n_users": 10,
+    "day_min": 0,
+    "max_side": 32,
+    "grid_m": 500,
+    "noise_country": "",
 }
 
 
@@ -152,7 +162,11 @@ def load_run_world(run: SimulationRun):
 
 def observations_to_set(db: Session) -> ObsSet:
     obs = ObsSet.empty()
-    rows = db.query(NoiseObservation).filter(NoiseObservation.grid_id.isnot(None), NoiseObservation.slot.isnot(None)).all()
+    query = db.query(NoiseObservation).filter(NoiseObservation.grid_id.isnot(None), NoiseObservation.slot.isnot(None))
+    active = _active_noise_dataset(db)
+    if active is not None:
+        query = query.filter(NoiseObservation.dataset_id == active.id)
+    rows = query.all()
     width = db.query(func.max(SpatialGrid.grid_x)).scalar()
     width = int(width) + 1 if width is not None else 16
     for row in rows:
@@ -183,8 +197,35 @@ def participant_agents(db: Session):
     return people, agents
 
 
+def ensure_algorithm_catalog(db: Session) -> None:
+    catalog = [
+        ("random", "baseline", METHOD_LABELS["random"], False),
+        ("nearest", "baseline", METHOD_LABELS["nearest"], False),
+        ("current_position_nearest", "baseline", METHOD_LABELS["current_position_nearest"], False),
+        ("reach_nearest", "baseline", METHOD_LABELS["reach_nearest"], False),
+        ("reach_random", "baseline", METHOD_LABELS["reach_random"], False),
+        ("reach_greedy", "baseline", METHOD_LABELS["reach_greedy"], False),
+        ("greedy", "baseline", METHOD_LABELS["greedy"], False),
+        ("uncertainty", "baseline", METHOD_LABELS["uncertainty"], False),
+        ("min_cost", "baseline", METHOD_LABELS["min_cost"], False),
+        ("mupsa", "internal", "移动预测与不确定性感知的动态采样任务分配。项目内部工作名 MU-PSA，不是每个预算上的误差赢家，也不代表已证实的学术新颖性。", False),
+        ("eer_reach", "internal", METHOD_LABELS["eer_reach"] + "。公式是固定的一步方差下降，没有为了赢过基线而搜索权重。", False),
+        ("bandit", "bandit", METHOD_LABELS["bandit"], False),
+    ]
+    for name, family, description, proposed in catalog:
+        row = db.query(AlgorithmConfig).filter(AlgorithmConfig.name == name).one_or_none()
+        if row is None:
+            db.add(AlgorithmConfig(name=name, family=family, description=description, params_json="{}", is_proposed=proposed))
+        else:
+            row.family = family
+            row.description = description
+            row.is_proposed = proposed
+
+
 def seed_if_needed(db: Session, settings: Settings) -> None:
     if db.query(User).count():
+        ensure_algorithm_catalog(db)
+        db.commit()
         return
     for username, password, display, role in DEMO_USERS:
         db.add(
@@ -198,16 +239,7 @@ def seed_if_needed(db: Session, settings: Settings) -> None:
             )
         )
     db.flush()
-    for name, family, description, proposed, params in [
-        ("random", "baseline", METHOD_LABELS["random"], False, {}),
-        ("nearest", "baseline", METHOD_LABELS["nearest"], False, {}),
-        ("greedy", "baseline", METHOD_LABELS["greedy"], False, {}),
-        ("uncertainty", "baseline", METHOD_LABELS["uncertainty"], False, {}),
-        ("min_cost", "baseline", METHOD_LABELS["min_cost"], False, {}),
-        ("mupsa", "proposed", "移动预测与不确定性感知的动态采样任务分配，项目内部工作名 MU-PSA，不代表已证实的学术新颖性。", True, {"lead": 1}),
-        ("bandit", "bandit", METHOD_LABELS["bandit"], False, {}),
-    ]:
-        db.add(AlgorithmConfig(name=name, family=family, description=description, params_json=json.dumps(params), is_proposed=proposed))
+    ensure_algorithm_catalog(db)
     for scenario, text in [
         ("regular", "稳定空间分区与日周期。"),
         ("complex", "多噪声源、局部突发和更强随机扰动。"),
@@ -222,20 +254,18 @@ def seed_if_needed(db: Session, settings: Settings) -> None:
 
 def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: int | None) -> SimulationRun:
     params = _world_params(raw_params)
-    world = build_world(
-        seed=int(params["seed"]),
-        height=int(params["height"]),
-        width=int(params["width"]),
-        n_days=int(params["n_days"]),
-        slots_per_day=int(params["slots_per_day"]),
-        n_human=int(params["n_human"]),
-        n_machine=int(params["n_machine"]),
-        scenario=str(params["scenario"]),
-        prior_samples=int(params["prior_samples"]),
-        sensor_sigma=float(params["sensor_sigma"]),
-        accept_human=float(params["accept_human"]),
-        accept_machine=float(params["accept_machine"]),
-    )
+    noise_frame = None
+    try:
+        if str(params.get("mode")) == "real_noise":
+            world, noise_frame = prepare_real_noise(
+                Path(settings.data_dir),
+                params.get("noise_country") or None,
+                int(params.get("max_side") or 24),
+            )
+        else:
+            world = resolve_world(params, Path(settings.data_dir))
+    except ScenarioDataError as exc:
+        raise AppError("scenario_data", str(exc), 409) from exc
     data_dir = Path(settings.data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
     world_path = data_dir / "worlds" / "active_world.npz"
@@ -245,43 +275,62 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
     db.query(AssignmentEvent).delete()
     db.query(TaskAssignment).delete()
     db.query(SensingTask).delete()
-    db.query(NoiseObservation).filter(NoiseObservation.source.in_(["synthetic_prior", "simulation_feedback"])).delete(synchronize_session=False)
-    db.query(TrajectoryPoint).filter(TrajectoryPoint.data_source == "synthetic_demo").delete(synchronize_session=False)
+    db.query(NoiseObservation).filter(
+        NoiseObservation.source.in_(["synthetic_prior", "simulation_feedback", "simulation:NoiseCapture"])
+    ).delete(synchronize_session=False)
+    db.query(TrajectoryPoint).filter(
+        TrajectoryPoint.data_source.in_(
+            ["synthetic_demo", "simulation:synthetic_machine", "simulation:YJMob100K", "simulation:GeoLife", "simulation:NoiseCapture"]
+        )
+    ).delete(synchronize_session=False)
     db.query(Device).delete()
     db.query(Participant).delete()
     db.query(SpatialGrid).delete()
-    mobility = db.query(MobilityDataset).filter(MobilityDataset.source == "synthetic_demo").first()
-    noise = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_demo").first()
+    mobility_source = str(world.meta.get("mobility_source") or world.data_origin)
+    noise_source = str(world.meta.get("noise_source") or "synthetic_field")
+    mobility = db.query(MobilityDataset).filter(MobilityDataset.name == "活动仿真移动").first()
     if mobility is None:
-        mobility = MobilityDataset(
-            name="Synthetic Demo 轨迹",
-            source="synthetic_demo",
-            license="UrbanNoiseLab generated demonstration data. Not a real mobility trace.",
-            is_synthetic=True,
-            real_city=False,
-            coordinate_system="synthetic_virtual_grid",
-            status="ready",
-            notes="Synthetic Demo。虚拟网格，不能解释为真实城市街区。",
-        )
+        mobility = db.query(MobilityDataset).filter(MobilityDataset.source == "synthetic_demo").first()
+    noise = db.query(NoiseDataset).filter(NoiseDataset.name == "活动仿真噪声").first()
+    if noise is None:
+        noise = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_demo").first()
+    if mobility is None:
+        mobility = MobilityDataset(name="活动仿真移动", source=mobility_source, coordinate_system=world.coordinate_system)
         db.add(mobility)
         db.flush()
     if noise is None:
-        noise = NoiseDataset(
-            name="Synthetic Demo 噪声",
-            source="synthetic_demo",
-            license="UrbanNoiseLab generated demonstration field.",
-            is_synthetic=True,
-            indicator="laeq_db",
-            coordinate_system="synthetic_virtual_grid",
-            status="ready",
-            notes="Synthetic Demo。完整真值只保存在仿真文件中，预测接口默认不返回真值。",
-        )
+        noise = NoiseDataset(name="活动仿真噪声", source=noise_source, coordinate_system=world.coordinate_system)
         db.add(noise)
         db.flush()
+    mobility.name = "活动仿真移动"
+    mobility.source = mobility_source
+    mobility.is_synthetic = mobility_source in {"synthetic", "synthetic_demo"}
+    mobility.real_city = bool(world.meta.get("real_city")) and mobility_source == "GeoLife"
+    mobility.coordinate_system = world.coordinate_system
+    mobility.license = str(world.meta.get("coordinate_note") or "see docs/data/dataset_licenses.md")
+    mobility.notes = str(world.meta.get("label") or "")
+    mobility.storage_uri = str(world.meta.get("dataset_variant") or "")
+    noise.name = "活动仿真噪声"
+    noise.source = noise_source
+    noise.is_synthetic = noise_source in {"synthetic", "synthetic_field", "synthetic_demo"}
+    noise.indicator = str(world.meta.get("indicator") or "laeq_db")
+    noise.coordinate_system = world.coordinate_system
+    noise.license = "synthetic field" if noise.is_synthetic else "NoiseCapture ODbL; phone measurements are not a complete field"
+    noise.notes = str(world.meta.get("coordinate_note") or "")
 
     for y in range(world.height):
         for x in range(world.width):
             gid = world.grid_id(x, y)
+            center_lat = None
+            center_lon = None
+            if world.meta.get("lat0") is not None and world.meta.get("lon0") is not None and world.meta.get("cell_m"):
+                center_lat, center_lon = cell_center(
+                    int(world.meta.get("origin_x") or 0) + x,
+                    int(world.meta.get("origin_y") or 0) + y,
+                    float(world.meta["lat0"]),
+                    float(world.meta["lon0"]),
+                    float(world.meta["cell_m"]),
+                )
             db.add(
                 SpatialGrid(
                     id=gid,
@@ -289,13 +338,15 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
                     grid_y=y,
                     zone=ZONE_NAMES[int(world.zones[y, x])],
                     coordinate_system=world.coordinate_system,
+                    center_lat=center_lat,
+                    center_lon=center_lon,
                 )
             )
     collector = db.query(User).filter(User.username == "collector").first()
     people = []
     for agent in world.agents:
         person = Participant(
-            user_id=collector.id if collector and agent.name == "H01" else None,
+            user_id=collector.id if collector and agent.kind == "human" and agent.idx == 0 else None,
             dataset_id=mobility.id,
             name=agent.name,
             participant_type=agent.kind,
@@ -316,6 +367,12 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
         device = db.query(Device).filter(Device.name == f"{agent.name}-声学单元").first()
         if device:
             device.participant_id = person.id
+        if world.data_origin == "synthetic_demo":
+            point_source = "synthetic_demo"
+        elif agent.kind == "machine":
+            point_source = "simulation:synthetic_machine"
+        else:
+            point_source = f"simulation:{world.data_origin}"
         for slot, grid in enumerate(agent.traj.tolist()):
             db.add(
                 TrajectoryPoint(
@@ -326,13 +383,13 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
                     timestamp_label=slot_label(slot, world.slots_per_day),
                     grid_id=None if int(grid) < 0 else int(grid),
                     coordinate_system=world.coordinate_system,
-                    data_source="synthetic_demo",
+                    data_source=point_source,
                     participant_type=agent.kind,
                     quality_flags="missing" if int(grid) < 0 else "ok",
                 )
             )
     rng = np.random.default_rng(int(params["seed"]) + 99)
-    prior = _prior_observations(world, rng)
+    prior = [] if noise_frame is not None or not np.isfinite(world.laeq).any() else _prior_observations(world, rng)
     for item in prior:
         db.add(
             NoiseObservation(
@@ -348,41 +405,78 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
                 is_simulated_feedback=False,
             )
         )
+    if noise_frame is not None:
+        for row in noise_frame.itertuples(index=False):
+            db.add(
+                NoiseObservation(
+                    dataset_id=noise.id,
+                    grid_id=int(row.y) * world.width + int(row.x),
+                    slot=int(row.slot),
+                    timestamp_label=str(int(row.hour_epoch)),
+                    laeq_db=float(row.level_db),
+                    indicator="laeq_1s",
+                    latitude=float(row.latitude),
+                    longitude=float(row.longitude),
+                    coordinate_system="WGS84",
+                    source="simulation:NoiseCapture",
+                    quality_flags="phone_measurement",
+                    is_simulated_feedback=False,
+                )
+            )
+        prior_count = int(len(noise_frame))
+    else:
+        prior_count = len(prior)
     mobility.record_count = world.n_slots * len(world.agents)
     mobility.participant_count = len(world.agents)
     mobility.time_start = slot_label(0, world.slots_per_day)
     mobility.time_end = slot_label(world.n_slots - 1, world.slots_per_day)
-    mobility.spatial_desc = f"{world.height}×{world.width} 虚拟网格，无地理坐标"
+    if world.coordinate_system == "yjmob_virtual_500m":
+        mobility.spatial_desc = f"{world.height}×{world.width} 匿名虚拟 500 m 网格，未赋予经纬度，不是北京或东京"
+    elif world.data_origin == "synthetic_demo":
+        mobility.spatial_desc = f"{world.height}×{world.width} 虚拟网格，Synthetic Demo，无地理坐标"
+    else:
+        mobility.spatial_desc = str(world.meta.get("coordinate_note") or world.coordinate_system)
     mobility.missing_rate = float(np.mean(np.stack([agent.traj for agent in world.agents]) < 0)) if world.agents else 0
     mobility.quality_json = json.dumps(
         {
-            "label": "Synthetic Demo",
-            "real_city": False,
+            "label": world.meta.get("label"),
+            "real_city": mobility.real_city,
             "participants": len(world.agents),
+            "real_human_count": world.meta.get("real_human_count"),
+            "user_ids": world.meta.get("user_ids"),
             "missing_rate": mobility.missing_rate,
             "coordinate_system": world.coordinate_system,
+            "window_rule": world.meta.get("window_rule"),
+            "source_rows_in_window": world.meta.get("source_rows_in_window"),
         },
         ensure_ascii=False,
     )
-    noise.record_count = len(prior)
+    noise.record_count = prior_count
     noise.time_start = mobility.time_start
-    noise.time_end = slot_label(world.horizon[0] - 1, world.slots_per_day)
+    noise.time_end = slot_label(max(world.horizon[0] - 1, 0), world.slots_per_day)
     noise.spatial_desc = mobility.spatial_desc
     noise.quality_json = json.dumps(
         {
-            "label": "Synthetic Demo",
-            "indicator": "laeq_db",
-            "prior_samples": len(prior),
-            "energy_mean_db": energy_mean_db(np.array([item["db"] for item in prior])),
-            "note": "先验观测来自仿真真值加测量噪声，用于让预测器在任务开始前有历史。真值场本身不进入预测函数。",
+            "label": world.meta.get("label"),
+            "indicator": noise.indicator,
+            "prior_samples": prior_count,
+            "energy_mean_db": energy_mean_db(np.array([item["db"] for item in prior])) if prior else None,
+            "noise_source": noise_source,
+            "point_rows": world.meta.get("point_rows"),
+            "hourly_rows_in_window": world.meta.get("hourly_rows_in_window"),
+            "note": "合成真值只在成功采样后作为测量反馈读取。NoiseCapture 观测不是连续真值场。",
         },
         ensure_ascii=False,
     )
     run = db.query(SimulationRun).order_by(SimulationRun.id.desc()).first()
     if run is None:
-        run = SimulationRun(name="演示仿真", created_at=utcnow())
+        run = SimulationRun(name=str(world.meta.get("label") or "演示仿真"), created_at=utcnow())
         db.add(run)
-    run.name = "演示仿真"
+    run.name = str(world.meta.get("label") or "演示仿真")
+    run.mode = str(world.meta.get("mode") or "synthetic")
+    run.mobility_source = mobility_source
+    run.noise_source = noise_source
+    run.user_count = int(world.meta.get("real_human_count") or sum(agent.kind == "human" for agent in world.agents))
     run.scenario = world.scenario
     run.seed = world.seed
     run.status = "paused"
@@ -404,6 +498,13 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
     return run
 
 
+def _active_noise_dataset(db: Session) -> NoiseDataset | None:
+    noise = db.query(NoiseDataset).filter(NoiseDataset.name == "活动仿真噪声").first()
+    if noise is None:
+        noise = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_demo").first()
+    return noise
+
+
 def _prior_observations(world, rng: np.random.Generator) -> list[dict]:
     coords = [(x, y) for y in range(world.height) for x in range(world.width)]
     take = min(world.prior_samples, len(coords))
@@ -413,7 +514,11 @@ def _prior_observations(world, rng: np.random.Generator) -> list[dict]:
     for pick, slot in zip(chosen, slots):
         x, y = coords[int(pick)]
         grid = world.grid_id(x, y)
+        if not np.isfinite(world.laeq[int(slot), y, x]):
+            continue
         level = float(world.laeq[int(slot), y, x] + rng.normal(0, world.sensor_sigma))
+        if not np.isfinite(level):
+            continue
         rows.append({"x": x, "y": y, "grid": grid, "slot": int(slot), "db": level})
     return rows
 
@@ -558,7 +663,7 @@ def apply_transition(
 
 def _store_manual_measurement(db: Session, task: SensingTask, level: float, user_id: int | None) -> None:
     stored, flag = clip_measurement(level)
-    noise = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_demo").first()
+    noise = _active_noise_dataset(db)
     if noise is None:
         noise = db.query(NoiseDataset).first()
     if noise is None:
@@ -627,7 +732,7 @@ def assisted_sample(db: Session, user: User, task: SensingTask) -> float:
 
     level = sample_measurement(world, slot, task.grid_id, rng, sigma=world.sensor_sigma * (0.75 if person.participant_type == "machine" else 1))
     run.rng_json = rng_dump(rng)
-    noise = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_demo").first()
+    noise = _active_noise_dataset(db)
     if noise is None:
         raise AppError("no_dataset", "没有仿真噪声数据集", 409)
     stored, flag = clip_measurement(level)
@@ -811,7 +916,7 @@ def step_simulation(db: Session, user: User | None, steps: int) -> dict:
     params = json.loads(run.config_json)
     cfg = EpisodeConfig(lead=int(params.get("lead", 1)), per_slot_cap=int(params.get("per_slot_cap", 3)), replan=False)
     rng = rng_load(run.rng_json) if run.rng_json else np.random.default_rng(run.seed + 1)
-    noise = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_demo").first()
+    noise = _active_noise_dataset(db)
     logs = []
     executed_total = 0
     for _ in range(max(1, steps)):
@@ -924,7 +1029,7 @@ def _advance_success(db: Session, task: SensingTask, item: dict, noise: NoiseDat
             timestamp_label=slot_label(task.slot_start, slots_per_day),
             laeq_db=stored,
             indicator="laeq_db",
-            coordinate_system="synthetic_virtual_grid",
+            coordinate_system=db.get(SpatialGrid, task.grid_id).coordinate_system if db.get(SpatialGrid, task.grid_id) else "synthetic_virtual_grid",
             source="simulation_feedback",
             quality_flags=flag,
             is_simulated_feedback=True,
@@ -977,6 +1082,10 @@ def simulation_dict(db: Session, run: SimulationRun) -> dict:
         "budget_left": run.budget_left,
         "budget_spent": run.budget_spent,
         "algorithm": run.algorithm,
+        "mode": getattr(run, "mode", "synthetic"),
+        "mobility_source": getattr(run, "mobility_source", "synthetic"),
+        "noise_source": getattr(run, "noise_source", "synthetic"),
+        "user_count": getattr(run, "user_count", 0),
         "config": json.loads(run.config_json or "{}"),
         "metrics": json.loads(run.metrics_json or "{}"),
         "log": (run.log_text or "").splitlines()[-40:],
@@ -1027,7 +1136,12 @@ def dashboard(db: Session) -> dict:
 
 def map_frame(db: Session, slot: int, include_truth: bool, role: str) -> dict:
     run, world, people = _campaign_world(db)
-    slot = int(np.clip(slot, 0, world.n_slots - 1))
+    requested = int(np.clip(slot, 0, world.n_slots - 1))
+    slot = requested
+    future_hidden = False
+    if role == "collector" and requested >= int(run.current_slot):
+        slot = max(0, int(run.current_slot) - 1)
+        future_hidden = True
     obs = observations_to_set(db)
     arrays = map_arrays(world, obs, slot)
     cells = []
@@ -1074,23 +1188,52 @@ def map_frame(db: Session, slot: int, include_truth: bool, role: str) -> dict:
         "slot_label": slot_label(slot, world.slots_per_day),
         "coordinate_system": world.coordinate_system,
         "data_origin": world.data_origin,
-        "real_city": False,
-        "legend": {"unit": "dB", "min": float(np.min(arrays["prediction"])), "max": float(np.max(arrays["prediction"]))},
+        "real_city": bool(world.meta.get("real_city", False)) and world.coordinate_system == "WGS84",
+        "mode": world.meta.get("mode", "synthetic"),
+        "mobility_source": world.meta.get("mobility_source"),
+        "noise_source": world.meta.get("noise_source"),
+        "user_count": world.meta.get("real_human_count"),
+        "algorithm": run.algorithm,
+        "budget": run.budget_total,
+        "label": world.meta.get("label"),
+        "named_city": None,
+        "future_hidden": future_hidden,
+        "legend": {"unit": "dB", "min": float(np.nanmin(arrays["prediction"])), "max": float(np.nanmax(arrays["prediction"]))},
         "cells": cells,
         "participants": participants,
         "observations": observations,
         "tasks": tasks,
         "evaluation_only": False,
-        "warning": "虚拟网格。预测层只使用已有观测，不读取未采样真值。",
+        "warning": _map_warning(world, future_hidden),
     }
     if include_truth:
         if role not in {"admin", "publisher"}:
             raise AppError("forbidden", "真值层只对管理员和任务发布者开放，并仅用于评估", 403)
-        for cell, value in zip(cells, arrays["truth"].ravel()):
-            cell["truth"] = float(value)
-        payload["evaluation_only"] = True
-        payload["warning"] = "仿真真值仅用于评估显示。预测算法的输入不包含该层。"
+        truth = arrays["truth"].ravel()
+        if not np.isfinite(truth).any():
+            payload["truth_available"] = False
+            payload["warning"] = "这个模式没有连续噪声真值。不能把手机测量当成整座城市的场。"
+        else:
+            for cell, value in zip(cells, truth):
+                if np.isfinite(value):
+                    cell["truth"] = float(value)
+            payload["evaluation_only"] = True
+            payload["warning"] = "仿真真值仅用于评估显示。预测算法的输入不包含该层。"
     return payload
+
+
+def _map_warning(world, future_hidden: bool) -> str:
+    if world.coordinate_system == "yjmob_virtual_500m":
+        text = "匿名虚拟 500 m 网格，不是真实城市。预测不读取未来轨迹，也不读取未采样真值。"
+    elif world.data_origin == "GeoLife":
+        text = "GeoLife 的 WGS84 局部网格。没有和未对齐的噪声档案叠成同一次真实实验。"
+    elif world.data_origin == "NoiseCapture":
+        text = "NoiseCapture 手机测量。没有连续真值场，不能把它当成整座城市的 MAE。"
+    else:
+        text = "Synthetic Demo 虚拟网格。预测层只使用已有观测，不读取未采样真值。"
+    if future_hidden:
+        text += " 采集者看不到当前时钟之后的轨迹。"
+    return text
 
 
 def predict_slot(db: Session, slot: int, model: str) -> dict:

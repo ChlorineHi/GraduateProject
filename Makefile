@@ -1,4 +1,5 @@
 .PHONY: demo test experiment-smoke report api
+# Docker is not a supported target. Use scripts/*_linux.sh.
 
 PY ?= .venv/bin/python
 export PYTHONPATH=src

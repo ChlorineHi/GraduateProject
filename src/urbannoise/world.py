@@ -129,10 +129,17 @@ def generate_noise_field(
     height, width = zones.shape
     latent = rng.normal(size=(height, width))
     # Separable smoothing keeps spatial correlation without requiring scipy.ndimage at generation time.
+    # np.convolve(..., mode="same") follows the longer input, so a 5-tap kernel would
+    # stretch an axis shorter than 5. Pad and use mode="valid" to keep the grid shape.
     kernel = np.array([0.1, 0.2, 0.4, 0.2, 0.1])
+
+    def _same_length(vector: np.ndarray) -> np.ndarray:
+        pad = len(kernel) // 2
+        return np.convolve(np.pad(vector, (pad, pad), mode="edge"), kernel, mode="valid")
+
     for _ in range(2):
-        latent = np.apply_along_axis(lambda row: np.convolve(row, kernel, mode="same"), 1, latent)
-        latent = np.apply_along_axis(lambda row: np.convolve(row, kernel, mode="same"), 0, latent)
+        latent = np.apply_along_axis(_same_length, 1, latent)
+        latent = np.apply_along_axis(_same_length, 0, latent)
     latent = (latent - latent.mean()) / (latent.std() + 1e-6)
 
     base = np.zeros((height, width), dtype=np.float64)

@@ -368,9 +368,10 @@ Vite --> Uvicorn : 代理 /api
 Uvicorn --> SQLite
 Uvicorn --> World
 note bottom
-本环境没有 Docker 守护进程。
-docker-compose.yml 已提供，但未在此机器执行。
-已验证的路径是 venv + uvicorn + vite。
+Docker、Compose 和 Kubernetes 不是支持路径。
+docker-compose.yml 与 deploy/Dockerfile.* 标记为未使用。
+已验证的路径是 scripts/setup_linux.sh、start_linux.sh 和宿主机上的 uvicorn + vite。
+SQLite 保存应用状态。Parquet/DuckDB 保存大规模轨迹，不进入这张部署图的数据库。
 end note
 @enduml
 
@@ -386,8 +387,9 @@ else (geojson)
   :read_noisecapture_geojson\n保留指标字段名;
 endif
 :quality_report;
-:最多保存 5000 行;
-:与演示城市分开存储;
+:导入预览最多保存 5000 行;
+:预处理脚本把全量轨迹写入 Parquet，不进入演示库;
+:resolve_world 按模式选择 Synthetic、Real-Mobility、Real-Noise 或拒绝 Fully-Real;
 stop
 @enduml
 
@@ -401,8 +403,10 @@ start
 :已有噪声观测;
 :能量域 IDW;
 :不确定性;
-:Value = 不确定性 + 覆盖 + 时间 - 重复;
-:分数 = 到达×接受×质量×Value - 0.35×成本;
+:MU-PSA 的 Value 是启发式;
+:eer_reach 的值是 v^2/(v+r)，只降低被测格子的方差;
+:分数 = 到达×接受×质量×值 - 0.35×成本;
+:环境随机数与算法随机数分开;
 :约束匹配;
 :执行后只把成功观测写回;
 stop
@@ -422,4 +426,32 @@ end note
 Bandit -> Short : UCB 分数
 Short -> Env : 执行选中的配对
 Env --> Bandit : reward 用于 A、b 更新
+@enduml
+
+@startuml 17_场景数据流
+skinparam defaultFontName WenQuanYi Micro Hei
+title 四种场景的数据流
+start
+:选择 mode;
+if (mode?) then (synthetic)
+  :build_world\n标记 Synthetic Demo;
+elseif (real_mobility) then
+  :DuckDB 读取 YJMob 或 GeoLife Parquet;
+  :复制已记录的格子，不改未来轨迹;
+  :合成噪声场，真值只用于评估;
+elseif (real_noise) then
+  :读取 NoiseCapture 小时能量平均;
+  :没有连续真值场;
+else (fully_real)
+  if (时间和范围真正重叠?) then (否)
+    :拒绝，不拼接;
+    stop
+  else (是)
+    :当前版本仍不构造联合回合;
+    stop
+  endif
+endif
+:同一环境种子服务所有算法;
+:决策只用 t 时刻已经可见的信息;
+stop
 @enduml

@@ -80,6 +80,7 @@ class MobilityDataset(Base):
     status: Mapped[str] = mapped_column(String(32), default="ready")
     quality_json: Mapped[str] = mapped_column(Text, default="{}")
     notes: Mapped[str] = mapped_column(Text, default="")
+    storage_uri: Mapped[str] = mapped_column(String(255), default="")
 
 
 class TrajectoryPoint(Base):
@@ -118,6 +119,7 @@ class NoiseDataset(Base):
     status: Mapped[str] = mapped_column(String(32), default="ready")
     quality_json: Mapped[str] = mapped_column(Text, default="{}")
     notes: Mapped[str] = mapped_column(Text, default="")
+    storage_uri: Mapped[str] = mapped_column(String(255), default="")
 
 
 class NoiseObservation(Base):
@@ -240,6 +242,10 @@ class SimulationRun(Base):
     metrics_json: Mapped[str] = mapped_column(Text, default="{}")
     rng_json: Mapped[str] = mapped_column(Text, default="")
     log_text: Mapped[str] = mapped_column(Text, default="")
+    mode: Mapped[str] = mapped_column(String(32), default="synthetic")
+    mobility_source: Mapped[str] = mapped_column(String(80), default="synthetic")
+    noise_source: Mapped[str] = mapped_column(String(80), default="synthetic")
+    user_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

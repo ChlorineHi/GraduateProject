@@ -21,6 +21,9 @@
   "model_reports": true,
   "train_bandit": true,
   "train_bandit_episodes": 6,
-  "output_dir": "experiments/results/smoke",
-  "figure_dir": "experiments/figures/smoke"
+  "protocol": "mae_available_at_t",
+  "subset": "smoke",
+  "time_range": "default",
+  "output_dir": "experiments/results/phase2/smoke",
+  "figure_dir": "experiments/figures/phase2/smoke"
 }
