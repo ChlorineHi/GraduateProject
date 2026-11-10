@@ -218,7 +218,7 @@ function MapPage({ role }: { role: string }) {
     return () => window.clearInterval(timer);
   }, [playing, frame?.height]);
   return (
-    <Page title="噪声地图" lede="虚拟网格视图。颜色使用固定 32–80 dB 标尺。真值层只在明确打开时由评估接口返回，并带有警告。">
+    <Page title="噪声地图" lede="网格颜色使用固定 32–80 dB 标尺。YJMob 只显示匿名虚拟网格。GeoLife 与 NoiseCapture 才使用 WGS84，而且不会叠成同一次真实实验。">
       {error && <p className="error">{error}</p>}
       <div className="checks">
         {(["prediction", "uncertainty", "zone"] as const).map((item) => (
@@ -234,7 +234,7 @@ function MapPage({ role }: { role: string }) {
       </div>
       <div className="map-layout">
         <div className="canvas-wrap">
-          <div className="legend"><i /> {frame?.slot_label} · {frame?.coordinate_system}</div>
+          <div className="legend"><i /> {frame?.slot_label} · {frame?.label || frame?.data_origin} · {frame?.coordinate_system} · 用户 {frame?.user_count ?? "—"} · {frame?.algorithm || "—"} · 预算 {frame?.budget ?? "—"}</div>
           {frame && <CityMap frame={frame} mode={truth && mode === "truth" ? "truth" : mode === "truth" ? "prediction" : mode} showPeople={showPeople} showTasks={showTasks} showObs={showObs} selected={selected} onSelect={setSelected} />}
           <input type="range" min={0} max={95} value={slot} onChange={(event) => setSlot(Number(event.target.value))} style={{ width: "100%" }} />
           <p className="note">{frame?.warning}</p>
@@ -315,7 +315,7 @@ function TasksPage({ role }: { role: string }) {
             <label className="field">预算成本<input type="number" step="0.1" value={form.budget_cost} onChange={(event) => setForm({ ...form, budget_cost: Number(event.target.value) })} /></label>
             <label className="field">算法
               <select value={form.algorithm} onChange={(event) => setForm({ ...form, algorithm: event.target.value })}>
-                {["mupsa", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}
+                {["eer_reach", "mupsa", "reach_nearest", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}
               </select>
             </label>
           </div>
@@ -583,7 +583,22 @@ function mixColor(t: number) {
 function SimPage({ role }: { role: string }) {
   const [state, setState] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ scenario: "complex", seed: 7, algorithm: "mupsa", budget: 24, n_human: 14, n_machine: 4, accept_human: 0.72 });
+  const [form, setForm] = useState({
+    scenario: "complex",
+    seed: 7,
+    algorithm: "mupsa",
+    budget: 24,
+    n_human: 14,
+    n_machine: 4,
+    accept_human: 0.72,
+    mode: "synthetic",
+    mobility_source: "yjmob_dataset1",
+    noise_source: "synthetic_field",
+    n_users: 10,
+    grid_m: 500,
+    noise_country: "France",
+    day_min: 0,
+  });
   const load = useCallback(() => api<Record<string, unknown>>("/api/simulation").then(setState).catch((reason: Error) => setError(reason.message)), []);
   useEffect(() => { void load(); }, [load]);
   async function control(action: string, steps = 1) {
@@ -597,15 +612,35 @@ function SimPage({ role }: { role: string }) {
   const metrics = (state?.metrics || {}) as { mae_current_slot?: number; coverage?: number };
   const log = (state?.log || []) as string[];
   return (
-    <Page title="仿真控制台" lede="重置会按种子重建虚拟城市。单步推进会执行到期任务、写入观测并更新覆盖。真值只在采样成功时被读取。">
+    <Page title="仿真控制台" lede="重置会按所选数据源重建世界，而不是只改标签。单步推进执行到期任务。决策不读取未来轨迹；真值只在采样成功或评估时使用。">
       {error && <p className="error">{error}</p>}
       <section className="panel">
         <div className="form-grid">
+          <label className="field">数据模式
+            <select value={form.mode} onChange={(event) => setForm({ ...form, mode: event.target.value, noise_source: event.target.value === "real_noise" ? "NoiseCapture" : "synthetic_field", mobility_source: event.target.value === "synthetic" ? "synthetic" : form.mobility_source })}>
+              <option value="synthetic">Synthetic Demo</option>
+              <option value="real_mobility">Real-Mobility</option>
+              <option value="real_noise">Real-Noise</option>
+              <option value="fully_real">Fully-Real</option>
+            </select>
+          </label>
+          {form.mode === "real_mobility" && (
+            <label className="field">移动来源
+              <select value={form.mobility_source} onChange={(event) => setForm({ ...form, mobility_source: event.target.value })}>
+                <option value="yjmob_dataset1">YJMob dataset1 匿名网格</option>
+                <option value="yjmob_dataset2">YJMob dataset2 匿名网格</option>
+                <option value="geolife">GeoLife WGS84</option>
+              </select>
+            </label>
+          )}
+          {form.mode === "real_noise" && (
+            <label className="field">噪声国家<input value={form.noise_country} onChange={(event) => setForm({ ...form, noise_country: event.target.value })} /></label>
+          )}
           <label className="field">场景<select value={form.scenario} onChange={(event) => setForm({ ...form, scenario: event.target.value })}><option>regular</option><option>complex</option><option>shift</option></select></label>
           <label className="field">种子<input type="number" value={form.seed} onChange={(event) => setForm({ ...form, seed: Number(event.target.value) })} /></label>
-          <label className="field">算法<select value={form.algorithm} onChange={(event) => setForm({ ...form, algorithm: event.target.value })}>{["mupsa", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="field">算法<select value={form.algorithm} onChange={(event) => setForm({ ...form, algorithm: event.target.value })}>{["eer_reach", "mupsa", "reach_nearest", "reach_greedy", "reach_random", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}</select></label>
           <label className="field">预算<input type="number" value={form.budget} onChange={(event) => setForm({ ...form, budget: Number(event.target.value) })} /></label>
-          <label className="field">人数<input type="number" value={form.n_human} onChange={(event) => setForm({ ...form, n_human: Number(event.target.value) })} /></label>
+          <label className="field">{form.mode === "synthetic" ? "人数" : "真实用户上限"}<input type="number" value={form.mode === "synthetic" ? form.n_human : form.n_users} onChange={(event) => setForm(form.mode === "synthetic" ? { ...form, n_human: Number(event.target.value) } : { ...form, n_users: Number(event.target.value) })} /></label>
           <label className="field">机器数<input type="number" value={form.n_machine} onChange={(event) => setForm({ ...form, n_machine: Number(event.target.value) })} /></label>
           <label className="field">接受概率<input type="number" step="0.05" value={form.accept_human} onChange={(event) => setForm({ ...form, accept_human: Number(event.target.value) })} /></label>
         </div>
@@ -623,7 +658,8 @@ function SimPage({ role }: { role: string }) {
         <div className="grid-2">
           <section className="panel">
             <h2>{String(state.current_label || "")}</h2>
-            <p>状态 {String(state.status)} · 预算剩余 {Number(state.budget_left).toFixed(2)} · 已花费 {Number(state.budget_spent).toFixed(2)}</p>
+            <p>来源 {String(state.mode || "synthetic")} · 移动 {String(state.mobility_source || "—")} · 噪声 {String(state.noise_source || "—")} · 用户 {String(state.user_count ?? "—")}</p>
+            <p>状态 {String(state.status)} · 算法 {String(state.algorithm || form.algorithm)} · 预算剩余 {Number(state.budget_left).toFixed(2)} · 已花费 {Number(state.budget_spent).toFixed(2)}</p>
             <p>当前片 MAE {metrics.mae_current_slot?.toFixed(2) ?? "尚未计算"} · 覆盖 {metrics.coverage ? `${(metrics.coverage * 100).toFixed(1)}%` : "—"}</p>
           </section>
           <section className="panel">
@@ -637,8 +673,11 @@ function SimPage({ role }: { role: string }) {
   );
 }
 
+type SummaryRow = { scenario: string; method: string; budget: number; mae_causal_mean: number; coverage_mean: number; successful_tasks_mean: number };
+type Archived = { path?: string; protocol?: string | { name?: string }; summary: SummaryRow[]; mobility?: { top1: number; top3: number; nll: number } } | null;
+
 function ExperimentsPage({ role }: { role: string }) {
-  const [payload, setPayload] = useState<{ items: { id: number; name: string; status: string; profile: string }[]; archived: { summary: { scenario: string; method: string; budget: number; mae_causal_mean: number; coverage_mean: number; successful_tasks_mean: number }[]; mobility?: { top1: number; top3: number; nll: number } } | null } | null>(null);
+  const [payload, setPayload] = useState<{ items: { id: number; name: string; status: string; profile: string }[]; archived: Archived; legacy?: Archived; phase2?: Archived } | null>(null);
   const [error, setError] = useState("");
   const load = useCallback(() => api<NonNullable<typeof payload>>("/api/experiments").then(setPayload).catch((reason: Error) => setError(reason.message)), []);
   useEffect(() => { void load(); }, [load]);
@@ -651,7 +690,9 @@ function ExperimentsPage({ role }: { role: string }) {
       setError(reason instanceof Error ? reason.message : "无法启动实验");
     }
   }
-  const summary = payload?.archived?.summary || [];
+  const phase2 = payload?.phase2;
+  const legacy = payload?.legacy || payload?.archived;
+  const summary = (phase2?.summary?.length ? phase2.summary : []) as SummaryRow[];
   const focus = summary.filter((row) => row.scenario === "regular");
   const methods = [...new Set(focus.map((row) => row.method))];
   const option = useMemo<echarts.EChartsOption>(() => ({
@@ -667,17 +708,17 @@ function ExperimentsPage({ role }: { role: string }) {
     })),
   }), [focus, methods]);
   return (
-    <Page title="算法实验" lede="曲线来自已经跑完并保存在 experiments/results 的结果。页面上的“运行 smoke”会再启动一次真实实验进程，而不是返回写死的数字。">
+    <Page title="算法实验" lede="公平协议曲线读取 experiments/results/phase2 的结果文件。旧协议数字单独标为 legacy，页面不会覆盖那份归档。">
       {error && <p className="error">{error}</p>}
       {(role === "admin" || role === "publisher") && (
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn" onClick={() => void run("smoke")}>运行 smoke</button>
-          <button className="btn-ghost" onClick={() => void run("main")}>运行 main</button>
+          <button className="btn" onClick={() => void run("phase2")}>运行 phase2</button>
+          <button className="btn-ghost" onClick={() => void run("smoke")}>运行 smoke</button>
           <button className="btn-ghost" onClick={() => void load()}>刷新</button>
         </div>
       )}
-      {payload?.archived?.mobility && <p className="note">移动预测 Top-1 {(payload.archived.mobility.top1 * 100).toFixed(1)}% · Top-3 {(payload.archived.mobility.top3 * 100).toFixed(1)}% · NLL {payload.archived.mobility.nll.toFixed(2)}</p>}
-      <section className="panel"><h2>主实验因果 MAE</h2><Chart option={option} height={300} /></section>
+      <p className="note">当前图：{summary.length ? "phase2 / mae_available_at_t（历史列名 mae_causal）" : "phase2 结果文件还不存在。"} 旧协议文件 {legacy?.path || "experiments/results/main/summary.json"} 保留，不参与这张图。</p>
+      <section className="panel"><h2>公平协议 MAE</h2>{summary.length ? <Chart option={option} height={300} /> : <p className="note">还没有 phase2 summary。命令行跑完 scripts/run_phase2_episodes.py 后点刷新。</p>}</section>
       <section className="panel">
         <h2>运行记录</h2>
         <div className="table-wrap"><table>
@@ -697,10 +738,17 @@ function ExperimentsPage({ role }: { role: string }) {
   );
 }
 
+type DownloadRow = { dataset?: string; name?: string; status?: string; bytes?: number; sha256?: string; error?: string | null; license?: string };
+type Platform = { data_dir?: string; downloads?: DownloadRow[] | null; processed?: Record<string, { status?: string; rows?: number; users?: number; point_rows?: number }> };
+
 function DataPage({ role }: { role: string }) {
   const [items, setItems] = useState<{ id: number; kind: string; name: string; source: string; is_synthetic: boolean; license: string; record_count: number; missing_rate: number; spatial_desc: string; time_start: string; time_end: string; status: string; notes: string; coordinate_system: string }[]>([]);
+  const [platform, setPlatform] = useState<Platform | null>(null);
   const [error, setError] = useState("");
-  const load = useCallback(() => api<{ items: typeof items }>("/api/datasets").then((data) => setItems(data.items)).catch((reason: Error) => setError(reason.message)), []);
+  const load = useCallback(() => {
+    api<{ items: typeof items }>("/api/datasets").then((data) => setItems(data.items)).catch((reason: Error) => setError(reason.message));
+    api<Platform>("/api/data/platform").then(setPlatform).catch((reason: Error) => setError(reason.message));
+  }, []);
   useEffect(() => { void load(); }, [load]);
   async function upload(file: File) {
     const body = new FormData();
@@ -714,8 +762,28 @@ function DataPage({ role }: { role: string }) {
     }
   }
   return (
-    <Page title="数据管理" lede="内置数据明确标记为 Synthetic Demo。YJMob100K、GeoLife 和 NoiseCapture 只在你导入对应文件后出现，并且不会被画成同一座真实城市。">
+    <Page title="数据管理" lede="下载和预处理状态来自 data/manifests。YJMob 是匿名虚拟网格，不会标成北京或东京。原始轨迹不进入页面上的合成城市。">
       {error && <p className="error">{error}</p>}
+      <section className="panel">
+        <h2>数据平台</h2>
+        <p className="note">目录 {platform?.data_dir || "—"}。下面的字节数和状态来自下载清单，不是论文里的数字。</p>
+        <div className="table-wrap"><table>
+          <thead><tr><th>数据集</th><th>文件</th><th>状态</th><th>字节</th><th>sha256</th><th>错误</th></tr></thead>
+          <tbody>
+            {(platform?.downloads || []).map((row) => (
+              <tr key={`${row.dataset}-${row.name}`}>
+                <td>{row.dataset}</td>
+                <td>{row.name}</td>
+                <td>{row.status}</td>
+                <td>{row.bytes ?? "—"}</td>
+                <td className="note">{row.sha256 ? `${row.sha256.slice(0, 12)}…` : "—"}</td>
+                <td>{row.error || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table></div>
+        {!platform?.downloads && <p className="note">还没有 download_manifest.json。</p>}
+      </section>
       {(role === "admin" || role === "publisher") && (
         <label className="btn-ghost">导入文件
           <input hidden type="file" accept=".csv,.geojson,.json,.plt,.txt" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); }} />

@@ -10,6 +10,15 @@ export type Frame = {
   coordinate_system: string;
   data_origin: string;
   real_city: boolean;
+  mode?: string;
+  mobility_source?: string | null;
+  noise_source?: string | null;
+  user_count?: number | null;
+  algorithm?: string;
+  budget?: number;
+  label?: string | null;
+  named_city?: string | null;
+  future_hidden?: boolean;
   evaluation_only: boolean;
   warning: string;
   cells: { x: number; y: number; zone: string; prediction: number; uncertainty: number; truth?: number }[];
