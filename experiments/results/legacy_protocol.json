@@ -1,0 +1,68 @@
+{
+  "protocol": "legacy",
+  "label": "legacy protocol",
+  "do_not_delete": true,
+  "reason": "run_suite previously set episode_seed = 10000 + seed * 100 + budget + (sum(ord(ch) for ch in method) % 97) and then drew the prior, acceptance, measurement noise, and algorithm scores from one Generator. Methods did not share initial observations or environment randomness. These files are the outputs of that protocol and are retained unchanged.",
+  "files": [
+    {
+      "path": "main/results.json",
+      "protocol": "legacy",
+      "bytes": 285740,
+      "sha256": "c81a661eff44e316c067124d92bdd5269b228d07ab27d811e291e76ce015d158"
+    },
+    {
+      "path": "main/results.csv",
+      "protocol": "legacy",
+      "bytes": 52069,
+      "sha256": "b5517af43260b5490285559eb3da8db8cddd04173fed945f518fb007cb3a835b"
+    },
+    {
+      "path": "main/summary.json",
+      "protocol": "legacy",
+      "bytes": 38664,
+      "sha256": "bb081b1134af512d427e758a7f79ecd0c60b8509023a42102425928994886f73"
+    },
+    {
+      "path": "main/summary.csv",
+      "protocol": "legacy",
+      "bytes": 8625,
+      "sha256": "4fdc7cdfe83853a504492042e6a8d39e2b13807d6db367f57f0e322faff823d5"
+    },
+    {
+      "path": "smoke/results.json",
+      "protocol": "legacy",
+      "bytes": 91897,
+      "sha256": "2cd19106abb628d18c48b7523cce59a88174de3314aa038c607751eb704a5180"
+    },
+    {
+      "path": "smoke/results.csv",
+      "protocol": "legacy",
+      "bytes": 13905,
+      "sha256": "4255ea9c5c57777032420e88c3db6a4daf12aa5accb3e9afe3ee50b4869b71fd"
+    },
+    {
+      "path": "smoke/summary.csv",
+      "protocol": "legacy",
+      "bytes": 2389,
+      "sha256": "2cc7065375bb26e7b4710c0de0ea212d79cc0b2288834c630050a28414db405e"
+    },
+    {
+      "path": "performance.json",
+      "protocol": "legacy",
+      "bytes": 1537,
+      "sha256": "51166816598216ba7a743d27e4d276f7590f93da7233619997c8a2368e63370f"
+    },
+    {
+      "path": "bandit_fair.json",
+      "protocol": "legacy",
+      "bytes": 11487,
+      "sha256": "4930c8a1d5cc6b8d515f1fbe0622bc3743664a5a8745825dfe5ed063958a7214"
+    },
+    {
+      "path": "checkpoints/linucb.json",
+      "protocol": "legacy",
+      "bytes": 11863,
+      "sha256": "34858c7ff8236b5405b40adfb3aa9c0df388a232478254b0ca01156b23c39770"
+    }
+  ]
+}

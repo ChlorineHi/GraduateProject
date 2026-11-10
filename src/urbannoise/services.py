@@ -21,7 +21,8 @@ from urbannoise.dataio import (
 )
 from urbannoise.domain import TransitionContext, check_transition
 from urbannoise.errors import AppError
-from urbannoise.experiment import EpisodeConfig, _plan_slot, map_arrays, step_campaign
+from urbannoise.experiment import EpisodeConfig, _plan_slot, initial_observations, map_arrays, step_campaign
+from urbannoise.protocol import measurement_db
 from urbannoise.models import (
     AlgorithmConfig,
     AssignmentEvent,
@@ -200,8 +201,11 @@ def seed_if_needed(db: Session, settings: Settings) -> None:
     db.flush()
     for name, family, description, proposed, params in [
         ("random", "baseline", METHOD_LABELS["random"], False, {}),
+        ("random_reach", "baseline", METHOD_LABELS["random_reach"], False, {}),
         ("nearest", "baseline", METHOD_LABELS["nearest"], False, {}),
+        ("nearest_reach", "baseline", METHOD_LABELS["nearest_reach"], False, {}),
         ("greedy", "baseline", METHOD_LABELS["greedy"], False, {}),
+        ("greedy_reach", "baseline", METHOD_LABELS["greedy_reach"], False, {}),
         ("uncertainty", "baseline", METHOD_LABELS["uncertainty"], False, {}),
         ("min_cost", "baseline", METHOD_LABELS["min_cost"], False, {}),
         ("mupsa", "proposed", "移动预测与不确定性感知的动态采样任务分配，项目内部工作名 MU-PSA，不代表已证实的学术新颖性。", True, {"lead": 1}),
@@ -404,18 +408,18 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
     return run
 
 
-def _prior_observations(world, rng: np.random.Generator) -> list[dict]:
-    coords = [(x, y) for y in range(world.height) for x in range(world.width)]
-    take = min(world.prior_samples, len(coords))
-    chosen = rng.choice(len(coords), size=take, replace=False)
-    slots = rng.integers(0, max(1, world.horizon[0]), size=take)
-    rows = []
-    for pick, slot in zip(chosen, slots):
-        x, y = coords[int(pick)]
-        grid = world.grid_id(x, y)
-        level = float(world.laeq[int(slot), y, x] + rng.normal(0, world.sensor_sigma))
-        rows.append({"x": x, "y": y, "grid": grid, "slot": int(slot), "db": level})
-    return rows
+def _prior_observations(world, rng: np.random.Generator | None = None) -> list[dict]:
+    """Same initial observations as a fair episode on this world seed.
+
+    ``rng`` is ignored. The historical demo prior consumed a private generator,
+    which did not match the experiment stream.
+    """
+    del rng
+    obs = initial_observations(world, int(world.seed))
+    return [
+        {"x": int(x), "y": int(y), "grid": int(grid), "slot": int(slot), "db": float(level)}
+        for x, y, level, slot, grid in zip(obs.x, obs.y, obs.db, obs.slot, obs.grid)
+    ]
 
 
 def _seed_manual_tasks(db: Session, world, people: list[Participant]) -> None:
@@ -622,11 +626,14 @@ def assisted_sample(db: Session, user: User, task: SensingTask) -> float:
     loc = int(traj[slot]) if slot < len(traj) else -1
     if loc != task.grid_id:
         raise AppError("not_on_site", "参与者当前不在任务网格，不能读取该处仿真测量", 409)
-    rng = rng_load(run.rng_json) if run.rng_json else np.random.default_rng(run.seed)
-    from urbannoise.world import sample_measurement
-
-    level = sample_measurement(world, slot, task.grid_id, rng, sigma=world.sensor_sigma * (0.75 if person.participant_type == "machine" else 1))
-    run.rng_json = rng_dump(rng)
+    level = measurement_db(
+        world,
+        int(world.seed),
+        person.name,
+        slot,
+        int(task.grid_id),
+        person.participant_type,
+    )
     noise = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_demo").first()
     if noise is None:
         raise AppError("no_dataset", "没有仿真噪声数据集", 409)

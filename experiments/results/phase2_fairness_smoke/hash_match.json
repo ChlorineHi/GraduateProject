@@ -1,0 +1,34 @@
+{
+  "kind": "smoke",
+  "is_main_result": false,
+  "note": "Two-seed smoke proving methods share initial-observation hashes under fair_v1. Not the main result and not a multi-seed performance table.",
+  "protocol_name": "fair_v1",
+  "methods": [
+    "nearest",
+    "random_reach"
+  ],
+  "checks": [
+    {
+      "seed": 0,
+      "budget": 4.0,
+      "scenario": "regular",
+      "hashes_by_method": {
+        "nearest": "045f2f65da4324c1875fd838be65bbf9a1eb83adefdb932dc500e44009f714f7",
+        "random_reach": "045f2f65da4324c1875fd838be65bbf9a1eb83adefdb932dc500e44009f714f7"
+      },
+      "hashes_match": true,
+      "initial_obs_hash": "045f2f65da4324c1875fd838be65bbf9a1eb83adefdb932dc500e44009f714f7"
+    },
+    {
+      "seed": 1,
+      "budget": 4.0,
+      "scenario": "regular",
+      "hashes_by_method": {
+        "nearest": "bb5f0ee879fda6b6f23bcce6a3edacd596641fc0c44c6e91a639d009973055b8",
+        "random_reach": "bb5f0ee879fda6b6f23bcce6a3edacd596641fc0c44c6e91a639d009973055b8"
+      },
+      "hashes_match": true,
+      "initial_obs_hash": "bb5f0ee879fda6b6f23bcce6a3edacd596641fc0c44c6e91a639d009973055b8"
+    }
+  ]
+}

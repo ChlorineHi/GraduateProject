@@ -13,7 +13,7 @@
   "per_slot_cap": 3,
   "budgets": [6, 12],
   "seeds": [0, 1],
-  "methods": ["random", "nearest", "greedy", "uncertainty", "min_cost", "mupsa"],
+  "methods": ["random", "random_reach", "nearest", "nearest_reach", "greedy", "greedy_reach", "uncertainty", "min_cost", "mupsa"],
   "scenarios": ["regular"],
   "ablation": true,
   "ablation_budget": 12,

@@ -3,10 +3,17 @@
 Ground truth is read only when a simulated participant successfully executes a sample,
 and again when metrics are computed. Assignment and predictors receive observations and
 past trajectories only.
+
+Fair protocol (fair_v1): methods that share a scenario, dataset, participant roster,
+time range, budget, and seed also share the noise field, trajectories, machines,
+initial observations, acceptance draws, and measurement-noise draws. Those draws are
+a stable hash of (env_seed, participant_id, time, object). Algorithm exploration uses
+a separate stream. Result files written before this split are kept and labeled legacy.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,12 +34,27 @@ from urbannoise.predictors import (
     predict_rf,
     prediction_metrics,
 )
+from urbannoise.protocol import (
+    ACCEPT_OBJECT,
+    FAIR_PROTOCOL,
+    LEGACY_PROTOCOL,
+    PRIOR_PARTICIPANT,
+    EnvironmentEventTable,
+    algorithm_rng,
+    event_index,
+    measurement_db,
+    measurement_object,
+    precompute_environment_events,
+)
 from urbannoise.world import World, build_world, sample_measurement
 
 METHOD_LABELS = {
     "random": "Random Assignment",
-    "nearest": "Nearest Feasible Participant",
+    "random_reach": "Reachability-constrained random",
+    "nearest": "Current-position nearest",
+    "nearest_reach": "Reachability-aware nearest",
     "greedy": "Greedy Coverage / Information",
+    "greedy_reach": "Reachability-aware greedy",
     "uncertainty": "Uncertainty-Only Sampling",
     "min_cost": "Hungarian Min-Cost Matching",
     "mupsa": "MU-PSA (proposed)",
@@ -42,6 +64,20 @@ METHOD_LABELS = {
     "mupsa_no_coverage": "MU-PSA w/o coverage",
     "bandit": "LinUCB shortlist policy",
 }
+
+# Files produced before fair_v1. label_legacy_outputs records them and does not delete them.
+LEGACY_RESULT_FILES = (
+    "main/results.json",
+    "main/results.csv",
+    "main/summary.json",
+    "main/summary.csv",
+    "smoke/results.json",
+    "smoke/results.csv",
+    "smoke/summary.csv",
+    "performance.json",
+    "bandit_fair.json",
+    "checkpoints/linucb.json",
+)
 
 
 @dataclass
@@ -108,6 +144,11 @@ def decision_context(world: World, obs: ObsSet, visible_until: int, target_slot:
 
 
 def _seed_prior(world: World, rng: np.random.Generator) -> ObsSet:
+    """Sequential prior used by the noise-model holdout.
+
+    Cross-method episodes use ``initial_observations`` instead, so this generator
+    is not the shared environment stream.
+    """
     obs = ObsSet.empty()
     history_end = world.horizon[0]
     coords = [(x, y) for y in range(world.height) for x in range(world.width)]
@@ -120,6 +161,93 @@ def _seed_prior(world: World, rng: np.random.Generator) -> ObsSet:
         level = sample_measurement(world, int(slot), grid, rng)
         obs.add(x, y, level, int(slot), grid)
     return obs
+
+
+def initial_observations(world: World, env_seed: int, events: EnvironmentEventTable | None = None) -> ObsSet:
+    """History samples shared by every method under ``env_seed``.
+
+    Cell choice, history slot, and measurement noise are hashes of
+    ``(env_seed, "prior", grid or slot, object)``. The method name is not an input.
+    """
+    env_seed = int(env_seed)
+    events = events or EnvironmentEventTable(env_seed)
+    if events.env_seed != env_seed:
+        raise ValueError("environment event table was built for a different seed")
+    obs = ObsSet.empty()
+    history_end = int(world.horizon[0])
+    coords = [(x, y) for y in range(world.height) for x in range(world.width)]
+    take = min(int(world.prior_samples), len(coords))
+    ranked = sorted(
+        coords,
+        key=lambda xy: (event_index(env_seed, PRIOR_PARTICIPANT, world.grid_id(xy[0], xy[1]), "cell"), world.grid_id(xy[0], xy[1])),
+    )
+    for x, y in ranked[:take]:
+        grid = world.grid_id(x, y)
+        if history_end <= 0:
+            slot = 0
+        else:
+            slot = event_index(env_seed, PRIOR_PARTICIPANT, grid, "slot") % history_end
+        unit = events.normal(PRIOR_PARTICIPANT, slot, measurement_object(grid))
+        level = float(world.laeq[slot, y, x] + unit * float(world.sensor_sigma))
+        obs.add(x, y, level, slot, grid)
+    return obs
+
+
+def observation_hash(obs: ObsSet) -> str:
+    rows = sorted(
+        zip(obs.slot, obs.grid, obs.x, obs.y, obs.db),
+        key=lambda row: (int(row[0]), int(row[1]), float(row[2]), float(row[3]), float(row[4])),
+    )
+    lines = [f"{int(slot)},{int(grid)},{float(x):.6f},{float(y):.6f},{float(db):.8f}" for slot, grid, x, y, db in rows]
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+
+
+def execution_outcome(
+    world: World,
+    agent,
+    slot: int,
+    grid: int,
+    env_seed: int,
+    force_accept: bool = False,
+    events: EnvironmentEventTable | None = None,
+) -> dict:
+    """One success rule for every method.
+
+    A task succeeds only when the participant is online, their trajectory is on
+    the assigned grid at ``slot``, and the shared acceptance draw is below
+    ``agent.accept``. ``force_accept`` is task state (already accepted), not a
+    method-specific exception.
+    """
+    events = events or EnvironmentEventTable(int(env_seed))
+    loc = int(agent.traj[slot]) if 0 <= slot < len(agent.traj) else -1
+    reached = loc == int(grid)
+    accept_draw = events.uniform(agent.name, int(slot), ACCEPT_OBJECT)
+    if force_accept:
+        accepted = bool(agent.online)
+    else:
+        accepted = bool(agent.online and accept_draw < float(agent.accept))
+    level = None
+    if reached and accepted:
+        level = measurement_db(world, int(env_seed), agent.name, int(slot), int(grid), agent.kind, events)
+        reason = "success"
+        success = True
+    else:
+        success = False
+        if not agent.online:
+            reason = "offline"
+        elif not reached:
+            reason = "not_at_target"
+        else:
+            reason = "rejected"
+    return {
+        "location": loc,
+        "reached": reached,
+        "accepted": accepted,
+        "accept_draw": float(accept_draw),
+        "level_db": level,
+        "reason": reason,
+        "success": success,
+    }
 
 
 def _value_mode(method: str) -> str:
@@ -202,10 +330,23 @@ def step_campaign(
     rng: np.random.Generator,
     bandit: LinUCB | None = None,
     train_bandit: bool = False,
+    env_seed: int | None = None,
+    events: EnvironmentEventTable | None = None,
 ) -> dict:
-    """Execute tasks due at `slot` and optionally schedule the slot `lead` steps ahead."""
+    """Execute tasks due at `slot` and optionally schedule the slot `lead` steps ahead.
+
+    ``rng`` is the algorithm stream and is used only when replanning. Acceptance
+    and measurement noise come from ``events`` and do not depend on ``method``.
+    """
     active_method = "mupsa" if method == "mupsa_no_replan" else method
     replan = cfg.replan and method != "mupsa_no_replan"
+    if events is None:
+        resolved_seed = int(world.seed if env_seed is None else env_seed)
+        events = EnvironmentEventTable(resolved_seed)
+    else:
+        resolved_seed = int(world.seed if env_seed is None else env_seed)
+        if events.env_seed != resolved_seed:
+            raise ValueError("environment event table was built for a different seed")
     queries = grid_queries(world.width, world.height)
     mu_before, _ = predict_idw(obs.subset(slot - 1), queries, slot, zones=world.zones, slots_per_day=world.slots_per_day)
     truth = world.laeq[slot].ravel()
@@ -215,31 +356,32 @@ def step_campaign(
     for item in due:
         item["done"] = True
         agent = world.agents[item["agent"]]
-        loc = int(agent.traj[slot]) if 0 <= slot < len(agent.traj) else -1
-        reached = loc == item["grid"]
-        if item.get("force_accept"):
-            accepted = bool(agent.online)
-        else:
-            accepted = bool(agent.online and rng.random() < agent.accept)
-        level = None
-        reason = "success"
-        if reached and accepted:
-            sigma = world.sensor_sigma * (0.75 if agent.kind == "machine" else 1.0)
-            level = sample_measurement(world, slot, item["grid"], rng, sigma=sigma)
+        realized = execution_outcome(
+            world,
+            agent,
+            slot,
+            int(item["grid"]),
+            resolved_seed,
+            force_accept=bool(item.get("force_accept")),
+            events=events,
+        )
+        level = realized["level_db"]
+        reason = realized["reason"]
+        item["success"] = realized["success"]
+        if realized["success"] and level is not None:
             x, y = world.xy(item["grid"])
             obs.add(x, y, level, slot, item["grid"])
-            item["success"] = True
-        else:
-            item["success"] = False
-            if not agent.online:
-                reason = "offline"
-            elif not reached:
-                reason = "not_at_target"
-            else:
-                reason = "rejected"
-            if replan:
-                budget_left += item["cost"]
-        executed.append({**{k: v for k, v in item.items() if k != "context"}, "level_db": level, "reason": reason, "location": loc})
+        elif replan:
+            budget_left += item["cost"]
+        executed.append(
+            {
+                **{k: v for k, v in item.items() if k != "context"},
+                "level_db": level,
+                "reason": reason,
+                "location": realized["location"],
+                "accept_draw": realized["accept_draw"],
+            }
+        )
     mu_after, _ = predict_idw(obs.subset(slot), queries, slot, zones=world.zones, slots_per_day=world.slots_per_day)
     mae_after = float(np.mean(np.abs(mu_after - truth)))
     rewards = []
@@ -288,8 +430,11 @@ def run_episode(
     train_bandit: bool = False,
 ) -> dict:
     cfg = cfg or EpisodeConfig()
-    rng = np.random.default_rng(seed)
-    obs = _seed_prior(world, rng)
+    env_seed = int(seed)
+    events = precompute_environment_events(world, env_seed)
+    obs = initial_observations(world, env_seed, events)
+    initial_hash = observation_hash(obs)
+    rng = algorithm_rng(env_seed, method)
     lead = cfg.lead
     start, end = world.horizon
     plans: list[dict] = []
@@ -319,7 +464,19 @@ def run_episode(
 
     for slot in range(start, end):
         outcome = step_campaign(
-            world, obs, plans, slot, budget_left, method, budget, cfg, rng, bandit, train_bandit
+            world,
+            obs,
+            plans,
+            slot,
+            budget_left,
+            method,
+            budget,
+            cfg,
+            rng,
+            bandit,
+            train_bandit,
+            env_seed=env_seed,
+            events=events,
         )
         budget_left = outcome["budget_left"]
         online_abs.append(outcome["mae_after"])
@@ -357,7 +514,10 @@ def run_episode(
     return {
         "method": method,
         "scenario": world.scenario,
-        "seed": int(seed),
+        "seed": int(env_seed),
+        "env_seed": int(env_seed),
+        "protocol": FAIR_PROTOCOL,
+        "initial_obs_hash": initial_hash,
         "budget": float(budget),
         "mae_causal": float(np.mean(abs_err)),
         "rmse_causal": float(np.sqrt(np.mean(sq_err))),
@@ -517,12 +677,14 @@ def run_suite(config: dict, output_dir: Path) -> dict:
             )
             for budget in budgets:
                 for method in methods:
-                    episode_seed = 10_000 + int(seed) * 100 + int(budget) + (sum(ord(ch) for ch in method) % 97)
+                    # One environment seed for every method. The method name used to be
+                    # mixed in here, which gave each method a different prior and a
+                    # different acceptance and measurement stream.
                     result = run_episode(
                         world,
                         method,
                         float(budget),
-                        episode_seed,
+                        int(seed),
                         EpisodeConfig(lead=lead, per_slot_cap=cap),
                     )
                     result["family"] = "main"
@@ -544,7 +706,7 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                 prior_samples=int(config.get("prior_samples", 24)),
             )
             for method in ablations:
-                result = run_episode(world, method, budget, 20_000 + int(seed) * 17 + sum(ord(ch) for ch in method))
+                result = run_episode(world, method, budget, int(world.seed))
                 result["family"] = "ablation"
                 result["budget"] = budget
                 ablation_rows.append(result)
@@ -580,8 +742,8 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                     offline_fraction=float(variant["offline_fraction"]),
                     prior_samples=int(config.get("prior_samples", 24)),
                 )
-                for method in ["nearest", "greedy", "mupsa"]:
-                    result = run_episode(world, method, budget, 30_000 + int(seed) * 13 + sum(ord(ch) for ch in variant["name"] + method))
+                for method in ["nearest", "nearest_reach", "random_reach", "greedy", "greedy_reach", "mupsa"]:
+                    result = run_episode(world, method, budget, int(world.seed))
                     result["family"] = "robustness"
                     result["variant"] = variant["name"]
                     robust_rows.append(result)
@@ -623,13 +785,14 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                 world,
                 "bandit",
                 float(budgets[len(budgets) // 2]),
-                40_000 + episode,
+                int(world.seed),
                 EpisodeConfig(lead=lead, per_slot_cap=cap),
                 bandit=trainer,
                 train_bandit=True,
             )
             bandit_curve.append(trained["reward_sum"])
-        checkpoint = output_dir.parent / "checkpoints"
+        # Keep experiments/results/checkpoints/linucb.json. New checkpoints live with the run.
+        checkpoint = output_dir / "checkpoints"
         checkpoint.mkdir(parents=True, exist_ok=True)
         (checkpoint / "linucb.json").write_text(json.dumps(trainer.to_dict()), encoding="utf-8")
         for seed in seeds:
@@ -644,12 +807,12 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                 scenario=scenarios[0],
                 prior_samples=int(config.get("prior_samples", 24)),
             )
-            # Frozen policy: train_bandit False. Test seeds are disjoint from 400+episode.
+            # Frozen policy: train_bandit False. Eval worlds use seeds 800+seed, train worlds 400+episode.
             result = run_episode(
                 world,
                 "bandit",
                 float(budgets[len(budgets) // 2]),
-                50_000 + int(seed),
+                int(world.seed),
                 EpisodeConfig(lead=lead, per_slot_cap=cap),
                 bandit=trainer,
                 train_bandit=False,
@@ -660,6 +823,23 @@ def run_suite(config: dict, output_dir: Path) -> dict:
     summary = aggregate([row for row in rows if row.get("family") == "main"], ["scenario", "method", "budget"])
     payload = {
         "config": config,
+        "protocol_name": FAIR_PROTOCOL,
+        "protocol": {
+            "name": FAIR_PROTOCOL,
+            "env_events": "stable sha256 of (env_seed, participant_id, time, object); acceptance is precomputed per participant and slot",
+            "shared_across_methods": [
+                "noise_field",
+                "trajectories",
+                "initial_observations",
+                "budget",
+                "machines",
+                "measurement_noise",
+                "acceptance",
+            ],
+            "algorithm_rng": "separate numpy Generator keyed by (env_seed, method)",
+            "execution_success": "online, on the assigned grid, and acceptance draw < accept; the same rule for every method",
+            "legacy": "Outputs written when episode_seed included the method name are kept and labeled legacy. They are not fair_v1 results.",
+        },
         "rows": rows,
         "summary": summary,
         "ablation": ablation_rows,
@@ -679,7 +859,45 @@ def run_suite(config: dict, output_dir: Path) -> dict:
     (output_dir / "results.json").write_text(json.dumps(payload), encoding="utf-8")
     _write_csv(output_dir / "results.csv", rows)
     _write_csv(output_dir / "summary.csv", summary)
+    label_legacy_outputs(output_dir.parent)
     return payload
+
+
+def label_legacy_outputs(results_root: Path) -> dict | None:
+    """Mark pre-fair_v1 artifacts as legacy without editing or deleting them."""
+    root = Path(results_root)
+    files = []
+    for rel in LEGACY_RESULT_FILES:
+        path = root / rel
+        if not path.is_file():
+            continue
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        files.append(
+            {
+                "path": rel,
+                "protocol": LEGACY_PROTOCOL,
+                "bytes": path.stat().st_size,
+                "sha256": digest,
+            }
+        )
+    if not files:
+        return None
+    manifest = {
+        "protocol": LEGACY_PROTOCOL,
+        "label": "legacy protocol",
+        "do_not_delete": True,
+        "reason": (
+            "run_suite previously set episode_seed = 10000 + seed * 100 + budget + "
+            "(sum(ord(ch) for ch in method) % 97) and then drew the prior, acceptance, "
+            "measurement noise, and algorithm scores from one Generator. Methods did not "
+            "share initial observations or environment randomness. These files are the "
+            "outputs of that protocol and are retained unchanged."
+        ),
+        "files": files,
+    }
+    destination = root / "legacy_protocol.json"
+    destination.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return manifest
 
 
 def _write_csv(path: Path, rows: list[dict]) -> None:

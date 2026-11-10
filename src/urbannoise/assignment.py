@@ -155,12 +155,24 @@ def _score_matrix(
             if method == "random":
                 if spatial_ok or p_reach >= min_reach:
                     scores[i, j] = float(rng.random())
+            elif method == "random_reach":
+                # Reachability-constrained random: the current cell is not enough.
+                if p_reach >= min_reach:
+                    scores[i, j] = float(rng.random())
             elif method == "nearest":
+                # Current-position nearest. Distance is the location at the decision slot.
                 if spatial_ok:
                     scores[i, j] = -dist
+            elif method == "nearest_reach":
+                # Reachability-aware nearest: prefer the participant most likely to be there.
+                if p_reach >= min_reach:
+                    scores[i, j] = p_reach
             elif method == "greedy":
                 if spatial_ok:
                     scores[i, j] = value - 0.03 * dist
+            elif method == "greedy_reach":
+                if p_reach >= min_reach:
+                    scores[i, j] = value + 0.03 * p_reach
             elif method == "uncertainty":
                 if spatial_ok:
                     scores[i, j] = float(unc_norm[j]) - 0.03 * dist
@@ -363,7 +375,7 @@ def allocate(
             bandit, scores, agents, grids, distances, reach, values, unc_norm, duplicate, budget, cap, budget_frac, time_frac
         )
     else:
-        floor = -1e8 if method in {"nearest", "random", "min_cost"} else 0.0
+        floor = -1e8 if method in {"nearest", "random", "random_reach", "min_cost"} else 0.0
         chosen = _greedy_select(scores, agents, grids, distances, reach, values, budget, cap, floor)
     reasons = []
     if not chosen:

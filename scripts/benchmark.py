@@ -94,8 +94,10 @@ def main() -> None:
         "episodes": episodes,
         "api": _api(),
     }
-    out = Path("experiments/results/performance.json")
-    out.parent.mkdir(parents=True, exist_ok=True)
+    legacy = Path("experiments/results/performance.json")
+    legacy.parent.mkdir(parents=True, exist_ok=True)
+    # Keep the pre-fair_v1 timing file. A new run writes alongside it.
+    out = Path("experiments/results/performance_rerun.json") if legacy.exists() else legacy
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(payload, ensure_ascii=False, indent=2))
 

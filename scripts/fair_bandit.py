@@ -59,11 +59,15 @@ def main() -> None:
             }
         )
     payload = {
-        "protocol": "Same worlds as bandit_eval: seeds 800-804, regular, budget 24, grid 14, lead 1. Frozen LinUCB, no test-time updates.",
+        "protocol_name": "fair_v1",
+        "protocol": "Same worlds as the legacy bandit_eval worlds: seeds 800-804, regular, budget 24, grid 14, lead 1. Frozen LinUCB, no test-time updates. Environment draws follow fair_v1. This file is not the legacy bandit_fair.json table.",
+        "kind": "bandit_comparison",
+        "is_main_result": False,
         "summary": summary,
         "rows": rows,
     }
-    dest = ROOT / "bandit_fair.json"
+    legacy = ROOT / "bandit_fair.json"
+    dest = ROOT / "bandit_fair_fair_v1.json" if legacy.exists() else legacy
     dest.write_text(json.dumps(payload), encoding="utf-8")
     print(json.dumps(summary, indent=2))
 
