@@ -32,8 +32,10 @@ def make_session_factory(engine):
 
 def init_db(engine) -> None:
     from urbannoise import models  # noqa: F401
+    from urbannoise.migrations import migrate
 
     Base.metadata.create_all(engine)
+    migrate(engine)
 
 
 def healthcheck(engine) -> bool:

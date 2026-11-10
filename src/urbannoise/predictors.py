@@ -22,10 +22,35 @@ from urbannoise.acoustics import (
 )
 
 
+class TransitionCounts:
+    """Sparse (agent, source, destination) counts.
+
+    `transitions[agent, src, dst]` stays valid for the existing tests. Large
+    grids do not allocate an agents × cells × cells tensor.
+    """
+
+    def __init__(self) -> None:
+        self.records: dict[tuple[int, int, int], float] = {}
+        self.out: list[dict[int, dict[int, float]]] = []
+
+    def add(self, agent: int, src: int, dst: int, value: float = 1.0) -> None:
+        while len(self.out) <= agent:
+            self.out.append({})
+        bucket = self.out[agent].setdefault(int(src), {})
+        bucket[int(dst)] = bucket.get(int(dst), 0.0) + float(value)
+        key = (int(agent), int(src), int(dst))
+        self.records[key] = self.records.get(key, 0.0) + float(value)
+
+    def __getitem__(self, key):
+        if not isinstance(key, tuple) or len(key) != 3:
+            raise TypeError("transitions are indexed as (agent, src, dst)")
+        return float(self.records.get((int(key[0]), int(key[1]), int(key[2])), 0.0))
+
+
 @dataclass
 class MobilityFit:
     time_counts: np.ndarray  # (A, slots_per_day, G)
-    transitions: np.ndarray  # (A, G, G)
+    transitions: TransitionCounts
     frequency: np.ndarray  # (A, G)
     slots_per_day: int
 
@@ -45,30 +70,72 @@ class MobilityFit:
             mixed = probs
         return validate_distribution(mixed)
 
+    def _fallback(self, agent: int) -> np.ndarray:
+        freq = self.frequency[agent]
+        if freq.sum() > 0:
+            return freq / freq.sum()
+        return np.full(freq.shape[0], 1.0 / max(freq.shape[0], 1))
+
     def _rollout(self, agent: int, current: int, lead: int) -> np.ndarray | None:
         if current < 0 or lead <= 0:
             return None
-        matrix = self.transitions[agent]
-        row_sum = matrix.sum(axis=1, keepdims=True)
-        usable = row_sum.ravel() > 0
-        if not usable[current]:
+        outgoing = self.transitions.out[agent] if agent < len(self.transitions.out) else {}
+        if current not in outgoing or sum(outgoing[current].values()) <= 0:
             return None
-        safe = np.zeros_like(matrix)
-        np.divide(matrix, row_sum, out=safe, where=row_sum > 0)
-        # Empty rows become a stay-or-frequency fallback so the chain remains a distribution.
-        freq = self.frequency[agent]
-        fallback = freq / freq.sum() if freq.sum() > 0 else np.full(freq.shape[0], 1.0 / freq.shape[0])
-        for idx in range(safe.shape[0]):
-            if not usable[idx]:
-                safe[idx] = fallback
-        state = np.zeros(safe.shape[0], dtype=np.float64)
-        state[current] = 1.0
-        for _ in range(lead):
-            state = state @ safe
-        total = state.sum()
-        if total <= 0 or not np.all(np.isfinite(state)):
+        n_grids = int(self.frequency.shape[1])
+        # Dense chain matches the previous matrix rollout, including the
+        # frequency fallback on rows that have never been left.
+        if n_grids <= 768:
+            matrix = np.zeros((n_grids, n_grids), dtype=np.float64)
+            for src, dests in outgoing.items():
+                if 0 <= src < n_grids:
+                    for dst, count in dests.items():
+                        if 0 <= dst < n_grids:
+                            matrix[src, dst] = count
+            row_sum = matrix.sum(axis=1, keepdims=True)
+            usable = row_sum.ravel() > 0
+            safe = np.zeros_like(matrix)
+            np.divide(matrix, row_sum, out=safe, where=row_sum > 0)
+            fallback = self._fallback(agent)
+            for idx in range(n_grids):
+                if not usable[idx]:
+                    safe[idx] = fallback
+            state = np.zeros(n_grids, dtype=np.float64)
+            state[int(current)] = 1.0
+            for _ in range(int(lead)):
+                state = state @ safe
+            total = float(state.sum())
+            if total <= 0 or not np.all(np.isfinite(state)):
+                return None
+            return state / total
+        fallback_map = {int(idx): float(prob) for idx, prob in enumerate(self._fallback(agent)) if prob > 0}
+        state: dict[int, float] = {int(current): 1.0}
+        for _ in range(int(lead)):
+            nxt: dict[int, float] = {}
+            for src, mass in state.items():
+                if mass <= 0:
+                    continue
+                row = outgoing.get(src)
+                total = float(sum(row.values())) if row else 0.0
+                if total > 0 and row is not None:
+                    for dst, count in row.items():
+                        nxt[dst] = nxt.get(dst, 0.0) + mass * (count / total)
+                else:
+                    for dst, prob in fallback_map.items():
+                        nxt[dst] = nxt.get(dst, 0.0) + mass * prob
+            state = nxt
+            if not state:
+                return None
+        total = float(sum(state.values()))
+        if total <= 0:
             return None
-        return state / total
+        dense = np.zeros(n_grids, dtype=np.float64)
+        for dst, mass in state.items():
+            if 0 <= dst < n_grids:
+                dense[dst] = mass / total
+        if not np.all(np.isfinite(dense)) or dense.sum() <= 0:
+            return None
+        return dense / dense.sum()
 
 
 def fit_mobility(
@@ -85,8 +152,13 @@ def fit_mobility(
     history = trajectories[:, :hist_end]
     inferred = int(max(0, history.max())) + 1 if np.any(history >= 0) else 1
     n_grids = max(inferred, int(n_grids or 0), 1)
+    nbytes = agents * (int(slots_per_day) + 1) * n_grids * 8
+    if nbytes > 512 * 1024 * 1024:
+        raise MemoryError(
+            f"mobility tables would allocate about {nbytes} bytes for {agents} agents and {n_grids} cells; crop the study window"
+        )
     time_counts = np.zeros((agents, slots_per_day, n_grids), dtype=np.float64)
-    transitions = np.zeros((agents, n_grids, n_grids), dtype=np.float64)
+    transitions = TransitionCounts()
     frequency = np.zeros((agents, n_grids), dtype=np.float64)
     for i in range(agents):
         row = history[i]
@@ -97,7 +169,7 @@ def fit_mobility(
         for slot in range(len(row) - 1):
             src, dst = int(row[slot]), int(row[slot + 1])
             if src >= 0 and dst >= 0:
-                transitions[i, src, dst] += 1.0
+                transitions.add(i, src, dst, 1.0)
     return MobilityFit(time_counts, transitions, frequency, slots_per_day)
 
 
@@ -345,6 +417,18 @@ def cell_features(
         "coverage_gap": coverage_gap,
         "counts": counts,
     }
+
+
+def expected_error_reduction(std: np.ndarray, sensor_sigma: float) -> np.ndarray:
+    """Variance drop of one Gaussian measurement update.
+
+    If the predictive variance is v and the sensor variance is r, the posterior
+    variance is v r / (v + r), so the reduction is v² / (v + r). The formula is
+    fixed. It is not scaled to win a comparison.
+    """
+    var = np.square(np.maximum(np.asarray(std, dtype=np.float64), 0.0))
+    noise = float(sensor_sigma) ** 2
+    return (var * var) / (var + noise + 1e-12)
 
 
 def combine_value(features: dict[str, np.ndarray], weights: dict[str, float], mode: str = "full") -> np.ndarray:

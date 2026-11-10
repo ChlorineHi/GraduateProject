@@ -155,9 +155,19 @@ def _score_matrix(
             if method == "random":
                 if spatial_ok or p_reach >= min_reach:
                     scores[i, j] = float(rng.random())
-            elif method == "nearest":
+            elif method in {"nearest", "current_position_nearest"}:
+                # Weak baseline: current Manhattan cell, no mobility forecast.
                 if spatial_ok:
-                    scores[i, j] = -dist
+                    scores[i, j] = -float(dist)
+            elif method == "reach_nearest":
+                if p_reach >= min_reach:
+                    scores[i, j] = p_reach
+            elif method == "reach_random":
+                if p_reach >= min_reach:
+                    scores[i, j] = float(rng.random())
+            elif method == "reach_greedy":
+                if p_reach >= min_reach:
+                    scores[i, j] = p_reach * value
             elif method == "greedy":
                 if spatial_ok:
                     scores[i, j] = value - 0.03 * dist
@@ -179,6 +189,18 @@ def _score_matrix(
                 scores[i, j] = p_success * value - weights.get("cost", 0.35) * agent.cost
             elif method == "mupsa_no_coverage":
                 scores[i, j] = p_success * value - weights.get("cost", 0.35) * agent.cost
+            elif method == "eer_reach":
+                if p_reach >= min_reach:
+                    scores[i, j] = p_success * value - weights.get("cost", 0.35) * agent.cost
+            elif method == "eer_no_reach":
+                # Ablation: drop P(reach). Acceptance and quality stay.
+                scores[i, j] = agent.accept * agent.quality * value - weights.get("cost", 0.35) * agent.cost
+            elif method == "eer_no_accept":
+                if p_reach >= min_reach:
+                    scores[i, j] = p_reach * value - weights.get("cost", 0.35) * agent.cost
+            elif method == "eer_no_cost":
+                if p_reach >= min_reach:
+                    scores[i, j] = p_success * value
             else:
                 raise ValueError(f"unknown assignment method: {method}")
     return scores, distances
@@ -363,7 +385,7 @@ def allocate(
             bandit, scores, agents, grids, distances, reach, values, unc_norm, duplicate, budget, cap, budget_frac, time_frac
         )
     else:
-        floor = -1e8 if method in {"nearest", "random", "min_cost"} else 0.0
+        floor = -1e8 if method in {"nearest", "current_position_nearest", "random", "min_cost"} else 0.0
         chosen = _greedy_select(scores, agents, grids, distances, reach, values, budget, cap, floor)
     reasons = []
     if not chosen:

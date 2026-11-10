@@ -7,6 +7,7 @@ past trajectories only.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,10 +16,19 @@ import numpy as np
 
 from urbannoise.acoustics import validate_distribution
 from urbannoise.assignment import DEFAULT_WEIGHTS, AgentView, LinUCB, allocate
+from urbannoise.fairness import (
+    acceptance_draw,
+    algorithm_seed,
+    environment_seed,
+    measurement_offset,
+    prior_fingerprint,
+    stable_seed,
+)
 from urbannoise.predictors import (
     ObsSet,
     cell_features,
     combine_value,
+    expected_error_reduction,
     fit_mobility,
     grid_queries,
     interval_stats,
@@ -29,19 +39,43 @@ from urbannoise.predictors import (
 )
 from urbannoise.world import World, build_world, sample_measurement
 
+# mae_causal is the historical column name. The protocol it measures is
+# mae_available_at_t: the predictor at slot t may use only observations with
+# slot <= t. Truth is not an input to that predictor.
+PROTOCOL_NAME = "mae_available_at_t"
+PROTOCOL_TEXT = (
+    "A decision at t uses only information available at t. "
+    "Ground truth is read only after a successful measurement, for rewards when those rewards are disclosed, "
+    "and for evaluation. It is not an input to assignment or to the predictor."
+)
+
 METHOD_LABELS = {
     "random": "Random Assignment",
-    "nearest": "Nearest Feasible Participant",
+    "nearest": "Current-Position Nearest (weak baseline)",
+    "current_position_nearest": "Current-Position Nearest (weak baseline)",
+    "reach_nearest": "Reachability-aware nearest",
+    "reach_random": "Reachability-constrained random",
+    "reach_greedy": "Reachability-aware greedy",
     "greedy": "Greedy Coverage / Information",
     "uncertainty": "Uncertainty-Only Sampling",
     "min_cost": "Hungarian Min-Cost Matching",
-    "mupsa": "MU-PSA (proposed)",
+    "mupsa": "MU-PSA (internal name, not a universal winner)",
     "mupsa_constrained": "MU-PSA hard reach constraint",
     "mupsa_no_mobility": "MU-PSA w/o mobility prediction",
     "mupsa_no_uncertainty": "MU-PSA w/o uncertainty",
     "mupsa_no_coverage": "MU-PSA w/o coverage",
     "bandit": "LinUCB shortlist policy",
+    "eer_reach": "Expected error reduction under a reach constraint",
+    "eer_no_reach": "EER without the reach gate",
+    "eer_no_accept": "EER without acceptance and quality",
+    "eer_no_cost": "EER without the cost penalty",
 }
+
+LEGACY_RESULT_DIRS = (
+    Path("experiments/results/main"),
+    Path("experiments/results/smoke"),
+    Path("experiments/results/checkpoints"),
+)
 
 
 @dataclass
@@ -132,6 +166,12 @@ def _value_mode(method: str) -> str:
     return "full"
 
 
+def task_values(method: str, ctx: dict, world: World, weights: dict) -> np.ndarray:
+    if method.startswith("eer"):
+        return expected_error_reduction(ctx["std"], world.sensor_sigma)
+    return combine_value(ctx["features"], weights, mode=_value_mode(method))
+
+
 def _plan_slot(
     world: World,
     obs: ObsSet,
@@ -147,7 +187,7 @@ def _plan_slot(
 ) -> list[dict]:
     ctx = decision_context(world, obs, decision_slot, target_slot, lead)
     weights = cfg.weights or DEFAULT_WEIGHTS
-    values = combine_value(ctx["features"], weights, mode=_value_mode(method))
+    values = task_values(method, ctx, world, weights)
     grids = np.arange(world.n_grids)
     radius = cfg.radius if cfg.radius is not None else max(2, min(world.height, world.width) // 4)
     result = allocate(
@@ -202,6 +242,7 @@ def step_campaign(
     rng: np.random.Generator,
     bandit: LinUCB | None = None,
     train_bandit: bool = False,
+    env_seed: int | None = None,
 ) -> dict:
     """Execute tasks due at `slot` and optionally schedule the slot `lead` steps ahead."""
     active_method = "mupsa" if method == "mupsa_no_replan" else method
@@ -217,19 +258,32 @@ def step_campaign(
         agent = world.agents[item["agent"]]
         loc = int(agent.traj[slot]) if 0 <= slot < len(agent.traj) else -1
         reached = loc == item["grid"]
+        accept_u = None
+        measure_noise = None
         if item.get("force_accept"):
             accepted = bool(agent.online)
+        elif env_seed is not None:
+            accept_u = acceptance_draw(env_seed, slot, int(item["agent"]))
+            accepted = bool(agent.online and accept_u < agent.accept)
         else:
-            accepted = bool(agent.online and rng.random() < agent.accept)
+            accept_u = float(rng.random())
+            accepted = bool(agent.online and accept_u < agent.accept)
         level = None
         reason = "success"
         if reached and accepted:
             sigma = world.sensor_sigma * (0.75 if agent.kind == "machine" else 1.0)
-            level = sample_measurement(world, slot, item["grid"], rng, sigma=sigma)
-            x, y = world.xy(item["grid"])
+            if env_seed is not None:
+                measure_noise = measurement_offset(env_seed, slot, int(item["grid"]), int(item["agent"])) * sigma
+                x, y = world.xy(item["grid"])
+                level = float(world.laeq[slot, y, x] + measure_noise)
+            else:
+                level = sample_measurement(world, slot, item["grid"], rng, sigma=sigma)
+                x, y = world.xy(item["grid"])
             obs.add(x, y, level, slot, item["grid"])
             item["success"] = True
-        else:
+        item["accept_u"] = accept_u
+        item["measure_noise"] = measure_noise
+        if not (reached and accepted):
             item["success"] = False
             if not agent.online:
                 reason = "offline"
@@ -239,7 +293,16 @@ def step_campaign(
                 reason = "rejected"
             if replan:
                 budget_left += item["cost"]
-        executed.append({**{k: v for k, v in item.items() if k != "context"}, "level_db": level, "reason": reason, "location": loc})
+        executed.append(
+            {
+                **{k: v for k, v in item.items() if k != "context"},
+                "level_db": level,
+                "reason": reason,
+                "location": loc,
+                "accept_u": accept_u,
+                "measure_noise": measure_noise,
+            }
+        )
     mu_after, _ = predict_idw(obs.subset(slot), queries, slot, zones=world.zones, slots_per_day=world.slots_per_day)
     mae_after = float(np.mean(np.abs(mu_after - truth)))
     rewards = []
@@ -286,12 +349,17 @@ def run_episode(
     cfg: EpisodeConfig | None = None,
     bandit: LinUCB | None = None,
     train_bandit: bool = False,
+    env_seed: int | None = None,
 ) -> dict:
     cfg = cfg or EpisodeConfig()
-    rng = np.random.default_rng(seed)
-    obs = _seed_prior(world, rng)
+    resolved_env = int(env_seed) if env_seed is not None else stable_seed("env-from-call", int(seed))
+    algo_seed = algorithm_seed(seed=int(seed), method=method, budget=float(budget), scenario=world.scenario)
+    rng = np.random.default_rng(algo_seed)
+    obs = _seed_prior(world, np.random.default_rng(stable_seed("prior", resolved_env)))
     lead = cfg.lead
     start, end = world.horizon
+    if start >= end:
+        raise ValueError(f"empty evaluation horizon {world.horizon}; a one-day world has no held-out day under the default horizon")
     plans: list[dict] = []
     budget_left = float(budget)
     assigned = success = failed = 0
@@ -319,7 +387,7 @@ def run_episode(
 
     for slot in range(start, end):
         outcome = step_campaign(
-            world, obs, plans, slot, budget_left, method, budget, cfg, rng, bandit, train_bandit
+            world, obs, plans, slot, budget_left, method, budget, cfg, rng, bandit, train_bandit, env_seed=resolved_env
         )
         budget_left = outcome["budget_left"]
         online_abs.append(outcome["mae_after"])
@@ -354,12 +422,49 @@ def run_episode(
     unique_grids = {item["grid"] for item in plans if item["success"]}
     coverage = len(unique_grids) / world.n_grids
     reaches = [item["reach"] for item in plans if item["done"]]
+    draws = []
+    for item in plans:
+        if item.get("done"):
+            draws.append(
+                {
+                    "slot": int(item["slot"]),
+                    "agent": int(item["agent"]),
+                    "grid": int(item["grid"]),
+                    "accept_u": item.get("accept_u"),
+                    "measure_noise": item.get("measure_noise"),
+                    "success": bool(item.get("success")),
+                }
+            )
+    prior_slots = np.asarray(obs.slot)
+    prior_mask = prior_slots < world.horizon[0] if prior_slots.size else prior_slots
+    if prior_slots.size:
+        prior_hash = prior_fingerprint(
+            np.asarray(obs.x)[prior_mask],
+            np.asarray(obs.y)[prior_mask],
+            np.asarray(obs.db)[prior_mask],
+            prior_slots[prior_mask],
+            np.asarray(obs.grid)[prior_mask],
+        )
+    else:
+        prior_hash = prior_fingerprint([], [], [], [], [])
+    traj = _trajectories(world)
+    traj_hash = hashlib.sha256(np.ascontiguousarray(traj).tobytes()).hexdigest()
+    environment_hash = hashlib.sha256(
+        f"{resolved_env}|{prior_hash}|{traj_hash}|{world.scenario}|{world.seed}".encode("utf-8")
+    ).hexdigest()
     return {
         "method": method,
         "scenario": world.scenario,
         "seed": int(seed),
+        "env_seed": int(resolved_env),
+        "algorithm_seed": int(algo_seed),
         "budget": float(budget),
+        "protocol": PROTOCOL_NAME,
+        "prior_hash": prior_hash,
+        "environment_hash": environment_hash,
+        "execution_draws": draws,
         "mae_causal": float(np.mean(abs_err)),
+        "mae_available_at_t": float(np.mean(abs_err)),
         "rmse_causal": float(np.sqrt(np.mean(sq_err))),
         "mae_online": float(np.mean(online_abs)) if online_abs else float("nan"),
         "mae_unsampled": float(np.mean(np.concatenate(unsampled_err))) if unsampled_err else float("nan"),
@@ -490,7 +595,27 @@ def aggregate(rows: list[dict], keys: list[str]) -> list[dict]:
     return summary
 
 
+def _refuse_legacy_overwrite(output_dir: Path, config: dict) -> None:
+    if config.get("protocol") == "legacy_protocol":
+        return
+    resolved = output_dir.resolve()
+    for legacy in LEGACY_RESULT_DIRS:
+        root = legacy.resolve()
+        if resolved == root or root in resolved.parents:
+            raise RuntimeError(
+                f"Refusing to write into legacy protocol directory {resolved}. "
+                "Keep experiments/results/main, smoke, and checkpoints unchanged. "
+                "Write new runs under experiments/results/phase2/."
+            )
+
+
+def _remember(bucket: list[dict], result: dict) -> None:
+    result.pop("execution_draws", None)
+    bucket.append(result)
+
+
 def run_suite(config: dict, output_dir: Path) -> dict:
+    _refuse_legacy_overwrite(output_dir, config)
     output_dir.mkdir(parents=True, exist_ok=True)
     rows: list[dict] = []
     methods = config["methods"]
@@ -499,6 +624,38 @@ def run_suite(config: dict, output_dir: Path) -> dict:
     budgets = config["budgets"]
     lead = int(config.get("lead", 2))
     cap = int(config.get("per_slot_cap", 4))
+    frozen_bandit: LinUCB | None = None
+    bandit_curve: list[float] = []
+    if config.get("train_bandit", False):
+        frozen_bandit = LinUCB(alpha=float(config.get("bandit_alpha", 0.75)))
+        episodes = int(config.get("train_bandit_episodes", 8))
+        for episode in range(episodes):
+            world = build_world(
+                seed=400 + episode,
+                height=int(config["grid"]),
+                width=int(config["grid"]),
+                n_days=int(config.get("n_days", 2)),
+                slots_per_day=int(config["slots_per_day"]),
+                n_human=int(config["n_human"]),
+                n_machine=int(config["n_machine"]),
+                scenario="regular",
+                prior_samples=int(config.get("prior_samples", 24)),
+            )
+            trained = run_episode(
+                world,
+                "bandit",
+                float(budgets[len(budgets) // 2]),
+                40_000 + episode,
+                EpisodeConfig(lead=lead, per_slot_cap=cap),
+                bandit=frozen_bandit,
+                train_bandit=True,
+                env_seed=environment_seed(seed=400 + episode, scenario="regular", subset="bandit_train", time_range="default"),
+            )
+            trained.pop("execution_draws", None)
+            bandit_curve.append(trained["reward_sum"])
+        checkpoint = output_dir / "checkpoints"
+        checkpoint.mkdir(parents=True, exist_ok=True)
+        (checkpoint / "linucb.json").write_text(json.dumps(frozen_bandit.to_dict()), encoding="utf-8")
     for scenario in scenarios:
         for seed in seeds:
             world = build_world(
@@ -515,22 +672,33 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                 prior_samples=int(config.get("prior_samples", 24)),
                 missing_rate=float(config.get("missing_rate", 0.04)),
             )
+            env = environment_seed(
+                seed=int(seed),
+                scenario=scenario,
+                subset=str(config.get("subset", "full")),
+                time_range=str(config.get("time_range", "default")),
+                budget=None,
+            )
             for budget in budgets:
                 for method in methods:
-                    episode_seed = 10_000 + int(seed) * 100 + int(budget) + (sum(ord(ch) for ch in method) % 97)
                     result = run_episode(
                         world,
                         method,
                         float(budget),
-                        episode_seed,
+                        int(seed),
                         EpisodeConfig(lead=lead, per_slot_cap=cap),
+                        bandit=frozen_bandit if method == "bandit" else None,
+                        train_bandit=False,
+                        env_seed=env,
                     )
                     result["family"] = "main"
-                    rows.append(result)
+                    result["protocol"] = PROTOCOL_NAME
+                    _remember(rows, result)
     ablation_rows = []
     if config.get("ablation", False):
-        ablations = ["mupsa", "mupsa_no_mobility", "mupsa_no_uncertainty", "mupsa_no_coverage", "mupsa_no_replan"]
+        ablations = list(config.get("ablation_methods") or ["mupsa", "mupsa_no_mobility", "mupsa_no_uncertainty", "mupsa_no_coverage", "mupsa_no_replan"])
         budget = float(config.get("ablation_budget", budgets[len(budgets) // 2]))
+        ablation_scenario = config.get("ablation_scenario", scenarios[0])
         for seed in seeds:
             world = build_world(
                 seed=int(seed) + 50,
@@ -540,13 +708,22 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                 slots_per_day=int(config["slots_per_day"]),
                 n_human=int(config["n_human"]),
                 n_machine=int(config["n_machine"]),
-                scenario=config.get("ablation_scenario", scenarios[0]),
+                scenario=ablation_scenario,
                 prior_samples=int(config.get("prior_samples", 24)),
             )
+            env = environment_seed(seed=int(seed) + 50, scenario=str(ablation_scenario), subset="ablation", time_range="default")
             for method in ablations:
-                result = run_episode(world, method, budget, 20_000 + int(seed) * 17 + sum(ord(ch) for ch in method))
+                result = run_episode(
+                    world,
+                    method,
+                    budget,
+                    int(seed) + 50,
+                    EpisodeConfig(lead=lead, per_slot_cap=cap),
+                    env_seed=env,
+                )
                 result["family"] = "ablation"
                 result["budget"] = budget
+                result.pop("execution_draws", None)
                 ablation_rows.append(result)
                 rows.append(result)
     robust_rows = []
@@ -580,10 +757,19 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                     offline_fraction=float(variant["offline_fraction"]),
                     prior_samples=int(config.get("prior_samples", 24)),
                 )
+                env = environment_seed(seed=int(seed) + 90, scenario=str(variant["scenario"]), subset=variant["name"], time_range="robustness")
                 for method in ["nearest", "greedy", "mupsa"]:
-                    result = run_episode(world, method, budget, 30_000 + int(seed) * 13 + sum(ord(ch) for ch in variant["name"] + method))
+                    result = run_episode(
+                        world,
+                        method,
+                        budget,
+                        int(seed) + 90,
+                        EpisodeConfig(lead=lead, per_slot_cap=cap),
+                        env_seed=env,
+                    )
                     result["family"] = "robustness"
                     result["variant"] = variant["name"]
+                    result.pop("execution_draws", None)
                     robust_rows.append(result)
                     rows.append(result)
     mobility_report = {}
@@ -602,36 +788,9 @@ def run_suite(config: dict, output_dir: Path) -> dict:
         )
         mobility_report = evaluate_mobility(probe)
         noise_report = compare_noise_models(probe, seed=int(seeds[0]))
-    bandit_curve: list[float] = []
     bandit_eval: list[dict] = []
-    if config.get("train_bandit", False):
-        trainer = LinUCB(alpha=float(config.get("bandit_alpha", 0.75)))
-        episodes = int(config.get("train_bandit_episodes", 8))
-        for episode in range(episodes):
-            world = build_world(
-                seed=400 + episode,
-                height=int(config["grid"]),
-                width=int(config["grid"]),
-                n_days=int(config.get("n_days", 2)),
-                slots_per_day=int(config["slots_per_day"]),
-                n_human=int(config["n_human"]),
-                n_machine=int(config["n_machine"]),
-                scenario="regular",
-                prior_samples=int(config.get("prior_samples", 24)),
-            )
-            trained = run_episode(
-                world,
-                "bandit",
-                float(budgets[len(budgets) // 2]),
-                40_000 + episode,
-                EpisodeConfig(lead=lead, per_slot_cap=cap),
-                bandit=trainer,
-                train_bandit=True,
-            )
-            bandit_curve.append(trained["reward_sum"])
-        checkpoint = output_dir.parent / "checkpoints"
-        checkpoint.mkdir(parents=True, exist_ok=True)
-        (checkpoint / "linucb.json").write_text(json.dumps(trainer.to_dict()), encoding="utf-8")
+    if config.get("train_bandit", False) and "bandit" not in methods:
+        trainer = frozen_bandit
         for seed in seeds:
             world = build_world(
                 seed=800 + int(seed),
@@ -655,6 +814,7 @@ def run_suite(config: dict, output_dir: Path) -> dict:
                 train_bandit=False,
             )
             result["family"] = "bandit_eval"
+            result.pop("execution_draws", None)
             bandit_eval.append(result)
             rows.append(result)
     summary = aggregate([row for row in rows if row.get("family") == "main"], ["scenario", "method", "budget"])
@@ -668,9 +828,16 @@ def run_suite(config: dict, output_dir: Path) -> dict:
         "noise_models": noise_report,
         "bandit_curve": bandit_curve,
         "bandit_eval": bandit_eval,
+        "protocol": {
+            "name": PROTOCOL_NAME,
+            "legacy_column": "mae_causal",
+            "text": PROTOCOL_TEXT,
+            "shared_environment": "Methods that share scenario, subset, time range, and seed also share the noise field, trajectories, initial observations, machine pool, measurement-noise draws, and acceptance draws. Budget does not resample that environment. Algorithm exploration uses a separate seed.",
+        },
         "metric_definitions": {
-            "mae_causal": "Mean absolute error of IDW predictions at each evaluation slot, using only observations with slot <= t, against the clean synthetic field.",
-            "rmse_causal": "Root mean squared error under the same causal protocol.",
+            "mae_causal": "Historical column name for mae_available_at_t. Mean absolute error of the IDW predictor at each evaluation slot, using only observations with slot <= t. Truth is the evaluation target, not a model input.",
+            "mae_available_at_t": "Same number as mae_causal. Decision-time protocol: information available at t only.",
+            "rmse_causal": "Root mean squared error under the same decision-time protocol.",
             "coverage": "Fraction of grids with at least one successful sample during the evaluation horizon.",
             "sampling_cost": "Sum of participant costs of successful samples. Rejected or missed tasks are refunded when replanning is enabled.",
             "interval_coverage": "Empirical frequency with which truth falls inside mean ± 1.96 predictive std. This checks the uncertainty, it does not prove calibration.",
