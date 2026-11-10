@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { NavLink, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import * as echarts from "echarts";
-import { api, download, setToken, type Frame, type User } from "./api";
+import { ApiError, api, download, formatServerField, resetSyntheticDemoRequest, selectScenarioRequest, SERVER_MODE_FIELDS, setToken, SCENARIO_MODES, SIMULATION_MODES, stepSimulationRequest, SYNTHETIC_DEMO_FIELDS, type DatasetRow, type Frame, type ManifestItem, type ManifestReport, type Phase2Report, type ScenarioMode, type SimulationMode, type SyntheticDemoField, type User } from "./api";
 import { CityMap } from "./CityMap";
 
 type Dash = {
@@ -217,9 +217,15 @@ function MapPage({ role }: { role: string }) {
     const timer = window.setInterval(() => setSlot((value) => (value + 1) % (frame?.height ? 96 : 48)), 700);
     return () => window.clearInterval(timer);
   }, [playing, frame?.height]);
+  const anonymous = !frame || frame.real_city === false || frame.anonymous !== false;
+  const virtualGrid = !frame || frame.coordinate_system.includes("virtual") || frame.coordinate_system.includes("yjmob");
   return (
-    <Page title="噪声地图" lede="虚拟网格视图。颜色使用固定 32–80 dB 标尺。真值层只在明确打开时由评估接口返回，并带有警告。">
+    <Page title="噪声地图" lede="匿名虚拟网格。颜色使用固定 32–80 dB 标尺。真值层只在明确打开时由评估接口返回，并带有警告。">
       {error && <p className="error">{error}</p>}
+      <div className="banner">
+        <b>{anonymous || virtualGrid ? "匿名虚拟网格 · 不是真实城市" : frame?.coordinate_system}</b>
+        <span>坐标系 {frame?.coordinate_system || "—"} · 来源 {frame?.data_origin || "—"} · 底图 {frame?.basemap || "无"}</span>
+      </div>
       <div className="checks">
         {(["prediction", "uncertainty", "zone"] as const).map((item) => (
           <label key={item}><input type="radio" checked={mode === item} onChange={() => setMode(item)} /> {item === "prediction" ? "预测" : item === "uncertainty" ? "不确定性" : "用地"}</label>
@@ -252,7 +258,7 @@ function MapPage({ role }: { role: string }) {
             </div>
           )}
           <h2>图例</h2>
-          <p className="note">圆点：人（墨色）与机器（潮绿）。方块：该时间片观测。红框：任务。</p>
+          <p className="note">圆点：人（墨色）与机器（潮绿）。方块：该时间片观测。红框：任务。网格保持匿名，YJMob 不会画到地理底图上。</p>
         </aside>
       </div>
     </Page>
@@ -580,67 +586,134 @@ function mixColor(t: number) {
   return `rgb(${r},${g},${b})`;
 }
 
+function modeLabel(value: string) {
+  return SCENARIO_MODES.find((item) => item.id === value)?.label || value || "—";
+}
+
 function SimPage({ role }: { role: string }) {
   const [state, setState] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ scenario: "complex", seed: 7, algorithm: "mupsa", budget: 24, n_human: 14, n_machine: 4, accept_human: 0.72 });
+  const [refusal, setRefusal] = useState<{ status: number; message: string } | null>(null);
+  const [mode, setMode] = useState<SimulationMode>("synthetic");
+  const [field, setField] = useState<SyntheticDemoField>("complex");
+  const [seed, setSeed] = useState(7);
+  const [algorithm, setAlgorithm] = useState("mupsa");
+  const [budget, setBudget] = useState(24);
+  const [nHuman, setNHuman] = useState(14);
+  const [nMachine, setNMachine] = useState(4);
+  const [acceptHuman, setAcceptHuman] = useState(0.72);
   const load = useCallback(() => api<Record<string, unknown>>("/api/simulation").then(setState).catch((reason: Error) => setError(reason.message)), []);
   useEffect(() => { void load(); }, [load]);
-  async function control(action: string, steps = 1) {
+  async function send(body: Record<string, unknown>) {
     setError("");
+    setRefusal(null);
     try {
-      setState(await api("/api/simulation/control", { method: "POST", body: JSON.stringify({ action, steps, ...form }) }));
+      setState(await api<Record<string, unknown>>("/api/simulation/control", { method: "POST", body: JSON.stringify(body) }));
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "仿真操作失败");
+      if (reason instanceof ApiError) setRefusal({ status: reason.status, message: reason.message });
+      else setError(reason instanceof Error ? reason.message : "仿真操作失败");
     }
   }
   const metrics = (state?.metrics || {}) as { mae_current_slot?: number; coverage?: number };
-  const log = (state?.log || []) as string[];
+  const log = Array.isArray(state?.log) ? state.log.filter((line): line is string => typeof line === "string") : [];
+  const serverHeading = serverModeHeading(state);
   return (
-    <Page title="仿真控制台" lede="重置会按种子重建虚拟城市。单步推进会执行到期任务、写入观测并更新覆盖。真值只在采样成功时被读取。">
+    <Page title="仿真控制台" lede="切换场景发送 select_scenario，模式名为 synthetic、real_mobility、real_noise 或 fully_real。regular、complex、shift 只作为 synthetic 下面的 Synthetic Demo 噪声场。状态区只写服务器返回的字段。">
+      <p className="note">合成虚拟网格保持匿名，不是真实城市。</p>
+      <p className="note">real_mobility 的任务成功是 on_task_cell，来自已存储轨迹。成功之后抽到的噪声是 synthetic_noise_field。</p>
       {error && <p className="error">{error}</p>}
+      {refusal && <p className="error">服务器拒绝（{refusal.status}）：{refusal.message} 这次没有改标成已成功。</p>}
       <section className="panel">
         <div className="form-grid">
-          <label className="field">场景<select value={form.scenario} onChange={(event) => setForm({ ...form, scenario: event.target.value })}><option>regular</option><option>complex</option><option>shift</option></select></label>
-          <label className="field">种子<input type="number" value={form.seed} onChange={(event) => setForm({ ...form, seed: Number(event.target.value) })} /></label>
-          <label className="field">算法<select value={form.algorithm} onChange={(event) => setForm({ ...form, algorithm: event.target.value })}>{["mupsa", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="field">预算<input type="number" value={form.budget} onChange={(event) => setForm({ ...form, budget: Number(event.target.value) })} /></label>
-          <label className="field">人数<input type="number" value={form.n_human} onChange={(event) => setForm({ ...form, n_human: Number(event.target.value) })} /></label>
-          <label className="field">机器数<input type="number" value={form.n_machine} onChange={(event) => setForm({ ...form, n_machine: Number(event.target.value) })} /></label>
-          <label className="field">接受概率<input type="number" step="0.05" value={form.accept_human} onChange={(event) => setForm({ ...form, accept_human: Number(event.target.value) })} /></label>
+          <label className="field">场景模式
+            <select value={mode} onChange={(event) => setMode(event.target.value as SimulationMode)}>
+              {SIMULATION_MODES.map((item) => <option key={item.id} value={item.id}>{item.id}（{item.detail}）</option>)}
+            </select>
+          </label>
+          <label className="field">种子<input type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value))} /></label>
+          <label className="field">算法<select value={algorithm} onChange={(event) => setAlgorithm(event.target.value)}>{["mupsa", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="field">预算<input type="number" value={budget} onChange={(event) => setBudget(Number(event.target.value))} /></label>
+          <label className="field">人数<input type="number" value={nHuman} onChange={(event) => setNHuman(Number(event.target.value))} /></label>
+          <label className="field">机器数<input type="number" value={nMachine} onChange={(event) => setNMachine(Number(event.target.value))} /></label>
+          <label className="field">接受概率<input type="number" step="0.05" value={acceptHuman} onChange={(event) => setAcceptHuman(Number(event.target.value))} /></label>
         </div>
+        {mode === "synthetic" && (
+          <div className="empty-state" style={{ marginTop: 12 }}>
+            <b>Synthetic Demo 噪声场</b>
+            <p className="note">regular、complex、shift 嵌在 synthetic 下面，只重建合成噪声场。</p>
+            <label className="field">噪声场
+              <select value={field} onChange={(event) => setField(event.target.value as SyntheticDemoField)}>
+                {SYNTHETIC_DEMO_FIELDS.map((item) => <option key={item} value={item}>{item} · Synthetic Demo</option>)}
+              </select>
+            </label>
+            {(role === "admin" || role === "publisher") && (
+              <button className="btn-danger" onClick={() => void send(resetSyntheticDemoRequest(field, { seed, algorithm, budget, n_human: nHuman, n_machine: nMachine, accept_human: acceptHuman }))}>按 Synthetic Demo 参数重置</button>
+            )}
+          </div>
+        )}
         {(role === "admin" || role === "publisher") && (
           <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-            <button className="btn" onClick={() => void control("step", 1)}>单步</button>
-            <button className="btn" onClick={() => void control("step", 4)}>前进 4 步</button>
-            <button className="btn-ghost" onClick={() => void control("pause")}>暂停</button>
-            <button className="btn-ghost" onClick={() => void control("resume")}>继续</button>
-            <button className="btn-danger" onClick={() => void control("reset")}>按参数重置</button>
+            <button className="btn" onClick={() => void send(selectScenarioRequest(mode, seed))}>切换场景</button>
+            <button className="btn" onClick={() => void send(stepSimulationRequest(1))}>单步</button>
+            <button className="btn" onClick={() => void send(stepSimulationRequest(4))}>前进 4 步</button>
+            <button className="btn-ghost" onClick={() => void send({ action: "pause" })}>暂停</button>
+            <button className="btn-ghost" onClick={() => void send({ action: "resume" })}>继续</button>
           </div>
         )}
       </section>
-      {state && (
-        <div className="grid-2">
-          <section className="panel">
-            <h2>{String(state.current_label || "")}</h2>
-            <p>状态 {String(state.status)} · 预算剩余 {Number(state.budget_left).toFixed(2)} · 已花费 {Number(state.budget_spent).toFixed(2)}</p>
-            <p>当前片 MAE {metrics.mae_current_slot?.toFixed(2) ?? "尚未计算"} · 覆盖 {metrics.coverage ? `${(metrics.coverage * 100).toFixed(1)}%` : "—"}</p>
-          </section>
-          <section className="panel">
-            <h2>日志</h2>
-            <ul className="tape">{log.slice(-12).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
-            {log.length === 0 && <p className="note">还没有步进日志。</p>}
-          </section>
-        </div>
-      )}
+      <div className="grid-2">
+        <section className="panel">
+          <h2>{serverHeading}</h2>
+          <p className="note">标题和下面的字段来自最近一次成功响应。下拉选项不会补上缺失字段，拒绝也不会被写成已成功。</p>
+          {refusal && <p className="note">刚才的请求被拒绝，所以上面这份响应没有被换成所选模式。</p>}
+          <ul className="tape">
+            {SERVER_MODE_FIELDS.map((key) => (
+              <li key={key}>{key} · {state && Object.prototype.hasOwnProperty.call(state, key) ? formatServerField(state[key]) : "响应未包含该字段"}</li>
+            ))}
+          </ul>
+          <p>时钟 {textField(state, "current_label")} · 状态 {textField(state, "status")} · 场景 {textField(state, "scenario")} · 种子 {textField(state, "seed")}</p>
+          <p>预算剩余 {numberField(state, "budget_left")} · 已花费 {numberField(state, "budget_spent")}</p>
+          <p>当前片 MAE {metrics.mae_current_slot?.toFixed(2) ?? "尚未计算"} · 覆盖 {metrics.coverage ? `${(metrics.coverage * 100).toFixed(1)}%` : "—"}</p>
+          {state?.real_city === false && <p className="note">real_city 为 false。虚拟网格不是真实城市。</p>}
+        </section>
+        <section className="panel">
+          <h2>日志</h2>
+          <ul className="tape">{log.slice(-12).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
+          {log.length === 0 && <p className="note">还没有步进日志。</p>}
+        </section>
+      </div>
     </Page>
   );
 }
 
+function serverModeHeading(state: Record<string, unknown> | null) {
+  if (!state) return "尚未收到仿真响应";
+  if (typeof state.mode_label === "string" && state.mode_label) return state.mode_label;
+  if (typeof state.scenario_mode === "string" && state.scenario_mode) return state.scenario_mode;
+  if (typeof state.mode === "string" && state.mode) return state.mode;
+  return "响应未包含模式名";
+}
+
+function textField(state: Record<string, unknown> | null, key: string) {
+  if (!state || !Object.prototype.hasOwnProperty.call(state, key)) return "响应未包含该字段";
+  return formatServerField(state[key]);
+}
+
+function numberField(state: Record<string, unknown> | null, key: string) {
+  const value = state?.[key];
+  return typeof value === "number" ? value.toFixed(2) : "—";
+}
+
 function ExperimentsPage({ role }: { role: string }) {
   const [payload, setPayload] = useState<{ items: { id: number; name: string; status: string; profile: string }[]; archived: { summary: { scenario: string; method: string; budget: number; mae_causal_mean: number; coverage_mean: number; successful_tasks_mean: number }[]; mobility?: { top1: number; top3: number; nll: number } } | null } | null>(null);
+  const [phase2, setPhase2] = useState<Phase2Report | null>(null);
   const [error, setError] = useState("");
-  const load = useCallback(() => api<NonNullable<typeof payload>>("/api/experiments").then(setPayload).catch((reason: Error) => setError(reason.message)), []);
+  const load = useCallback(() => {
+    return Promise.all([
+      api<NonNullable<typeof payload>>("/api/experiments").then(setPayload),
+      api<Phase2Report>("/api/experiments/phase2").then(setPhase2),
+    ]).catch((reason: Error) => setError(reason.message));
+  }, []);
   useEffect(() => { void load(); }, [load]);
   async function run(profile: string) {
     setError("");
@@ -678,6 +751,7 @@ function ExperimentsPage({ role }: { role: string }) {
       )}
       {payload?.archived?.mobility && <p className="note">移动预测 Top-1 {(payload.archived.mobility.top1 * 100).toFixed(1)}% · Top-3 {(payload.archived.mobility.top3 * 100).toFixed(1)}% · NLL {payload.archived.mobility.nll.toFixed(2)}</p>}
       <section className="panel"><h2>主实验因果 MAE</h2><Chart option={option} height={300} /></section>
+      <Phase2Section report={phase2} />
       <section className="panel">
         <h2>运行记录</h2>
         <div className="table-wrap"><table>
@@ -697,10 +771,34 @@ function ExperimentsPage({ role }: { role: string }) {
   );
 }
 
+const REGIME_COPY: Record<ScenarioMode, string> = {
+  synthetic_demo: "合成轨迹和合成噪声，坐标是虚拟网格。",
+  real_mobility: "真实移动数据。噪声可以仍是合成的，页面不会把它说成已对齐。",
+  real_noise: "真实噪声观测。移动可以仍是合成的。",
+  mixed_experiment: "只收清单里明确写成混合实验的条目。两类真实文件同时入库不会自动升格。",
+  fully_real: "只收清单里明确写成同一时空对齐的条目。",
+};
+
 function DataPage({ role }: { role: string }) {
-  const [items, setItems] = useState<{ id: number; kind: string; name: string; source: string; is_synthetic: boolean; license: string; record_count: number; missing_rate: number; spatial_desc: string; time_start: string; time_end: string; status: string; notes: string; coordinate_system: string }[]>([]);
+  const [items, setItems] = useState<DatasetRow[]>([]);
+  const [downloads, setDownloads] = useState<ManifestReport | null>(null);
+  const [preprocess, setPreprocess] = useState<ManifestReport | null>(null);
   const [error, setError] = useState("");
-  const load = useCallback(() => api<{ items: typeof items }>("/api/datasets").then((data) => setItems(data.items)).catch((reason: Error) => setError(reason.message)), []);
+  const load = useCallback(async () => {
+    try {
+      const [datasets, downloadReport, preprocessReport] = await Promise.all([
+        api<{ items: DatasetRow[] }>("/api/datasets"),
+        api<ManifestReport>("/api/data/downloads"),
+        api<ManifestReport>("/api/data/preprocess"),
+      ]);
+      setItems(datasets.items);
+      setDownloads(downloadReport);
+      setPreprocess(preprocessReport);
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "数据页加载失败");
+    }
+  }, []);
   useEffect(() => { void load(); }, [load]);
   async function upload(file: File) {
     const body = new FormData();
@@ -713,24 +811,198 @@ function DataPage({ role }: { role: string }) {
       setError(reason instanceof Error ? reason.message : "导入失败");
     }
   }
+  const manifestRows = [...(downloads?.items || []), ...(preprocess?.items || [])];
   return (
-    <Page title="数据管理" lede="内置数据明确标记为 Synthetic Demo。YJMob100K、GeoLife 和 NoiseCapture 只在你导入对应文件后出现，并且不会被画成同一座真实城市。">
+    <Page title="数据管理" lede="五种体制分开列出。下载和预处理状态只来自 data/manifests/download_manifest.json；文件不在时保持空白，不编造条数。">
       {error && <p className="error">{error}</p>}
       {(role === "admin" || role === "publisher") && (
-        <label className="btn-ghost">导入文件
+        <label className="btn-ghost" style={{ alignSelf: "flex-start" }}>导入文件
           <input hidden type="file" accept=".csv,.geojson,.json,.plt,.txt" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); }} />
         </label>
       )}
-      {items.map((item) => (
-        <article className="panel" key={`${item.kind}-${item.id}`}>
-          <h2>{item.name} {item.is_synthetic ? <span className="tag warn">Synthetic Demo</span> : <span className="tag ok">{item.source}</span>}</h2>
-          <p className="note">{item.notes}</p>
-          <p>记录 {item.record_count} · 缺失率 {(item.missing_rate * 100).toFixed(1)}% · {item.coordinate_system}</p>
-          <p className="note">{item.spatial_desc} · {item.time_start} → {item.time_end} · {item.license}</p>
-        </article>
-      ))}
+      <div className="regime-grid">
+        {SCENARIO_MODES.map((regime) => {
+          const stored = items.filter((item) => item.regime === regime.id);
+          const declared = manifestRows.filter((item) => item.regime === regime.id);
+          const seen = new Set<string>();
+          const uniqueDeclared = declared.filter((item) => {
+            const key = `${item.id || ""}:${item.name || ""}:${item.kind || ""}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          return (
+            <article className="regime-card" key={regime.id}>
+              <h2>{regime.label}</h2>
+              <p className="note">{REGIME_COPY[regime.id]}</p>
+              {stored.map((item) => <DatasetFacts key={`db-${item.kind}-${item.id}`} item={item} />)}
+              {uniqueDeclared.map((item, index) => <ManifestFacts key={`mf-${regime.id}-${index}`} item={item} />)}
+              {stored.length === 0 && uniqueDeclared.length === 0 && <div className="empty-state">没有列入这一体制的记录。</div>}
+            </article>
+          );
+        })}
+      </div>
+      <ManifestTable title="下载状态" report={downloads} statusKey="download_status" />
+      <ManifestTable title="预处理状态" report={preprocess} statusKey="preprocess_status" />
+      <section className="panel">
+        <h2>已入库记录</h2>
+        {items.length === 0 && <div className="empty-state">数据库里还没有数据集。</div>}
+        {items.map((item) => (
+          <article key={`${item.kind}-${item.id}`} style={{ borderTop: "1px solid var(--line)", paddingTop: 10, marginTop: 10 }}>
+            <h2>{item.name} <span className={item.regime === "synthetic_demo" ? "tag warn" : "tag ok"}>{item.regime_label}</span></h2>
+            <p className="note">{item.notes}</p>
+            <DatasetFacts item={item} />
+          </article>
+        ))}
+      </section>
     </Page>
   );
+}
+
+function DatasetFacts({ item }: { item: DatasetRow }) {
+  const flags = item.quality.quality_flags ?? item.quality.flag_counts;
+  return (
+    <div className="fact-list">
+      <p className="note">{item.license}</p>
+      <p>记录 {item.record_count}</p>
+      {"user_count" in item && <p>用户 {item.user_count}</p>}
+      <p>缺失率 {(item.missing_rate * 100).toFixed(1)}%</p>
+      <p className="note">{item.coordinate_system}</p>
+      <p className="note">{item.spatial_desc}</p>
+      <p className="note">{item.time_start} → {item.time_end}</p>
+      {flags !== undefined && <p className="note">质量标记 {showFact(flags)}</p>}
+    </div>
+  );
+}
+
+function ManifestFacts({ item }: { item: ManifestItem }) {
+  return (
+    <div>
+      <p>{item.name || item.id || "未命名条目"} <span className="tag">清单</span></p>
+      {"license" in item && <p className="note">许可证 {showFact(item.license)}</p>}
+      {"user_count" in item && <p>用户 {showFact(item.user_count)}</p>}
+      {"station_count" in item && <p>站点 {showFact(item.station_count)}</p>}
+      {timeFact(item) && <p className="note">时间 {timeFact(item)}</p>}
+      {"spatial_span" in item && <p className="note">空间 {showFact(item.spatial_span)}</p>}
+      {"quality_flags" in item && <p className="note">质量标记 {showFact(item.quality_flags)}</p>}
+    </div>
+  );
+}
+
+function ManifestTable({ title, report, statusKey }: { title: string; report: ManifestReport | null; statusKey: "download_status" | "preprocess_status" }) {
+  const items = report?.items || [];
+  const showLicense = items.some((item) => "license" in item);
+  const showUsers = items.some((item) => "user_count" in item);
+  const showStations = items.some((item) => "station_count" in item);
+  const showTime = items.some((item) => timeFact(item));
+  const showSpace = items.some((item) => "spatial_span" in item);
+  const showFlags = items.some((item) => "quality_flags" in item);
+  return (
+    <section className="panel">
+      <h2>{title}</h2>
+      <p className="note">{report?.path || "data/manifests/download_manifest.json"}</p>
+      {!report && <p className="note">正在读取清单。</p>}
+      {report && items.length === 0 && <div className="empty-state">{report.message || "没有可展示的记录。"}</div>}
+      {items.length > 0 && (
+        <div className="table-wrap"><table>
+          <thead>
+            <tr>
+              <th>名称</th><th>体制</th><th>状态</th>
+              {showLicense && <th>许可证</th>}
+              {showUsers && <th>用户</th>}
+              {showStations && <th>站点</th>}
+              {showTime && <th>时间</th>}
+              {showSpace && <th>空间</th>}
+              {showFlags && <th>质量标记</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, index) => (
+              <tr key={`${item.id || item.name || "row"}-${index}`}>
+                <td>{item.name || item.id || "未命名条目"}</td>
+                <td>{item.regime ? modeLabel(String(item.regime)) : "未提供"}</td>
+                <td>{statusKey in item ? showFact(item[statusKey]) : "未提供"}</td>
+                {showLicense && <td>{"license" in item ? showFact(item.license) : "未提供"}</td>}
+                {showUsers && <td>{"user_count" in item ? showFact(item.user_count) : "未提供"}</td>}
+                {showStations && <td>{"station_count" in item ? showFact(item.station_count) : "未提供"}</td>}
+                {showTime && <td>{timeFact(item) || "未提供"}</td>}
+                {showSpace && <td>{"spatial_span" in item ? showFact(item.spatial_span) : "未提供"}</td>}
+                {showFlags && <td>{"quality_flags" in item ? showFact(item.quality_flags) : "未提供"}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table></div>
+      )}
+    </section>
+  );
+}
+
+function timeFact(item: ManifestItem) {
+  if ("time_span" in item && item.time_span) return showFact(item.time_span);
+  if (!("time_start" in item) && !("time_end" in item)) return "";
+  const start = "time_start" in item ? showFact(item.time_start) : "未填写";
+  const end = "time_end" in item ? showFact(item.time_end) : "未填写";
+  return `${start} → ${end}`;
+}
+
+function showFact(value: unknown) {
+  if (value === null || value === undefined || value === "") return "未填写";
+  if (Array.isArray(value)) return value.map((item) => (typeof item === "string" ? item : JSON.stringify(item))).join("、") || "未填写";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function Phase2Section({ report }: { report: Phase2Report | null }) {
+  return (
+    <section className="panel">
+      <h2>第二阶段</h2>
+      <p className="note">{report?.path || "experiments/results/phase2"}</p>
+      {!report && <p className="note">正在读取第二阶段结果。</p>}
+      {report?.message && <div className="empty-state">{report.message}</div>}
+      {report?.files.map((file) => (
+        <article key={file.name} style={{ marginTop: 12 }}>
+          <h2>{file.name}</h2>
+          {file.parse_error && <p className="error">该文件不是合法 JSON。</p>}
+          {file.skipped && <p className="note">文件有 {file.bytes} 字节，页面不内嵌正文。</p>}
+          {file.payload !== undefined && <Phase2Body payload={file.payload} />}
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function Phase2Body({ payload }: { payload: unknown }) {
+  const rows = phase2Rows(payload);
+  if (rows) {
+    const columns = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+    return (
+      <div className="table-wrap"><table>
+        <thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead>
+        <tbody>
+          {rows.slice(0, 40).map((row, index) => (
+            <tr key={index}>{columns.map((column) => <td key={column}>{showFact(row[column])}</td>)}</tr>
+          ))}
+        </tbody>
+      </table></div>
+    );
+  }
+  const text = JSON.stringify(payload, null, 2);
+  return <pre className="pre-block">{text.length > 4000 ? `${text.slice(0, 4000)}\n…` : text}</pre>;
+}
+
+function phase2Rows(payload: unknown): Record<string, unknown>[] | null {
+  if (Array.isArray(payload) && payload.every((item) => item && typeof item === "object" && !Array.isArray(item))) {
+    return payload as Record<string, unknown>[];
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  const record = payload as Record<string, unknown>;
+  for (const key of ["summary", "rows", "results", "metrics"]) {
+    const value = record[key];
+    if (Array.isArray(value) && value.every((item) => item && typeof item === "object" && !Array.isArray(item))) {
+      return value as Record<string, unknown>[];
+    }
+  }
+  return null;
 }
 
 function AdminPage({ role }: { role: string }) {
