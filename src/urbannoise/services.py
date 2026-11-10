@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -246,6 +247,883 @@ def select_scenario_mode(
     except ScenarioUnavailable as exc:
         raise AppError(exc.code, exc.message, 409, exc.detail) from exc
     return session.to_summary()
+
+
+_REAL_CLOCK_MODES = {"real_mobility", "real_noise", "fully_real"}
+
+
+def _run_config(run: SimulationRun) -> dict:
+    return json.loads(run.config_json or "{}")
+
+
+def _run_mode(run: SimulationRun) -> str:
+    config = _run_config(run)
+    mode = str(config.get("scenario_mode") or "").strip().lower()
+    if mode in _REAL_CLOCK_MODES:
+        return mode
+    scenario = str(run.scenario or "").strip().lower()
+    if scenario in _REAL_CLOCK_MODES:
+        return scenario
+    return "synthetic"
+
+
+def _blank(value: str | None) -> str | None:
+    if value is None or str(value).strip() == "":
+        return None
+    return str(value)
+
+
+def _open_saved_scenario(run: SimulationRun):
+    from urbannoise.scenarios import FutureLeakError, ScenarioUnavailable, open_scenario
+
+    config = _run_config(run)
+    mode = _run_mode(run)
+    if mode == "synthetic":
+        raise AppError("scenario_mode", "当前运行不是已加载的轨迹或噪声场景", 409)
+    try:
+        return open_scenario(
+            mode,
+            mobility_path=_blank(config.get("mobility_path")),
+            noise_path=_blank(config.get("noise_path")),
+            manifest_path=_blank(config.get("manifest_path")),
+            seed=int(config.get("seed", run.seed or 7)),
+            slots_per_day=config.get("slots_per_day"),
+        )
+    except FutureLeakError as exc:
+        raise AppError("future_leak", str(exc), 409) from exc
+    except ScenarioUnavailable as exc:
+        raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+
+
+def _clear_operational_roster(db: Session) -> None:
+    """Remove the synthetic campaign roster without rebuilding its world."""
+    participant_ids = [row[0] for row in db.query(Participant.id).all()]
+    db.query(SamplingResult).delete()
+    db.query(AssignmentEvent).delete()
+    db.query(TaskAssignment).delete()
+    db.query(SensingTask).delete()
+    db.query(NoiseObservation).filter(
+        NoiseObservation.source.in_(["synthetic_prior", "simulation_feedback", "simulation_assisted", "synthetic_noise_field"])
+    ).delete(synchronize_session=False)
+    if participant_ids:
+        db.query(TrajectoryPoint).filter(TrajectoryPoint.participant_id.in_(participant_ids)).delete(synchronize_session=False)
+    db.query(Device).delete()
+    db.query(Participant).delete()
+    db.flush()
+
+
+def _remember_visible_track(db: Session, scenario, through_slot: int) -> None:
+    """Cache only slots the clock has already reached. Later cells stay in the file."""
+    from urbannoise.scenarios import decode_cell
+
+    last = min(int(through_slot), int(scenario.table.max_slot()))
+    if last < 0:
+        return
+    people = {person.name: person for person in db.query(Participant).all()}
+    for name, person in people.items():
+        cells = []
+        for slot in range(last + 1):
+            cell = scenario.table.read_cell(name, slot, purpose="execution")
+            cells.append(-1 if cell is None else int(cell))
+        person.trajectory_json = json.dumps(cells)
+        if cells and cells[-1] >= 0:
+            person.current_grid_id = cells[-1]
+
+
+def _positions_at(scenario, slot: int) -> list[dict]:
+    from urbannoise.scenarios import decode_cell
+
+    rows = []
+    if slot < 0 or slot > int(scenario.table.max_slot()):
+        return rows
+    for name in scenario.table.participants():
+        cell = scenario.table.read_cell(name, int(slot), purpose="execution")
+        if cell is None:
+            continue
+        x_coord, y_coord = decode_cell(int(cell))
+        rows.append({"name": name, "x": int(x_coord), "y": int(y_coord), "cell": int(cell), "slot": int(slot)})
+    return rows
+
+
+def _attach_participant_ids(db: Session, rows: list[dict]) -> list[dict]:
+    people = {person.name: person for person in db.query(Participant).all()}
+    attached = []
+    for row in rows:
+        person = people.get(row["name"])
+        item = dict(row)
+        if person is not None:
+            item["id"] = person.id
+            item["kind"] = person.participant_type
+            item["online"] = person.online
+        attached.append(item)
+    return attached
+
+
+def _public_decision(decision: dict) -> dict:
+    reach = np.asarray(decision["reach"], dtype=float)
+    return {
+        "decision_slot": int(decision["decision_slot"]),
+        "target_slot": int(decision["target_slot"]),
+        "participants": list(decision["participants"]),
+        "cells": [int(cell) for cell in decision["cells"]],
+        "reach": [[float(value) for value in row] for row in reach.tolist()],
+        "slots_visible": int(decision["slots_visible"]),
+    }
+
+
+def _plain_noise(noise: dict | None) -> dict | None:
+    if noise is None:
+        return None
+    return {
+        "db": float(noise["db"]),
+        "label": noise["label"],
+        "is_synthetic": bool(noise["is_synthetic"]),
+        "data_origin": noise["data_origin"],
+        "indicator": noise["indicator"],
+        "source": noise["source"],
+        "real_city": False,
+        "full_city_truth": False,
+        "coordinate_system": noise["coordinate_system"],
+    }
+
+
+def _synthetic_label_dataset(db: Session) -> NoiseDataset:
+    row = db.query(NoiseDataset).filter(NoiseDataset.source == "synthetic_noise_field").first()
+    if row is None:
+        row = NoiseDataset(
+            name="Synthetic noise after trajectory success",
+            source="synthetic_noise_field",
+            license="Generated after a trajectory task succeeds. Not a city measurement.",
+            is_synthetic=True,
+            indicator="synthetic_laeq_db",
+            coordinate_system="synthetic_virtual_grid",
+            status="ready",
+            notes="Labeled synthetic. Drawn only after the stored future cell is on the task cell.",
+        )
+        db.add(row)
+        db.flush()
+    return row
+
+
+def _save_config(run: SimulationRun, config: dict) -> None:
+    run.config_json = json.dumps(config)
+
+
+def activate_scenario_mode(
+    db: Session,
+    user: User,
+    mode: str,
+    *,
+    mobility_path: str | None = None,
+    noise_path: str | None = None,
+    manifest_path: str | None = None,
+    seed: int = 7,
+) -> dict:
+    """Make a real scenario the active clock. A refused fully_real open writes nothing."""
+    from urbannoise.scenarios import ScenarioUnavailable, open_scenario
+
+    selected = str(mode).strip().lower()
+    try:
+        session = open_scenario(
+            selected,
+            mobility_path=_blank(mobility_path),
+            noise_path=_blank(noise_path),
+            manifest_path=_blank(manifest_path),
+            seed=int(seed),
+        )
+    except ScenarioUnavailable as exc:
+        raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+    summary = session.to_summary()
+    if selected == "synthetic":
+        return summary
+    run = active_run(db)
+    if selected == "real_mobility":
+        _activate_real_mobility(db, run, session, mobility_path, noise_path, manifest_path, int(seed))
+    elif selected == "real_noise":
+        _activate_real_noise(db, run, session, mobility_path, noise_path, manifest_path, int(seed))
+    elif selected == "fully_real":
+        _activate_fully_real(db, run, mobility_path, noise_path, manifest_path, int(seed))
+    else:
+        raise AppError("bad_mode", f"未知场景模式 {selected}", 422)
+    audit(db, user.id if user else None, "select_scenario", selected)
+    return summary | {"active": True, "current_slot": int(run.current_slot), "scenario": run.scenario}
+
+
+def _activate_real_mobility(db, run, session, mobility_path, noise_path, manifest_path, seed: int) -> None:
+    _clear_operational_roster(db)
+    for name in session.table.participants():
+        cell = session.table.read_cell(name, 0, purpose="execution")
+        db.add(
+            Participant(
+                name=name,
+                participant_type="human",
+                accept_prob=1.0,
+                cost=0.0,
+                quality=1.0,
+                online=True,
+                current_grid_id=None if cell is None else int(cell),
+                trajectory_json=json.dumps([-1 if cell is None else int(cell)]),
+                created_at=utcnow(),
+            )
+        )
+    db.flush()
+    config = {
+        "scenario_mode": "real_mobility",
+        "mobility_path": mobility_path or "",
+        "noise_path": noise_path or "",
+        "manifest_path": manifest_path or "",
+        "seed": int(seed),
+        "slots_per_day": int(session.table.slots_per_day),
+        "uses_build_world": False,
+        "lead": 1,
+        "fixture_fallback": bool(session.fixture_fallback),
+        "coordinate_system": session.table.coordinate_system,
+        "sensor_sigma": 0.0,
+    }
+    run.name = "real_mobility"
+    run.scenario = "real_mobility"
+    run.seed = int(seed)
+    run.status = "paused"
+    run.current_slot = 0
+    run.horizon_start = 0
+    run.horizon_end = int(session.table.max_slot()) + 1
+    run.algorithm = "real_mobility"
+    run.metrics_json = json.dumps({"uses_build_world": False})
+    run.log_text = "已切换到 real_mobility。位置来自加载的轨迹，未调用 build_world。\n"
+    _save_config(run, config)
+
+
+def _activate_real_noise(db, run, session, mobility_path, noise_path, manifest_path, seed: int) -> None:
+    holdout = session.make_holdout(seed=int(seed))
+    last_slot = int(session.frame["slot"].max()) if len(session.frame) else 0
+    config = {
+        "scenario_mode": "real_noise",
+        "mobility_path": mobility_path or "",
+        "noise_path": noise_path or "",
+        "manifest_path": manifest_path or "",
+        "seed": int(seed),
+        "holdout_seed": int(seed),
+        "slots_per_day": 1,
+        "uses_build_world": False,
+        "fixture_fallback": bool(session.fixture_fallback),
+        "full_city_truth": False,
+        "revealed_row_ids": [int(row_id) for row_id in holdout.train_ids],
+    }
+    run.name = "real_noise"
+    run.scenario = "real_noise"
+    run.seed = int(seed)
+    run.status = "paused"
+    run.current_slot = 0
+    run.horizon_start = 0
+    run.horizon_end = last_slot + 1
+    run.algorithm = "real_noise"
+    run.metrics_json = json.dumps({"uses_build_world": False, "full_city_truth": False, "trained_on": "revealed_observations"})
+    run.log_text = (run.log_text or "") + "已切换到 real_noise。保持集只用已揭示观测，未调用 build_world。\n"
+    _save_config(run, config)
+
+
+def _activate_fully_real(db, run, mobility_path, noise_path, manifest_path, seed: int) -> None:
+    config = _run_config(run)
+    config.update(
+        {
+            "scenario_mode": "fully_real",
+            "mobility_path": mobility_path or "",
+            "noise_path": noise_path or "",
+            "manifest_path": manifest_path or "",
+            "seed": int(seed),
+            "uses_build_world": False,
+            "georegistered_yjmob": False,
+            "full_city_truth": False,
+            "geography_overlap": True,
+            "time_overlap": True,
+        }
+    )
+    config.pop("revealed_row_ids", None)
+    run.name = "fully_real"
+    run.scenario = "fully_real"
+    run.seed = int(seed)
+    run.status = "paused"
+    run.metrics_json = json.dumps({"uses_build_world": False, "georegistered_yjmob": False, "full_city_truth": False})
+    run.log_text = (run.log_text or "") + "fully_real 已记录重叠标记。坐标没有被改写成 WGS84，也没有调用 build_world。\n"
+    _save_config(run, config)
+
+
+def assign_real_mobility_tasks(db: Session, user: User, assignments: list[dict]) -> dict:
+    """Store explicit later cells. The decision distribution does not read those cells."""
+    from urbannoise.scenarios import FutureLeakError, ScenarioUnavailable, cell_id
+
+    if user.role not in {"publisher", "admin", "system"}:
+        raise AppError("forbidden", "无权分配任务", 403)
+    run = active_run(db)
+    if _run_mode(run) != "real_mobility":
+        raise AppError("scenario_mode", "assign 只在 real_mobility 下使用已加载轨迹。", 409)
+    if run.status == "finished" or run.current_slot >= run.horizon_end:
+        raise AppError("finished", "仿真已经结束", 409)
+    scenario = _open_saved_scenario(run)
+    decision_slot = int(run.current_slot)
+    known = set(scenario.table.participants())
+    people = {person.name: person for person in db.query(Participant).all()}
+    normalized = []
+    for item in assignments:
+        name = str(item["participant"])
+        x_coord = int(item["x"])
+        y_coord = int(item["y"])
+        slot = int(item["slot"])
+        if name not in known or name not in people:
+            raise AppError("bad_assignment", f"轨迹里没有参与者 {name}", 422)
+        if x_coord < 0 or y_coord < 0:
+            raise AppError("bad_assignment", "网格坐标不能为负", 422)
+        if slot <= decision_slot:
+            raise AppError("bad_assignment", "任务时间片必须晚于当前决策时间片", 422)
+        if slot >= int(run.horizon_end):
+            raise AppError("bad_assignment", "任务时间片超出已加载轨迹", 422)
+        normalized.append((name, x_coord, y_coord, slot))
+    decisions: dict[str, dict] = {}
+    try:
+        for slot in sorted({slot for _name, _x, _y, slot in normalized}):
+            decisions[str(slot)] = _public_decision(scenario.decide(decision_slot, slot))
+    except FutureLeakError as exc:
+        raise AppError("future_leak", str(exc), 409) from exc
+    except ScenarioUnavailable as exc:
+        raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+    created = []
+    for name, x_coord, y_coord, slot in normalized:
+        cell = cell_id(x_coord, y_coord)
+        task = SensingTask(
+            title=f"轨迹任务 {name} ({x_coord},{y_coord}) @{slot}",
+            grid_id=cell,
+            slot_start=slot,
+            slot_end=slot,
+            priority=1.0,
+            budget_cost=0.0,
+            status="published",
+            publisher_id=user.id,
+            assignee_id=None,
+            algorithm="real_mobility",
+            simulation_run_id=run.id,
+            origin="real_mobility",
+            note="",
+            created_at=utcnow(),
+            updated_at=utcnow(),
+        )
+        db.add(task)
+        db.flush()
+        apply_transition(db, task, "assigned", user.role, user.id, decision_slot, note=f"decision_slot={decision_slot}")
+        task.assignee_id = people[name].id
+        db.add(
+            TaskAssignment(
+                task_id=task.id,
+                participant_id=people[name].id,
+                score=0.0,
+                reach_prob=0.0,
+                estimated_cost=0.0,
+                status="assigned",
+                round_index=decision_slot,
+                created_at=utcnow(),
+            )
+        )
+        created.append(task_dict(db, task) | {"participant": name, "task_cell": cell})
+    audit(db, user.id, "assign_real_mobility", json.dumps({"count": len(created), "decision_slot": decision_slot}))
+    return {
+        "mode": "real_mobility",
+        "uses_build_world": False,
+        "decision_slot": decision_slot,
+        "decisions": decisions,
+        "assignments": created,
+    }
+
+
+def _complete_real_mobility_task(db: Session, task: SensingTask, noise: dict, dataset: NoiseDataset, slots_per_day: int, user_id: int | None) -> None:
+    stored, flag = clip_measurement(float(noise["db"]))
+    observation = NoiseObservation(
+        dataset_id=dataset.id,
+        grid_id=task.grid_id,
+        slot=task.slot_start,
+        timestamp_label=slot_label(task.slot_start, slots_per_day),
+        laeq_db=stored,
+        indicator=str(noise["indicator"]),
+        coordinate_system=str(noise["coordinate_system"]),
+        source="synthetic_noise_field",
+        quality_flags=flag,
+        is_simulated_feedback=True,
+    )
+    db.add(observation)
+    db.flush()
+    db.add(
+        SamplingResult(
+            task_id=task.id,
+            participant_id=task.assignee_id,
+            observation_id=observation.id,
+            grid_id=task.grid_id,
+            slot=task.slot_start,
+            laeq_db=stored,
+            indicator=str(noise["indicator"]),
+            source="synthetic_noise_field",
+            created_at=utcnow(),
+        )
+    )
+    role = "system"
+    slot = task.slot_start
+    if task.status == "assigned":
+        apply_transition(db, task, "accepted", role, user_id, slot)
+    if task.status == "accepted":
+        apply_transition(db, task, "in_progress", role, user_id, slot)
+    if task.status == "in_progress":
+        apply_transition(db, task, "submitted", role, user_id, slot, measurement_db=stored, note="synthetic")
+    if task.status == "submitted":
+        apply_transition(db, task, "verified", role, user_id, slot, note="synthetic")
+    if task.status == "verified":
+        apply_transition(db, task, "completed", role, user_id, slot, note="on_task_cell synthetic")
+
+
+def _step_real_mobility(db: Session, user: User | None, run: SimulationRun, steps: int) -> dict:
+    """Execute tasks whose slot is the current clock, then advance. Do not rewrite the task cell."""
+    from urbannoise.scenarios import FutureLeakError, ScenarioUnavailable
+
+    if run.status == "finished":
+        raise AppError("finished", "仿真已经结束", 409)
+    scenario = _open_saved_scenario(run)
+    config = _run_config(run)
+    slots_per_day = int(config.get("slots_per_day") or scenario.table.slots_per_day)
+    dataset = None
+    executed = []
+    logs = []
+    successes = 0
+    for _ in range(max(1, int(steps))):
+        if run.current_slot >= run.horizon_end:
+            run.status = "finished"
+            break
+        slot = int(run.current_slot)
+        due_tasks = (
+            db.query(SensingTask)
+            .filter(
+                SensingTask.simulation_run_id == run.id,
+                SensingTask.slot_start == slot,
+                SensingTask.status.in_(["assigned", "accepted", "in_progress"]),
+            )
+            .all()
+        )
+        for task in due_tasks:
+            person = db.get(Participant, task.assignee_id) if task.assignee_id else None
+            if person is None:
+                continue
+            assignment = (
+                db.query(TaskAssignment).filter(TaskAssignment.task_id == task.id).order_by(TaskAssignment.id.desc()).first()
+            )
+            if assignment is None:
+                _advance_failure(db, task, "no_location", user.id if user else None, slot)
+                executed.append(
+                    {
+                        "task_id": task.id,
+                        "participant": person.name,
+                        "success": False,
+                        "reason": "no_location",
+                        "task_cell": int(task.grid_id),
+                        "actual_cell": None,
+                        "noise": None,
+                    }
+                )
+                continue
+            try:
+                result = scenario.execute_task(
+                    person.name,
+                    int(task.grid_id),
+                    task_slot=slot,
+                    decision_slot=int(assignment.round_index),
+                    sigma=float(config.get("sensor_sigma", 0.0)),
+                )
+            except FutureLeakError as exc:
+                raise AppError("future_leak", str(exc), 409) from exc
+            except ScenarioUnavailable as exc:
+                raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+            noise = _plain_noise(result["noise"])
+            if result["success"] and noise is not None:
+                if dataset is None:
+                    dataset = _synthetic_label_dataset(db)
+                _complete_real_mobility_task(db, task, noise, dataset, slots_per_day, user.id if user else None)
+                successes += 1
+                logs.append(f"{slot_label(slot, slots_per_day)} {person.name} on_task_cell synthetic {noise['db']:.1f} dB")
+            else:
+                _advance_failure(db, task, str(result["reason"]), user.id if user else None, slot)
+                logs.append(f"{slot_label(slot, slots_per_day)} {person.name} {result['reason']}")
+            executed.append(
+                {
+                    "task_id": task.id,
+                    "participant": person.name,
+                    "success": bool(result["success"]),
+                    "reason": result["reason"],
+                    "task_cell": int(result["task_cell"]),
+                    "actual_cell": None if result["actual_cell"] is None else int(result["actual_cell"]),
+                    "noise": noise,
+                }
+            )
+        run.current_slot = slot + 1
+        if run.current_slot <= int(scenario.table.max_slot()):
+            _remember_visible_track(db, scenario, int(run.current_slot))
+        logs.append(f"时钟推进到 {run.current_slot}，本步执行 {len(due_tasks)} 个到期任务。")
+        if run.current_slot >= run.horizon_end:
+            run.status = "finished"
+    run.metrics_json = json.dumps(
+        {
+            "uses_build_world": False,
+            "executed_success": successes,
+            "executed_failure": len(executed) - successes,
+            "synthetic_noise_samples": successes,
+        }
+    )
+    if logs:
+        run.log_text = (run.log_text or "") + "\n".join(logs) + "\n"
+    audit(db, user.id if user else None, "simulation_step", f"real_mobility steps={steps}")
+    return simulation_dict(db, run) | {"executed": executed}
+
+
+def _noise_catalog(frame, row_ids) -> list[dict]:
+    wanted = {int(row_id) for row_id in row_ids}
+    catalog = []
+    for _, row in frame.iterrows():
+        row_id = int(row["row_id"])
+        if row_id not in wanted:
+            continue
+        item = {"row_id": row_id, "time": str(row["time"])}
+        if pd.notna(row["grid_id"]):
+            item["grid_id"] = int(row["grid_id"])
+        if pd.notna(row["x"]) and pd.notna(row["y"]):
+            item["x"] = int(row["x"])
+            item["y"] = int(row["y"])
+        catalog.append(item)
+    return catalog
+
+
+def _public_holdout(report: dict) -> dict:
+    public = {key: value for key, value in report.items() if key != "by_indicator"}
+    blocks = {}
+    for name, block in report.get("by_indicator", {}).items():
+        blocks[str(name)] = {key: value for key, value in block.items() if key != "observed"}
+    public["by_indicator"] = blocks
+    public["full_city_truth"] = False
+    public["citywide_field"] = None
+    return public
+
+
+def _holdout_for_run(run: SimulationRun):
+    scenario = _open_saved_scenario(run)
+    config = _run_config(run)
+    seed = int(config.get("holdout_seed", config.get("seed", 0)))
+    return scenario, scenario.make_holdout(seed=seed), config
+
+
+def _revealed_training_ids(holdout, config: dict) -> list[int]:
+    locked = {int(row_id) for row_id in holdout.locked_ids}
+    allowed = {int(row_id) for row_id in holdout.train_ids} | {int(row_id) for row_id in holdout.hidden_ids}
+    stored = config.get("revealed_row_ids")
+    if not stored:
+        return [int(row_id) for row_id in holdout.train_ids]
+    return [int(row_id) for row_id in stored if int(row_id) in allowed and int(row_id) not in locked]
+
+
+def real_noise_report(db: Session, run: SimulationRun) -> dict:
+    """Score the locked rows with a model fit on revealed observations only."""
+    from urbannoise.scenarios import ScenarioUnavailable
+
+    _scenario, holdout, config = _holdout_for_run(run)
+    revealed = _revealed_training_ids(holdout, config)
+    try:
+        report = holdout.evaluate(training_ids=tuple(revealed))
+    except ScenarioUnavailable as exc:
+        raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+    public = _public_holdout(report)
+    public.update(
+        {
+            "mode": "real_noise",
+            "uses_build_world": False,
+            "full_city_truth": False,
+            "trained_on": "revealed_observations",
+            "trained_row_ids": [int(row_id) for row_id in report["trained_row_ids"]],
+            "locked_row_ids": [int(row_id) for row_id in holdout.locked_ids],
+            "hidden_row_ids": [int(row_id) for row_id in holdout.hidden_ids],
+            "hidden_catalog": _noise_catalog(holdout.frame, holdout.hidden_ids),
+            "locked_catalog": _noise_catalog(holdout.frame, holdout.locked_ids),
+            "backend": "idw_on_revealed_observations",
+            "mean_db": 0.0 if report.get("mae") is None else float(report["mae"]),
+            "mean_uncertainty": 0.0,
+            "values": [],
+            "uncertainty": [],
+            "observation_count": len(revealed),
+            "disclaimer": report["disclaimer"],
+            "slot": int(run.current_slot),
+            "slot_label": slot_label(int(run.current_slot), int(config.get("slots_per_day") or 1)),
+        }
+    )
+    return public
+
+
+def _step_real_noise(db: Session, user: User | None, run: SimulationRun, steps: int) -> dict:
+    if run.status == "finished":
+        raise AppError("finished", "仿真已经结束", 409)
+    report = real_noise_report(db, run)
+    for _ in range(max(1, int(steps))):
+        if run.current_slot >= run.horizon_end:
+            run.status = "finished"
+            break
+        run.current_slot += 1
+        if run.current_slot >= run.horizon_end:
+            run.status = "finished"
+    mae = report.get("mae")
+    run.metrics_json = json.dumps(
+        {
+            "uses_build_world": False,
+            "full_city_truth": False,
+            "trained_on": "revealed_observations",
+            "mae_locked_test": None if mae is None else float(mae),
+        }
+    )
+    run.log_text = (run.log_text or "") + "real_noise 步进评估已揭示观测，未调用 build_world。\n"
+    audit(db, user.id if user else None, "simulation_step", f"real_noise steps={steps}")
+    return simulation_dict(db, run) | {"executed": [], "holdout": report, "uses_build_world": False}
+
+
+def _step_fully_real(db: Session, user: User | None, run: SimulationRun, steps: int) -> dict:
+    run.log_text = (run.log_text or "") + "fully_real 不推进合成时钟，也不把坐标写成 WGS84。\n"
+    audit(db, user.id if user else None, "simulation_step", f"fully_real steps={steps}")
+    payload = simulation_dict(db, run)
+    payload["executed"] = []
+    payload["uses_build_world"] = False
+    payload["georegistered_yjmob"] = False
+    return payload
+
+
+def reveal_real_noise_observation(
+    db: Session,
+    when: str,
+    grid_id: int | None,
+    x_coord: int | None,
+    y_coord: int | None,
+) -> dict:
+    """Open one hidden-pool row and add it to the revealed training ids. Locked rows stay sealed."""
+    from urbannoise.scenarios import ScenarioUnavailable
+
+    run = active_run(db)
+    if _run_mode(run) != "real_noise":
+        raise AppError("scenario_mode", "reveal 只在 real_noise 下打开保留观测。", 409)
+    _scenario, holdout, config = _holdout_for_run(run)
+    try:
+        if grid_id is not None:
+            result = holdout.reveal(time=str(when), grid_id=int(grid_id))
+        else:
+            result = holdout.reveal(time=str(when), x=None if x_coord is None else int(x_coord), y=None if y_coord is None else int(y_coord))
+    except ScenarioUnavailable as exc:
+        raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+    payload = dict(result)
+    if payload.get("revealed") and payload.get("row_id") is not None:
+        row_id = int(payload["row_id"])
+        if row_id in {int(item) for item in holdout.locked_ids}:
+            payload["revealed"] = False
+            payload["db"] = None
+            payload["reason"] = "locked_test"
+            payload["added_to_training"] = False
+        else:
+            revealed = _revealed_training_ids(holdout, config)
+            if row_id not in revealed:
+                revealed.append(row_id)
+            config["revealed_row_ids"] = revealed
+            _save_config(run, config)
+            payload["added_to_training"] = True
+    payload["uses_build_world"] = False
+    payload["full_city_truth"] = False
+    payload["mode"] = "real_noise"
+    return payload
+
+
+def _bounds(points: list[tuple[int, int]]) -> tuple[int, int]:
+    if not points:
+        return 1, 1
+    return max(x for x, _y in points) + 1, max(y for _x, y in points) + 1
+
+
+def _blank_cells(width: int, height: int) -> list[dict]:
+    cells = []
+    for y_coord in range(height):
+        for x_coord in range(width):
+            cells.append({"x": x_coord, "y": y_coord, "zone": "unspecified", "prediction": 0.0, "uncertainty": 0.0})
+    return cells
+
+
+def _map_real_mobility(db: Session, run: SimulationRun, slot: int, include_truth: bool) -> dict:
+    from urbannoise.scenarios import decode_cell
+
+    scenario = _open_saved_scenario(run)
+    requested = max(0, int(slot))
+    visible = requested <= int(run.current_slot) and requested <= int(scenario.table.max_slot())
+    positions = _attach_participant_ids(db, _positions_at(scenario, requested)) if visible else []
+    points = [(item["x"], item["y"]) for item in positions]
+    tasks = []
+    if visible:
+        for task in db.query(SensingTask).filter(SensingTask.slot_start <= requested, SensingTask.slot_end >= requested).all():
+            x_coord, y_coord = decode_cell(int(task.grid_id))
+            points.append((x_coord, y_coord))
+            tasks.append({"id": task.id, "x": x_coord, "y": y_coord, "status": task.status, "title": task.title})
+    observations = []
+    if visible:
+        rows = db.query(NoiseObservation).filter(NoiseObservation.slot == requested, NoiseObservation.source == "synthetic_noise_field").all()
+        for row in rows:
+            if row.grid_id is None:
+                continue
+            x_coord, y_coord = decode_cell(int(row.grid_id))
+            points.append((x_coord, y_coord))
+            observations.append(
+                {
+                    "x": x_coord,
+                    "y": y_coord,
+                    "db": row.laeq_db,
+                    "source": row.source,
+                    "label": "synthetic",
+                    "is_synthetic": True,
+                }
+            )
+    width, height = _bounds(points)
+    config = _run_config(run)
+    payload = {
+        "width": width,
+        "height": height,
+        "slot": requested,
+        "slot_label": slot_label(requested, int(config.get("slots_per_day") or scenario.table.slots_per_day)),
+        "coordinate_system": scenario.table.coordinate_system,
+        "data_origin": scenario.table.data_sources[0] if scenario.table.data_sources else "loaded_trajectory",
+        "real_city": False,
+        "mode": "real_mobility",
+        "uses_build_world": False,
+        "future_positions_hidden": not visible,
+        "legend": {"unit": "dB", "min": 0.0, "max": 0.0},
+        "cells": _blank_cells(width, height),
+        "participants": [
+            {
+                "id": item.get("id"),
+                "name": item["name"],
+                "kind": item.get("kind", "human"),
+                "x": item["x"],
+                "y": item["y"],
+                "cell": item["cell"],
+                "online": item.get("online", True),
+            }
+            for item in positions
+        ],
+        "observations": observations,
+        "tasks": tasks,
+        "evaluation_only": False,
+        "warning": "位置来自已加载轨迹里不晚于当前时钟的时间片。噪声场未作为城市真值采样。",
+    }
+    if include_truth:
+        payload["warning"] = "real_mobility 没有城市真值层。合成噪声只在任务成功之后单独抽样，并标为 synthetic。"
+    return payload
+
+
+def _map_real_noise(db: Session, run: SimulationRun, slot: int, include_truth: bool) -> dict:
+    report = real_noise_report(db, run)
+    _scenario, holdout, _config = _holdout_for_run(run)
+    revealed = set(report["trained_row_ids"])
+    points: list[tuple[int, int]] = []
+    observations = []
+    for _, row in holdout.frame.iterrows():
+        if int(row["row_id"]) not in revealed:
+            continue
+        if pd.isna(row["x"]) or pd.isna(row["y"]):
+            continue
+        x_coord, y_coord = int(row["x"]), int(row["y"])
+        points.append((x_coord, y_coord))
+        observations.append(
+            {
+                "x": x_coord,
+                "y": y_coord,
+                "db": float(row["db"]),
+                "source": str(row["source"]),
+                "row_id": int(row["row_id"]),
+            }
+        )
+    width, height = _bounds(points)
+    systems = sorted(set(holdout.frame["coordinate_system"].astype(str)))
+    payload = {
+        "width": width,
+        "height": height,
+        "slot": int(slot),
+        "slot_label": report["slot_label"],
+        "coordinate_system": systems[0] if len(systems) == 1 else "multiple",
+        "data_origin": "revealed_observations",
+        "real_city": False,
+        "mode": "real_noise",
+        "uses_build_world": False,
+        "full_city_truth": False,
+        "legend": {"unit": "dB", "min": 0.0, "max": 0.0},
+        "cells": _blank_cells(width, height),
+        "participants": [],
+        "observations": observations,
+        "tasks": [],
+        "evaluation_only": False,
+        "warning": "图上只有已揭示观测。这不是城市真值，锁定测试点没有标出。",
+    }
+    if include_truth:
+        payload["warning"] = "real_noise 没有城市真值层。保持集分数只用已揭示观测来拟合。"
+    return payload
+
+
+def _map_fully_real(run: SimulationRun, slot: int) -> dict:
+    return {
+        "width": 1,
+        "height": 1,
+        "slot": int(slot),
+        "slot_label": slot_label(int(run.current_slot), int(_run_config(run).get("slots_per_day") or 48)),
+        "coordinate_system": "not_georegistered",
+        "data_origin": "fully_real",
+        "real_city": False,
+        "mode": "fully_real",
+        "uses_build_world": False,
+        "georegistered_yjmob": False,
+        "full_city_truth": False,
+        "legend": {"unit": "dB", "min": 0.0, "max": 0.0},
+        "cells": _blank_cells(1, 1),
+        "participants": [],
+        "observations": [],
+        "tasks": [],
+        "evaluation_only": False,
+        "warning": "fully_real 只记录清单里的时空重叠标记。这里没有城市真值，也没有把坐标改写成 WGS84。",
+    }
+
+
+def _real_mobility_forecast(db: Session, run: SimulationRun, participant_id: int, slot: int) -> dict:
+    from urbannoise.scenarios import FutureLeakError, ScenarioUnavailable, decode_cell
+
+    scenario = _open_saved_scenario(run)
+    person = db.get(Participant, participant_id)
+    if person is None:
+        raise AppError("not_found", "参与者不存在", 404)
+    decision_slot = int(slot) - 1
+    if decision_slot < 0:
+        raise AppError("no_history", "该时间片之前没有历史", 422)
+    try:
+        decision = scenario.decide(decision_slot, int(slot))
+    except FutureLeakError as exc:
+        raise AppError("future_leak", str(exc), 409) from exc
+    except ScenarioUnavailable as exc:
+        raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+    top = []
+    if person.name in decision["participants"] and decision["cells"]:
+        index = decision["participants"].index(person.name)
+        reach = np.asarray(decision["reach"][index], dtype=float)
+        order = np.argsort(reach)[::-1][:5]
+        for column in order:
+            if float(reach[column]) <= 0:
+                continue
+            cell = int(decision["cells"][int(column)])
+            x_coord, y_coord = decode_cell(cell)
+            top.append({"grid_id": cell, "x": x_coord, "y": y_coord, "probability": float(reach[column])})
+    return {
+        "participant_id": participant_id,
+        "name": person.name,
+        "slot": int(slot),
+        "based_on_slot": decision_slot,
+        "top": top,
+        "uses_build_world": False,
+        "note": "到达概率只使用决策时间片及以前的轨迹，不是任务成功概率。",
+    }
 
 
 def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: int | None) -> SimulationRun:
@@ -636,6 +1514,8 @@ def _slots_per_day(db: Session) -> int:
 
 def assisted_sample(db: Session, user: User, task: SensingTask) -> float:
     """Read the synthetic truth only when the assigned participant is actually on the task grid."""
+    if _run_mode(active_run(db)) in _REAL_CLOCK_MODES:
+        raise AppError("scenario_mode", "真实轨迹模式只在步进执行到期任务、且落在任务格之后读取合成噪声。", 409)
     if user.role == "collector":
         person = db.query(Participant).filter(Participant.user_id == user.id).first()
         if person is None or person.id != task.assignee_id:
@@ -697,15 +1577,25 @@ def assisted_sample(db: Session, user: User, task: SensingTask) -> float:
 
 
 def task_dict(db: Session, task: SensingTask) -> dict:
-    grid = db.get(SpatialGrid, task.grid_id)
+    run = db.query(SimulationRun).order_by(SimulationRun.id.desc()).first()
+    if run is not None and _run_mode(run) == "real_mobility":
+        from urbannoise.scenarios import decode_cell
+
+        grid_x, grid_y = decode_cell(int(task.grid_id))
+        zone = "unspecified"
+    else:
+        grid = db.get(SpatialGrid, task.grid_id)
+        grid_x = grid.grid_x if grid else None
+        grid_y = grid.grid_y if grid else None
+        zone = grid.zone if grid else None
     assignee = db.get(Participant, task.assignee_id) if task.assignee_id else None
     return {
         "id": task.id,
         "title": task.title,
         "grid_id": task.grid_id,
-        "grid_x": grid.grid_x if grid else None,
-        "grid_y": grid.grid_y if grid else None,
-        "zone": grid.zone if grid else None,
+        "grid_x": grid_x,
+        "grid_y": grid_y,
+        "zone": zone,
         "slot_start": task.slot_start,
         "slot_end": task.slot_end,
         "slot_label": slot_label(task.slot_start, _slots_per_day(db)),
@@ -724,6 +1614,8 @@ def task_dict(db: Session, task: SensingTask) -> dict:
 def create_task(db: Session, user: User, payload: dict) -> SensingTask:
     if user.role not in {"publisher", "admin"}:
         raise AppError("forbidden", "只有任务发布者或管理员可以创建任务", 403)
+    if _run_mode(active_run(db)) == "real_mobility":
+        raise AppError("scenario_mode", "real_mobility 任务要用仿真控制的 assign，网格编号来自轨迹单元，不是合成 SpatialGrid。", 409)
     width = db.query(func.max(SpatialGrid.grid_x)).scalar()
     height = db.query(func.max(SpatialGrid.grid_y)).scalar()
     x, y = int(payload["grid_x"]), int(payload["grid_y"])
@@ -769,6 +1661,8 @@ def _campaign_world(db: Session):
 def propose_assignments(db: Session, user: User, algorithm: str, budget: float | None, limit: int | None) -> dict:
     if user.role not in {"publisher", "admin", "system"}:
         raise AppError("forbidden", "无权分配任务", 403)
+    if _run_mode(active_run(db)) in _REAL_CLOCK_MODES:
+        raise AppError("scenario_mode", "当前场景不使用合成规划。real_mobility 请用仿真控制的 assign 提交参与者和目标格。", 409)
     run, world, people = _campaign_world(db)
     if run.status == "finished":
         raise AppError("finished", "仿真已经结束", 409)
@@ -837,6 +1731,14 @@ def propose_assignments(db: Session, user: User, algorithm: str, budget: float |
 
 
 def step_simulation(db: Session, user: User | None, steps: int) -> dict:
+    run = active_run(db)
+    mode = _run_mode(run)
+    if mode == "real_mobility":
+        return _step_real_mobility(db, user, run, steps)
+    if mode == "real_noise":
+        return _step_real_noise(db, user, run, steps)
+    if mode == "fully_real":
+        return _step_fully_real(db, user, run, steps)
     run, world, people = _campaign_world(db)
     if run.status == "paused" and steps > 0:
         # Single-step is allowed while paused so the console can advance explicitly.
@@ -998,7 +1900,7 @@ def _coverage(db: Session, n_grids: int) -> float:
 
 
 def simulation_dict(db: Session, run: SimulationRun) -> dict:
-    return {
+    payload = {
         "id": run.id,
         "name": run.name,
         "scenario": run.scenario,
@@ -1016,6 +1918,25 @@ def simulation_dict(db: Session, run: SimulationRun) -> dict:
         "metrics": json.loads(run.metrics_json or "{}"),
         "log": (run.log_text or "").splitlines()[-40:],
     }
+    mode = _run_mode(run)
+    if mode == "synthetic":
+        return payload
+    payload["mode"] = mode
+    payload["uses_build_world"] = False
+    if mode == "real_mobility":
+        scenario = _open_saved_scenario(run)
+        current = int(run.current_slot)
+        visible = 0 <= current <= int(scenario.table.max_slot())
+        payload["coordinate_system"] = scenario.table.coordinate_system
+        payload["fixture_fallback"] = bool(payload["config"].get("fixture_fallback", scenario.fixture_fallback))
+        payload["participants"] = _attach_participant_ids(db, _positions_at(scenario, current)) if visible else []
+    elif mode == "real_noise":
+        payload["full_city_truth"] = False
+        payload["trained_on"] = "revealed_observations"
+    elif mode == "fully_real":
+        payload["georegistered_yjmob"] = False
+        payload["full_city_truth"] = False
+    return payload
 
 
 def dashboard(db: Session) -> dict:
@@ -1061,6 +1982,14 @@ def dashboard(db: Session) -> dict:
 
 
 def map_frame(db: Session, slot: int, include_truth: bool, role: str) -> dict:
+    run = active_run(db)
+    mode = _run_mode(run)
+    if mode == "real_mobility":
+        return _map_real_mobility(db, run, slot, include_truth)
+    if mode == "real_noise":
+        return _map_real_noise(db, run, slot, include_truth)
+    if mode == "fully_real":
+        return _map_fully_real(run, slot)
     run, world, people = _campaign_world(db)
     slot = int(np.clip(slot, 0, world.n_slots - 1))
     obs = observations_to_set(db)
@@ -1129,6 +2058,14 @@ def map_frame(db: Session, slot: int, include_truth: bool, role: str) -> dict:
 
 
 def predict_slot(db: Session, slot: int, model: str) -> dict:
+    run = active_run(db)
+    mode = _run_mode(run)
+    if mode == "real_noise":
+        return real_noise_report(db, run)
+    if mode == "real_mobility":
+        raise AppError("scenario_mode", "real_mobility 在任务成功之后才读取合成噪声，不提供城市噪声场。", 409)
+    if mode == "fully_real":
+        raise AppError("scenario_mode", "fully_real 不生成城市噪声场，也不把坐标改写成 WGS84。", 409)
     run, world, _people = _campaign_world(db)
     obs = observations_to_set(db).subset(slot)
     queries = grid_queries(world.width, world.height)
@@ -1155,6 +2092,12 @@ def predict_slot(db: Session, slot: int, model: str) -> dict:
 
 
 def mobility_forecast(db: Session, participant_id: int, slot: int) -> dict:
+    run = active_run(db)
+    mode = _run_mode(run)
+    if mode == "real_mobility":
+        return _real_mobility_forecast(db, run, participant_id, slot)
+    if mode in {"real_noise", "fully_real"}:
+        raise AppError("scenario_mode", "当前场景没有合成轨迹预测。", 409)
     _run, world, people = _campaign_world(db)
     person = next((item for item in people if item.id == participant_id), None)
     if person is None:

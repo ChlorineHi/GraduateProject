@@ -272,6 +272,9 @@ class TrajectoryTable:
     def participants(self) -> list[str]:
         return sorted({pid for pid, _slot in self._keys})
 
+    def max_slot(self) -> int:
+        return max(slot for _pid, slot in self._keys)
+
     def participants_visible(self, decision_slot: int) -> list[str]:
         """Participant ids that already have a row at or before the decision. Future-only ids stay hidden."""
         limit = int(decision_slot)
@@ -644,12 +647,19 @@ class NoiseHoldout:
         self.seed = int(seed)
         self.full_city_truth = False
 
-    def evaluate(self) -> dict:
-        """Score locked observations with a model fit on training rows of the same indicator."""
+    def evaluate(self, training_ids: tuple[int, ...] | None = None) -> dict:
+        """Score locked observations with a model fit only on the supplied revealed rows.
+
+        The default training rows are the time/space training split. Locked test ids are
+        refused, so a hidden point can enter the fit only after it has been revealed.
+        """
+        train_ids = self.train_ids if training_ids is None else tuple(int(row_id) for row_id in training_ids)
+        if set(train_ids) & set(self.locked_ids):
+            raise ScenarioUnavailable("Refusing to fit the holdout on locked test observations.")
         by_indicator: dict[str, dict] = {}
         for indicator in sorted(self.frame["indicator"].unique()):
             subset = self.frame[self.frame["indicator"] == indicator]
-            train = subset[subset["row_id"].isin(self.train_ids)]
+            train = subset[subset["row_id"].isin(train_ids)]
             locked = subset[subset["row_id"].isin(self.locked_ids)].sort_values("row_id")
             prediction = _predict_rows(train, locked)
             observed = locked["db"].to_numpy(dtype=float)
@@ -684,7 +694,7 @@ class NoiseHoldout:
             "citywide_field": None,
             "indicators_pooled": False,
             "disclaimer": HOLDOUT_DISCLAIMER,
-            "n_train": len(self.train_ids),
+            "n_train": len(train_ids),
             "n_hidden_pool": len(self.hidden_ids),
             "n_locked_test": len(self.locked_ids),
             "time_holdout": list(self.time_holdout),
@@ -692,7 +702,9 @@ class NoiseHoldout:
             "by_indicator": by_indicator,
             "mae": None if single is None else single["mae"],
             "rmse": None if single is None else single["rmse"],
-            "model": "idw_on_training_observations_of_the_same_indicator",
+            "model": "idw_on_revealed_observations_of_the_same_indicator",
+            "trained_on": "revealed_observations",
+            "trained_row_ids": [int(row_id) for row_id in train_ids],
         }
 
     def reveal(
@@ -742,6 +754,7 @@ class NoiseHoldout:
             "source": str(row["source"]),
             "time": str(row["time"]),
             "grid_id": grid_value,
+            "row_id": int(hidden_hits[0]),
             "full_city_truth": False,
             "added_to_training": False,
         }

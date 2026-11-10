@@ -186,7 +186,7 @@ def test_rebuild_world_refuses_real_mobility_without_calling_build_world(monkeyp
     assert caught.value.status == 409
 
 
-def test_http_reset_selects_real_mobility_without_replacing_the_demo(tmp_path):
+def test_http_reset_activates_real_mobility_on_the_fixture_track(tmp_path):
     settings = Settings(
         database_url=f"sqlite:///{tmp_path / 'api.db'}",
         data_dir=str(tmp_path / "data"),
@@ -212,5 +212,9 @@ def test_http_reset_selects_real_mobility_without_replacing_the_demo(tmp_path):
         assert "yjmob" not in body["coordinate_system"].lower()
         state = client.get("/api/simulation", headers=headers)
         assert state.status_code == 200
-        assert state.json()["scenario"] == "complex"
-        assert "current_slot" in state.json()
+        clock = state.json()
+        assert clock["scenario"] == "real_mobility"
+        assert clock["uses_build_world"] is False
+        assert clock["current_slot"] == 0
+        exa = next(person for person in clock["participants"] if person["name"] == "exa")
+        assert (exa["x"], exa["y"]) == (0, 0)

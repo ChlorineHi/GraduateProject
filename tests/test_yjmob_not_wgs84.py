@@ -219,3 +219,7 @@ def test_http_fully_real_without_manifest_returns_the_refusal(tmp_path):
         reset = client.post("/api/simulation/control", headers=headers, json={"action": "reset", "scenario": "fully_real"})
         assert reset.status_code == 409, reset.text
         assert "georegister" in reset.json()["error"]["message"]
+        state = client.get("/api/simulation", headers=headers)
+        assert state.status_code == 200
+        assert state.json()["scenario"] == "complex"
+        assert state.json()["config"].get("scenario_mode") not in {"fully_real", "real_mobility", "real_noise"}
