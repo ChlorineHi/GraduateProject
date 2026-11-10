@@ -1,0 +1,425 @@
+@startuml 01_系统用例图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 系统用例图
+left to right direction
+actor "管理员" as Admin
+actor "任务发布者" as Publisher
+actor "采集参与者" as Collector
+rectangle UrbanNoiseLab {
+  usecase "登录" as UCLogin
+  usecase "查看总览" as UCDash
+  usecase "查看虚拟噪声地图" as UCMap
+  usecase "管理数据源" as UCData
+  usecase "创建并发布任务" as UCTask
+  usecase "选择算法并分配" as UCAssign
+  usecase "推进仿真" as UCSim
+  usecase "接收或拒绝任务" as UCAccept
+  usecase "提交测量" as UCSubmit
+  usecase "核验任务" as UCVerify
+  usecase "查看实验归档" as UCExp
+}
+Admin --> UCLogin
+Admin --> UCDash
+Admin --> UCMap
+Admin --> UCData
+Admin --> UCTask
+Admin --> UCAssign
+Admin --> UCSim
+Admin --> UCVerify
+Admin --> UCExp
+Publisher --> UCLogin
+Publisher --> UCTask
+Publisher --> UCAssign
+Publisher --> UCSim
+Publisher --> UCVerify
+Collector --> UCLogin
+Collector --> UCAccept
+Collector --> UCSubmit
+@enduml
+
+@startuml 02_管理员用例图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 管理员用例图
+actor "管理员" as Admin
+Admin --> (登录 /api/auth/login)
+Admin --> (用户管理 /api/users)
+Admin --> (设备与参与者上下线)
+Admin --> (导入数据集 /api/datasets/import)
+Admin --> (重建仿真世界)
+Admin --> (查看审计 /api/audit)
+Admin --> (查看评估真值层)
+@enduml
+
+@startuml 03_任务发布者用例图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 任务发布者用例图
+actor "任务发布者" as Publisher
+Publisher --> (创建草稿 POST /api/tasks)
+Publisher --> (发布 published)
+Publisher --> (取消任务)
+Publisher --> (选择 mupsa 等算法)
+Publisher --> (POST /api/assignments/run)
+Publisher --> (单步仿真)
+Publisher --> (核验 submitted)
+Publisher --> (完成 verified)
+Publisher --> (导出 CSV)
+@enduml
+
+@startuml 04_采集参与者用例图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 采集参与者用例图
+actor "采集参与者" as Collector
+Collector --> (查看我的任务 mine=true)
+Collector --> (接收 assigned)
+Collector --> (拒绝 assigned)
+Collector --> (开始 accepted)
+Collector --> (仿真采样)
+Collector --> (手工提交测量)
+note right
+只能操作 assignee 为自己的任务。
+仿真采样要求当前轨迹网格等于任务网格。
+end note
+@enduml
+
+@startuml 05_系统总体架构图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 系统总体架构图
+package "浏览器" {
+  [apps/web React] as Web
+}
+package "服务" {
+  [urbannoise.api FastAPI] as API
+  [services.py 业务] as Svc
+  [domain.py 状态机] as Dom
+  [experiment.py 实验] as Exp
+}
+database "SQLite urbannoise.db" as DB
+folder "data/worlds/active_world.npz" as NPZ
+folder "experiments/results" as RES
+Web --> API : /api JSON
+API --> Svc
+Svc --> Dom
+Svc --> DB
+Svc --> NPZ
+Exp --> RES
+API --> Exp : 后台线程
+@enduml
+
+@startuml 06_模块组件图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 系统模块组件图
+[dataio 轨迹与噪声适配器] as IO
+[world 仿真场] as World
+[predictors 移动与噪声预测] as Pred
+[assignment 分配与 LinUCB] as Asg
+[experiment 评估] as Eval
+[api HTTP] as API
+[web 页面] as Web
+IO --> API
+World --> Pred
+Pred --> Asg
+Asg --> Eval
+Eval --> API
+Web --> API
+@enduml
+
+@startuml 07_核心类图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 核心类图
+class User {
+  id
+  role
+  password_hash
+}
+class Participant {
+  participant_type
+  accept_prob
+  cost
+  trajectory_json
+}
+class Device {
+  kind
+  capability
+  status
+}
+class SensingTask {
+  status
+  grid_id
+  slot_start
+  slot_end
+  origin
+}
+class TaskAssignment {
+  reach_prob
+  score
+  estimated_cost
+}
+class SimulationRun {
+  current_slot
+  budget_left
+  algorithm
+}
+class World {
+  laeq
+  zones
+  agents
+}
+class MobilityFit {
+  distribution()
+}
+class LinUCB {
+  score()
+  update()
+}
+User "1" -- "0..1" Participant
+Participant "1" -- "0..*" Device
+Participant "1" -- "0..*" TaskAssignment
+SensingTask "1" -- "0..*" TaskAssignment
+SimulationRun "1" -- "0..*" SensingTask
+World ..> MobilityFit
+LinUCB ..> TaskAssignment : 训练时打分
+@enduml
+
+@startuml 08_任务发布活动图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 任务发布活动图
+start
+:任务发布者填写网格与时间窗;
+:POST /api/tasks;
+:create_task 写入 draft;
+:点击发布;
+:check_transition draft→published;
+if (角色是 publisher 或 admin?) then (是)
+  :状态改为 published;
+else (否)
+  :返回 403/409;
+endif
+stop
+@enduml
+
+@startuml 09_自动任务分配活动图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 自动任务分配活动图
+start
+:读取当前仿真时钟 t;
+:目标时间片 = t + lead;
+:只用 slot<=t 的观测做 IDW;
+:只用 0..t 的轨迹拟合到达概率;
+:按所选算法打分;
+:每人每片至多一个任务;
+:预算不足则跳过;
+:创建 origin=simulation 的任务;
+:published→assigned 并扣减预算;
+stop
+@enduml
+
+@startuml 10_采样执行时序图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 采样执行时序图
+actor Collector
+participant "api" as API
+participant "domain" as Dom
+participant "world.sample_measurement" as World
+database DB
+Collector -> API : POST /tasks/{id}/simulate-sample
+API -> API : 校验 assignee 与时间窗
+API -> API : 轨迹网格 == 任务网格
+API -> World : 读取该格该时刻真值并加测量噪声
+World --> API : laeq
+API -> DB : NoiseObservation source=simulation_assisted
+API -> Dom : accepted→in_progress→submitted→verified→completed
+API --> Collector : 任务字典
+@enduml
+
+@startuml 11_动态重规划时序图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 动态重规划时序图
+actor Publisher
+participant "simulation/control" as Sim
+participant "step_campaign" as Step
+participant "propose_assignments" as Plan
+database DB
+Publisher -> Plan : 分配下一时间片
+Plan -> DB : 新任务 assigned，预扣预算
+Publisher -> Sim : action=step
+Sim -> Step : 只执行到期且属于本轮仿真的任务
+alt 成功且人在网格上
+  Step -> DB : simulation_feedback 观测，状态 completed
+else 失败
+  Step -> DB : rejected 或 failed
+  Step -> DB : origin=simulation 时退回预算
+end
+Sim -> DB : current_slot + 1
+Publisher -> Plan : 用新观测再次分配
+@enduml
+
+@startuml 12_数据库ER图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 数据库 ER 图
+entity users {
+  * id <<PK>>
+  --
+  username
+  role
+}
+entity participants {
+  * id <<PK>>
+  --
+  user_id <<FK>>
+  participant_type
+}
+entity devices {
+  * id <<PK>>
+  --
+  participant_id <<FK>>
+  kind
+}
+entity mobility_datasets {
+  * id <<PK>>
+  --
+  source
+  coordinate_system
+}
+entity noise_datasets {
+  * id <<PK>>
+  --
+  indicator
+  is_synthetic
+}
+entity trajectory_points {
+  * id <<PK>>
+  --
+  participant_id <<FK>>
+  slot
+  grid_id
+}
+entity noise_observations {
+  * id <<PK>>
+  --
+  laeq_db
+  source
+  grid_id
+}
+entity spatial_grids {
+  * id <<PK>>
+  --
+  grid_x
+  grid_y
+  zone
+}
+entity sensing_tasks {
+  * id <<PK>>
+  --
+  status
+  grid_id <<FK>>
+  assignee_id <<FK>>
+}
+entity task_assignments {
+  * id <<PK>>
+  --
+  task_id <<FK>>
+  reach_prob
+  score
+}
+entity sampling_results {
+  * id <<PK>>
+  --
+  task_id <<FK>>
+  laeq_db
+}
+entity simulation_runs {
+  * id <<PK>>
+  --
+  current_slot
+  budget_left
+}
+entity experiment_runs {
+  * id <<PK>>
+  --
+  profile
+  status
+}
+entity evaluation_metrics {
+  * id <<PK>>
+  --
+  experiment_run_id <<FK>>
+  mae
+}
+users ||--o{ participants
+mobility_datasets ||--o{ trajectory_points
+noise_datasets ||--o{ noise_observations
+spatial_grids ||--o{ sensing_tasks
+participants ||--o{ task_assignments
+sensing_tasks ||--o{ sampling_results
+simulation_runs ||--o{ sensing_tasks
+experiment_runs ||--o{ evaluation_metrics
+@enduml
+
+@startuml 13_系统部署图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 系统部署图
+node "开发机或云代理" {
+  artifact "Vite :5173" as Vite
+  artifact "uvicorn :8000" as Uvicorn
+  database "SQLite 文件" as SQLite
+  artifact "active_world.npz" as World
+}
+Vite --> Uvicorn : 代理 /api
+Uvicorn --> SQLite
+Uvicorn --> World
+note bottom
+本环境没有 Docker 守护进程。
+docker-compose.yml 已提供，但未在此机器执行。
+已验证的路径是 venv + uvicorn + vite。
+end note
+@enduml
+
+@startuml 14_数据处理流程图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 数据处理流程图
+start
+if (文件类型?) then (csv)
+  :read_yjmob_csv\n坐标系统 yjmob_virtual_500m;
+elseif (plt) then
+  :read_geolife_plt\nWGS84，不写入虚拟网格号;
+else (geojson)
+  :read_noisecapture_geojson\n保留指标字段名;
+endif
+:quality_report;
+:最多保存 5000 行;
+:与演示城市分开存储;
+stop
+@enduml
+
+@startuml 15_算法工作流程图
+skinparam defaultFontName WenQuanYi Micro Hei
+title 算法工作流程图
+start
+:历史轨迹 0..t;
+:MobilityFit\n0.55 时段频率 + 0.45 Markov;
+:到达概率;
+:已有噪声观测;
+:能量域 IDW;
+:不确定性;
+:Value = 不确定性 + 覆盖 + 时间 - 重复;
+:分数 = 到达×接受×质量×Value - 0.35×成本;
+:约束匹配;
+:执行后只把成功观测写回;
+stop
+@enduml
+
+@startuml 16_LinUCB交互图
+skinparam defaultFontName WenQuanYi Micro Hei
+title LinUCB 交互图
+participant "候选筛选" as Short
+participant "LinUCB" as Bandit
+participant "仿真环境" as Env
+Short -> Bandit : 至多 20 个上下文，维度 10
+note right
+上下文不含噪声真值。
+奖励在训练时可以使用仿真误差下降，报告中已标明。
+end note
+Bandit -> Short : UCB 分数
+Short -> Env : 执行选中的配对
+Env --> Bandit : reward 用于 A、b 更新
+@enduml

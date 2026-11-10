@@ -1,0 +1,26 @@
+# This file was not executed in the development environment.
+# `docker` was not installed and no daemon was reachable on 2026-11-09.
+# The verified path is the local virtualenv and Vite commands in README.md.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      UNLAB_JWT_SECRET: dev-only-not-for-production-use-32b
+      UNLAB_DATABASE_URL: sqlite:////data/urbannoise.db
+    volumes:
+      - unlab-data:/data
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+volumes:
+  unlab-data:
