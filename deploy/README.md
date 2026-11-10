@@ -1,17 +1,21 @@
-# 部署说明
+# 部署
 
-2026-11-09 的开发机没有 Docker 命令，`docker compose up` 没有执行。不要把本目录当成已经通过的部署证明。
+支持的运行方式是仓库内的虚拟环境 `.venv` 和 `apps/web` 的 npm。
 
-已经启动并返回健康检查的方式：
-
-```bash
-PYTHONPATH=src .venv/bin/python -m uvicorn urbannoise.api:app --host 127.0.0.1 --port 8000
-```
-
-前端：
+Linux：
 
 ```bash
-cd apps/web && npm run dev -- --host 127.0.0.1 --port 5173
+bash scripts/setup_linux.sh
+bash scripts/start_linux.sh
 ```
 
-Compose 文件使用 SQLite 卷，不启动 PostgreSQL 或 Redis。Vite 开发服务器里的 `/api` 代理指向 `127.0.0.1:8000`。若 API 在另一个容器网络里，需要改 `apps/web/vite.config.ts` 后再构建。这一点在未执行的 Compose 里尚未处理。
+Windows 不修改系统执行策略，只对当前进程放宽：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup_windows.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start_windows.ps1
+```
+
+API 与 Vite 都只监听 `127.0.0.1`。`UNLAB_DATA_DIR` 是本地数据目录，默认 `./data`。`UNLAB_JWT_SECRET` 和 README 里的演示口令只用于本地演示。
+
+`deploy/unused/` 中的 Compose 文件和 Dockerfile 未使用。这次发布没有安装 Docker，也没有执行那些文件。

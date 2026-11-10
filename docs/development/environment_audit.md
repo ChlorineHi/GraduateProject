@@ -16,7 +16,7 @@
 
 ## 未具备
 
-- 没有 Docker 守护进程。`docker` 命令不存在。`docker-compose.yml` 已写入，但**没有在本机执行**。
+- 没有 Docker 守护进程。`docker` 命令不存在。Compose 与 Dockerfile 在 `deploy/unused/`，标记为未使用，没有执行。支持的路径是虚拟环境与 npm（`scripts/setup_linux.sh`）。
 - 没有 PostgreSQL/PostGIS 客户端服务。默认数据库是 SQLite。
 - 没有下载 YJMob100K、GeoLife 或 NoiseCapture 的完整数据包。适配器只用夹具和上传接口验证格式。
 - 没有安装 Gymnasium 或 Stable-Baselines3。强化学习部分是自写的 LinUCB，不是 PPO。

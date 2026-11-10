@@ -1,6 +1,6 @@
 # 已知问题
 
-1. Docker 守护进程不存在，Compose 文件没有跑通。
+1. Docker 不是支持的运行方式。Compose 与 Dockerfile 在 `deploy/unused/`，没有安装 Docker，也没有执行这些文件。
 2. 完整 YJMob100K、GeoLife、NoiseCapture 没有下载，因此没有真实数据上的误差表，也没有真实时空联合实验。
 3. MU-PSA 不是所有预算上因果 MAE 最低的方法。见主实验表。
 4. 去掉覆盖项或重规划，在 complex、预算 24 的消融里平均 MAE 略好于完整模型。

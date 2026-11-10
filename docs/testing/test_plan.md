@@ -18,6 +18,6 @@
 
 ## 不在本次自动化里的项
 
-- Docker Compose 实际启动。
+- Docker 启动。发布路径是虚拟环境与 npm，Compose 文件放在 `deploy/unused/` 且不执行。
 - 全量 YJMob100K 或 GeoLife 导入。
 - 多小时正式训练以外的 GPU 实验。

@@ -1,12 +1,12 @@
-# This file was not executed in the development environment.
-# `docker` was not installed and no daemon was reachable on 2026-11-09.
-# The verified path is the local virtualenv and Vite commands in README.md.
+# UNUSED. Not a supported way to run UrbanNoiseLab.
+# Use scripts/setup_linux.sh or scripts/setup_windows.ps1 (virtualenv + npm).
+# Docker was not installed and this file was not executed.
 
 services:
   api:
     build:
-      context: .
-      dockerfile: deploy/Dockerfile.api
+      context: ../..
+      dockerfile: deploy/unused/Dockerfile.api
     ports:
       - "8000:8000"
     environment:
@@ -16,8 +16,8 @@ services:
       - unlab-data:/data
   web:
     build:
-      context: .
-      dockerfile: deploy/Dockerfile.web
+      context: ../..
+      dockerfile: deploy/unused/Dockerfile.web
     ports:
       - "5173:5173"
     depends_on:

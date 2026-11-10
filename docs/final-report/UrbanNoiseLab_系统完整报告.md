@@ -227,7 +227,7 @@ PYTHONPATH=src .venv/bin/python -m pytest -q --tb=line
 
 修复过的错误包括：商业区被道路十字盖掉、IDW 时间距离过大导致新样本无法改变地图、仿真重复抽接受、手工任务被错误退款、实验线程在提交前启动、自动核验权限不足。这些都改在代码里，而不是改实验结果。
 
-未解决项见 `docs/testing/known_issues.md`。其中 Docker 未执行和全量真实数据未下载是资源限制，不是隐藏的通过。
+未解决项见 `docs/testing/known_issues.md`。Docker 不是支持的发布方式。全量真实数据未下载是资源限制，不是隐藏的通过。
 
 ## 第十章 部署与使用
 
@@ -241,7 +241,9 @@ cd apps/web && npm run dev -- --host 127.0.0.1 --port 5173
 
 打开 `http://127.0.0.1:5173`。账号见第二章。`make demo` 会在空库时写入演示数据。`make test` 运行 pytest。`make experiment-smoke` 按 `experiments/configs/smoke.json` 重跑小实验。`make report` 由 Markdown 生成 PDF。
 
-Docker Compose 文件在仓库根目录。本机没有 `docker` 命令，因此不能把 `docker compose up` 写成已验证命令。若在有守护进程的机器上运行，应先阅读 `deploy/README.md`，并准备接受镜像构建时间。数据库仍是容器内的 SQLite 文件，不是 PostGIS。
+支持的启动方式是项目虚拟环境和 `apps/web` 的 npm：`bash scripts/setup_linux.sh` 然后 `bash scripts/start_linux.sh`。Windows 用进程内执行策略绕过运行 `scripts/setup_windows.ps1` 和 `scripts/start_windows.ps1`，脚本不调用 `Set-ExecutionPolicy`。两者只绑定 `127.0.0.1`。`UNLAB_DATA_DIR` 是本地数据目录，默认 `./data`。`UNLAB_JWT_SECRET` 和演示口令只用于本地演示。
+
+`deploy/unused/` 里的 Compose 文件和 Dockerfile 未使用，没有安装 Docker，也没有执行。数据库是 `UNLAB_DATA_DIR` 下的 SQLite，不是 PostGIS。
 
 导入外部文件使用数据页。csv 按 YJMob 列解释，plt 按 GeoLife 解释，geojson 按噪声点解释。超过 20 MB 会被拒绝。最多保存 5000 行。这些行不会自动出现在虚拟城市地图上。
 
