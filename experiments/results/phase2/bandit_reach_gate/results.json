@@ -1,0 +1,228 @@
+{
+  "note": "LinUCB after the positive-reach gate. Training matches fair_main: alpha 0.75, two regular episodes, seeds 400 and 401, then frozen evaluation. fair_main/summary.json and its checkpoint were not overwritten. Other methods are unchanged.",
+  "protocol": "mae_available_at_t",
+  "train_reward": [
+    1.474093470586187,
+    1.0236061965905274
+  ],
+  "summary": [
+    {
+      "scenario": "regular",
+      "budget": 4,
+      "n": 3,
+      "mae_mean": 11.213615696388109,
+      "mae_std": 2.227403062340985,
+      "success_mean": 3.0,
+      "reach_mean": 0.4466662257495591
+    },
+    {
+      "scenario": "regular",
+      "budget": 8,
+      "n": 3,
+      "mae_mean": 11.087021436729001,
+      "mae_std": 2.1022298077089188,
+      "success_mean": 3.3333333333333335,
+      "reach_mean": 0.4671746031746032
+    },
+    {
+      "scenario": "regular",
+      "budget": 12,
+      "n": 3,
+      "mae_mean": 11.087021436729001,
+      "mae_std": 2.1022298077089188,
+      "success_mean": 3.3333333333333335,
+      "reach_mean": 0.4671746031746032
+    },
+    {
+      "scenario": "complex",
+      "budget": 4,
+      "n": 3,
+      "mae_mean": 10.203219797292903,
+      "mae_std": 1.3505701003676882,
+      "success_mean": 2.0,
+      "reach_mean": 0.45834523809523814
+    },
+    {
+      "scenario": "complex",
+      "budget": 8,
+      "n": 3,
+      "mae_mean": 10.203219797292903,
+      "mae_std": 1.3505701003676882,
+      "success_mean": 2.0,
+      "reach_mean": 0.45834523809523814
+    },
+    {
+      "scenario": "complex",
+      "budget": 12,
+      "n": 3,
+      "mae_mean": 10.203219797292903,
+      "mae_std": 1.3505701003676882,
+      "success_mean": 2.0,
+      "reach_mean": 0.45834523809523814
+    }
+  ],
+  "rows": [
+    {
+      "scenario": "regular",
+      "budget": 4,
+      "seed": 0,
+      "mae_available_at_t": 8.66169127508617,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.34858333333333336,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "regular",
+      "budget": 8,
+      "seed": 0,
+      "mae_available_at_t": 8.66169127508617,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.34858333333333336,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "regular",
+      "budget": 12,
+      "seed": 0,
+      "mae_available_at_t": 8.66169127508617,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.34858333333333336,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "regular",
+      "budget": 4,
+      "seed": 1,
+      "mae_available_at_t": 12.767221046875223,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.3847486772486773,
+      "assigned_tasks": 9
+    },
+    {
+      "scenario": "regular",
+      "budget": 8,
+      "seed": 1,
+      "mae_available_at_t": 12.3874382678979,
+      "successful_tasks": 4,
+      "mean_assigned_reach": 0.4462738095238096,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "regular",
+      "budget": 12,
+      "seed": 1,
+      "mae_available_at_t": 12.3874382678979,
+      "successful_tasks": 4,
+      "mean_assigned_reach": 0.4462738095238096,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "regular",
+      "budget": 4,
+      "seed": 2,
+      "mae_available_at_t": 12.211934767202933,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.6066666666666667,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "regular",
+      "budget": 8,
+      "seed": 2,
+      "mae_available_at_t": 12.211934767202933,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.6066666666666667,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "regular",
+      "budget": 12,
+      "seed": 2,
+      "mae_available_at_t": 12.211934767202933,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.6066666666666667,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 4,
+      "seed": 0,
+      "mae_available_at_t": 9.093403139100152,
+      "successful_tasks": 2,
+      "mean_assigned_reach": 0.4345357142857143,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 8,
+      "seed": 0,
+      "mae_available_at_t": 9.093403139100152,
+      "successful_tasks": 2,
+      "mean_assigned_reach": 0.4345357142857143,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 12,
+      "seed": 0,
+      "mae_available_at_t": 9.093403139100152,
+      "successful_tasks": 2,
+      "mean_assigned_reach": 0.4345357142857143,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 4,
+      "seed": 1,
+      "mae_available_at_t": 9.809302623514489,
+      "successful_tasks": 1,
+      "mean_assigned_reach": 0.35550000000000004,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 8,
+      "seed": 1,
+      "mae_available_at_t": 9.809302623514489,
+      "successful_tasks": 1,
+      "mean_assigned_reach": 0.35550000000000004,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 12,
+      "seed": 1,
+      "mae_available_at_t": 9.809302623514489,
+      "successful_tasks": 1,
+      "mean_assigned_reach": 0.35550000000000004,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 4,
+      "seed": 2,
+      "mae_available_at_t": 11.706953629264065,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.585,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 8,
+      "seed": 2,
+      "mae_available_at_t": 11.706953629264065,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.585,
+      "assigned_tasks": 10
+    },
+    {
+      "scenario": "complex",
+      "budget": 12,
+      "seed": 2,
+      "mae_available_at_t": 11.706953629264065,
+      "successful_tasks": 3,
+      "mean_assigned_reach": 0.585,
+      "assigned_tasks": 10
+    }
+  ]
+}

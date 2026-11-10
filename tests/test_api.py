@@ -130,3 +130,21 @@ def test_idempotent_transition(tmp_path):
         third = client.post(f"/api/tasks/{task_id}/transition", headers=publisher, json={"to_status": "published"})
         assert third.status_code == 409
         _ = json.dumps(third.json())
+
+
+def test_reset_restores_budget_and_clock(tmp_path):
+    with _client(tmp_path) as client:
+        admin = _login(client, "admin", "DemoAdmin#2026")
+        reset = client.post(
+            "/api/simulation/control",
+            headers=admin,
+            json={"action": "reset", "budget": 18, "mode": "synthetic", "scenario": "regular", "seed": 3, "algorithm": "eer_reach"},
+        )
+        assert reset.status_code == 200, reset.text
+        body = reset.json()
+        assert body["mode"] == "synthetic"
+        assert body["budget_total"] == 18
+        assert body["budget_left"] == 18
+        assert body["budget_spent"] == 0
+        assert body["current_slot"] == body["horizon_start"]
+        assert body["log"] and "世界已生成" in body["log"][0]

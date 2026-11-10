@@ -1,5 +1,7 @@
 # UrbanNoiseLab Phase II 系统报告
 
+> 历史版本。这是第二阶段的阶段性报告。数字和结论以 `docs/final-report/UrbanNoiseLab_完整系统报告.md` 为准。
+
 本报告只记录这一次分支上实际运行过的代码、下载和实验。它不取代 `experiments/results/main` 里的旧协议数字，也不把 MU-PSA 或 `eer_reach` 说成每个预算的赢家。本系统没有被写成已获奖的论文。
 
 ## 1. 背景

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NavLink, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import * as echarts from "echarts";
 import { api, download, setToken, type Frame, type User } from "./api";
@@ -77,6 +77,7 @@ function Chart({ option, height = 240 }: { option: echarts.EChartsOption; height
 }
 
 function Shell({ user, onLogout }: { user: User; onLogout: () => void }) {
+  const location = useLocation();
   const [dash, setDash] = useState<Dash | null>(null);
   const [theme, setTheme] = useState(localStorage.getItem("unlab-theme") || "light");
   useEffect(() => {
@@ -87,9 +88,9 @@ function Shell({ user, onLogout }: { user: User; onLogout: () => void }) {
     let stop = false;
     const pull = () => api<Dash>("/api/dashboard").then((data) => { if (!stop) setDash(data); }).catch(() => { if (!stop) setDash(null); });
     void pull();
-    const timer = window.setInterval(pull, 4000);
+    const timer = window.setInterval(pull, 2000);
     return () => { stop = true; window.clearInterval(timer); };
-  }, []);
+  }, [location.pathname]);
   return (
     <div className="shell">
       <aside className="rail">
@@ -430,7 +431,7 @@ function AssignPage({ role }: { role: string }) {
           <div className="form-grid">
             <label className="field">策略
               <select value={algorithm} onChange={(event) => setAlgorithm(event.target.value)}>
-                {["mupsa", "mupsa_constrained", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}
+                {["eer_reach", "mupsa", "mupsa_constrained", "greedy", "uncertainty", "nearest", "random", "min_cost", "bandit"].map((item) => <option key={item}>{item}</option>)}
               </select>
             </label>
             <label className="field">本轮上限<input type="number" min={1} max={8} value={limit} onChange={(event) => setLimit(Number(event.target.value))} /></label>
@@ -483,7 +484,7 @@ function TracksPage() {
     series: [{ type: "bar", data: stats?.by_timeslot || [], itemStyle: { color: "#1d6b5d" } }],
   }), [stats]);
   return (
-    <Page title="轨迹分析" lede="演示轨迹标记为 Synthetic Demo。热点和分时段计数来自数据库中的轨迹点，预测只使用目标时间片之前的历史。">
+    <Page title="轨迹分析" lede="热点和分时段计数来自当前世界写入数据库的轨迹点。合成演示、YJMob 匿名网格和 GeoLife 不会互相冒充，来源以仿真控制台为准。预测只使用目标时间片之前的历史。">
       {error && <p className="error">{error}</p>}
       <div className="grid-2">
         <section className="panel">
@@ -583,6 +584,7 @@ function mixColor(t: number) {
 function SimPage({ role }: { role: string }) {
   const [state, setState] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState("");
+  const [keptPreviousWorld, setKeptPreviousWorld] = useState(false);
   const [form, setForm] = useState({
     scenario: "complex",
     seed: 7,
@@ -599,22 +601,57 @@ function SimPage({ role }: { role: string }) {
     noise_country: "France",
     day_min: 0,
   });
+  const [busy, setBusy] = useState(false);
+  const dirty = useRef(false);
   const load = useCallback(() => api<Record<string, unknown>>("/api/simulation").then(setState).catch((reason: Error) => setError(reason.message)), []);
   useEffect(() => { void load(); }, [load]);
+  function applyServerForm(next: Record<string, unknown>) {
+    const config = (next.config || {}) as Record<string, unknown>;
+    const knownMobility = ["yjmob_dataset1", "yjmob_dataset2", "geolife"];
+    const mobility = String(config.mobility_source || "");
+    setForm((current) => ({
+      ...current,
+      mode: String(next.mode || current.mode),
+      mobility_source: knownMobility.includes(mobility) ? mobility : current.mobility_source,
+      noise_source: String(next.noise_source || current.noise_source),
+      algorithm: String(next.algorithm || current.algorithm),
+      scenario: String(next.scenario || current.scenario),
+      seed: Number(next.seed ?? current.seed),
+      budget: Number(next.budget_total ?? current.budget),
+    }));
+  }
+  useEffect(() => {
+    if (!state || dirty.current) return;
+    applyServerForm(state);
+  }, [state]);
   async function control(action: string, steps = 1) {
+    if (busy) return;
+    setBusy(true);
     setError("");
     try {
-      setState(await api("/api/simulation/control", { method: "POST", body: JSON.stringify({ action, steps, ...form }) }));
+      const next = await api<Record<string, unknown>>("/api/simulation/control", { method: "POST", body: JSON.stringify({ action, steps, ...form }) });
+      dirty.current = false;
+      setState(next);
+      applyServerForm(next);
+      setKeptPreviousWorld(false);
     } catch (reason) {
+      setKeptPreviousWorld(action === "reset");
       setError(reason instanceof Error ? reason.message : "仿真操作失败");
+    } finally {
+      setBusy(false);
     }
   }
   const metrics = (state?.metrics || {}) as { mae_current_slot?: number; coverage?: number };
   const log = (state?.log || []) as string[];
   return (
     <Page title="仿真控制台" lede="重置会按所选数据源重建世界，而不是只改标签。单步推进执行到期任务。决策不读取未来轨迹；真值只在采样成功或评估时使用。">
-      {error && <p className="error">{error}</p>}
-      <section className="panel">
+      {error && (
+        <p className="error">
+          {error}
+          {keptPreviousWorld && " 画面仍是上一次成功加载的世界。缺失的真实数据不会被悄悄换成合成轨迹。"}
+        </p>
+      )}
+      <section className="panel" onChange={() => { dirty.current = true; }}>
         <div className="form-grid">
           <label className="field">数据模式
             <select value={form.mode} onChange={(event) => setForm({ ...form, mode: event.target.value, noise_source: event.target.value === "real_noise" ? "NoiseCapture" : "synthetic_field", mobility_source: event.target.value === "synthetic" ? "synthetic" : form.mobility_source })}>
@@ -646,11 +683,11 @@ function SimPage({ role }: { role: string }) {
         </div>
         {(role === "admin" || role === "publisher") && (
           <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-            <button className="btn" onClick={() => void control("step", 1)}>单步</button>
-            <button className="btn" onClick={() => void control("step", 4)}>前进 4 步</button>
-            <button className="btn-ghost" onClick={() => void control("pause")}>暂停</button>
-            <button className="btn-ghost" onClick={() => void control("resume")}>继续</button>
-            <button className="btn-danger" onClick={() => void control("reset")}>按参数重置</button>
+            <button className="btn" disabled={busy} onClick={() => void control("step", 1)}>单步</button>
+            <button className="btn" disabled={busy} onClick={() => void control("step", 4)}>前进 4 步</button>
+            <button className="btn-ghost" disabled={busy} onClick={() => void control("pause")}>暂停</button>
+            <button className="btn-ghost" disabled={busy} onClick={() => void control("resume")}>继续</button>
+            <button className="btn-danger" disabled={busy} onClick={() => void control("reset")}>按参数重置</button>
           </div>
         )}
       </section>
@@ -717,7 +754,7 @@ function ExperimentsPage({ role }: { role: string }) {
           <button className="btn-ghost" onClick={() => void load()}>刷新</button>
         </div>
       )}
-      <p className="note">当前图：{summary.length ? "phase2 / mae_available_at_t（历史列名 mae_causal）" : "phase2 结果文件还不存在。"} 旧协议文件 {legacy?.path || "experiments/results/main/summary.json"} 保留，不参与这张图。</p>
+      <p className="note">当前图：{summary.length ? "phase2 / mae_available_at_t（历史列名 mae_causal）" : "phase2 结果文件还不存在。"} 旧协议文件 {legacy?.path || "experiments/results/main/summary.json"} 保留，不参与这张图。图中的 bandit 仍是到达门控修订前的主表，修订后的复核不在这张图里。</p>
       <section className="panel"><h2>公平协议 MAE</h2>{summary.length ? <Chart option={option} height={300} /> : <p className="note">还没有 phase2 summary。命令行跑完 scripts/run_phase2_episodes.py 后点刷新。</p>}</section>
       <section className="panel">
         <h2>运行记录</h2>

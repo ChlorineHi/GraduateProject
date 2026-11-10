@@ -22,7 +22,7 @@ from urbannoise.experiment import PROTOCOL_NAME, EpisodeConfig, run_episode
 from urbannoise.fairness import algorithm_seed, environment_seed
 from urbannoise.migrations import migrate
 from urbannoise.noiseeval import predict_parquet
-from urbannoise.scenarios import load_yjmob_frame, world_from_mobility_frame
+from urbannoise.scenarios import load_geolife_frame, load_yjmob_frame, world_from_mobility_frame
 from urbannoise.settings import Settings
 from urbannoise.world import build_world
 
@@ -216,6 +216,47 @@ def test_real_noise_prediction_reads_noise_parquet_not_synthetic_demo(tmp_path):
     assert result["n_test"] >= 10
     assert result["mae"] == pytest.approx(30.0, abs=1.0)
     assert "full-city" in result["note"]
+
+
+def test_missing_real_mobility_does_not_replace_the_world(tmp_path):
+    settings = Settings(
+        database_url=f"sqlite:///{tmp_path / 'api.db'}",
+        data_dir=str(tmp_path / "empty-data"),
+        jwt_secret="test-secret-not-production-32bytes!!",
+        auto_seed=True,
+        cors_origins="http://localhost:5173",
+    )
+    with TestClient(create_app(settings)) as client:
+        login = client.post("/api/auth/login", json={"username": "admin", "password": "DemoAdmin#2026"})
+        headers = {"Authorization": f"Bearer {login.json()['token']}"}
+        before = client.get("/api/simulation", headers=headers).json()
+        response = client.post(
+            "/api/simulation/control",
+            headers=headers,
+            json={"action": "reset", "mode": "real_mobility", "mobility_source": "yjmob_dataset1", "n_users": 10},
+        )
+        assert response.status_code == 409
+        message = response.json()["error"]["message"]
+        assert "数据未切换" in message
+        assert "Synthetic Demo" in message
+        after = client.get("/api/simulation", headers=headers).json()
+        assert after["mode"] == before["mode"] == "synthetic"
+        assert after["id"] == before["id"]
+
+
+def test_geolife_loader_drops_invalid_coordinates(tmp_path):
+    path = tmp_path / "slots.parquet"
+    rows = []
+    for slot in range(10):
+        rows.append({"user_id": "001", "timeslot": slot, "lat": 39.90 + slot * 0.001, "lon": 116.30, "date": "2008-11-01", "day": 0})
+    rows.append({"user_id": "001", "timeslot": 20, "lat": 400.166666666667, "lon": 116.30, "date": "2008-11-01", "day": 0})
+    rows.append({"user_id": "bad", "timeslot": 0, "lat": 91.0, "lon": 10.0, "date": "2008-11-01", "day": 0})
+    pd.DataFrame(rows).to_parquet(path, index=False)
+    frame = load_geolife_frame(path, n_users=5, cell_m=500)
+    assert set(frame["user_id"]) == {"001"}
+    assert frame["lat"].max() < 90
+    assert frame.attrs["lat0"] == pytest.approx(float(frame["lat"].min()))
+    assert float(frame.attrs["lat0"]) < 41
 
 
 def test_real_noise_endpoint_does_not_fall_back_to_synthetic(tmp_path):

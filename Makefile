@@ -14,7 +14,8 @@ experiment-smoke:
 	$(PY) -m urbannoise.experiment --config experiments/configs/smoke.json
 
 report:
-	$(PY) scripts/render_report.py
+	$(PY) scripts/render_report.py docs/final-report/UrbanNoiseLab_完整系统报告.md docs/final-report/UrbanNoiseLab_完整系统报告.pdf
+	$(PY) scripts/render_docx.py docs/final-report/UrbanNoiseLab_完整系统报告.md docs/final-report/UrbanNoiseLab_完整系统报告.docx
 
 api:
 	$(PY) -m uvicorn urbannoise.api:app --host 127.0.0.1 --port 8000

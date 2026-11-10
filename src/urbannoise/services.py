@@ -209,7 +209,7 @@ def ensure_algorithm_catalog(db: Session) -> None:
         ("uncertainty", "baseline", METHOD_LABELS["uncertainty"], False),
         ("min_cost", "baseline", METHOD_LABELS["min_cost"], False),
         ("mupsa", "internal", "移动预测与不确定性感知的动态采样任务分配。项目内部工作名 MU-PSA，不是每个预算上的误差赢家，也不代表已证实的学术新颖性。", False),
-        ("eer_reach", "internal", METHOD_LABELS["eer_reach"] + "。公式是固定的一步方差下降，没有为了赢过基线而搜索权重。", False),
+        ("eer_reach", "internal", METHOD_LABELS["eer_reach"] + "。只减被选格子自己的预测方差，不计算空间协方差，也不等于整张地图的期望绝对误差下降。", False),
         ("bandit", "bandit", METHOD_LABELS["bandit"], False),
     ]
     for name, family, description, proposed in catalog:
@@ -265,7 +265,13 @@ def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: i
         else:
             world = resolve_world(params, Path(settings.data_dir))
     except ScenarioDataError as exc:
-        raise AppError("scenario_data", str(exc), 409) from exc
+        raise AppError(
+            "scenario_data",
+            "数据未切换，当前世界保持上一次成功加载的内容。原因："
+            + str(exc)
+            + " 恢复方法：在仓库根目录准备 data/processed，或运行 scripts/download_datasets.py 与 scripts/preprocess_datasets.py。不要把缺失数据当成 Synthetic Demo。",
+            409,
+        ) from exc
     data_dir = Path(settings.data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
     world_path = data_dir / "worlds" / "active_world.npz"

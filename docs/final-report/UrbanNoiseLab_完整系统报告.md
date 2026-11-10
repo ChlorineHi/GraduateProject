@@ -416,6 +416,8 @@ V = 1.0 u + 0.65 覆盖 + 0.25 t − 0.8 d
 
 系数在 `combine_value` 的默认权重里。mode 可以关掉不确定度或覆盖，供消融。这不是互信息。
 
+名称 EER-Reach 容易被理解成全局期望误差下降。代码不是这个意思。它不估计整张地图的期望绝对误差，也不使用格子之间的协方差。下面的 Δ 只减被选中的那一个格子自己的预测方差。
+
 eer 的价值是一步方差下降。设预测标准差为 s，传感器标准差为 σ，方差 v = s^2，测量噪声 r = σ^2。后验方差是 v r / (v+r)，下降量是
 
 Δ = v^2 / (v + r)
@@ -457,9 +459,11 @@ eer 的消融：eer_no_reach 去掉 P_reach，仍保留 accept 和 quality；eer
 
 ## 6.8 LinUCB
 
-bandit 使用 LinUCB，探索系数 alpha 在公平配置里是 0.75，正式比较前有 2 个训练回合。上下文是配对的到达、距离、价值、不确定度、重复、预算比例和时间比例，维度由 `pair_context` 固定。它不是 PPO，也不是 DQN。训练回合短，第 9 章看到它的成功次数停在 1，增加预算没有增加成功。这和“强化学习已经学会分配”不是一回事。
+bandit 使用 LinUCB，探索系数 alpha 在公平配置里是 0.75，正式比较前有 2 个训练回合。上下文是配对的到达、距离、价值、不确定度、重复、预算比例和时间比例，维度由 `pair_context` 固定。它不是 PPO，也不是 DQN。训练只有两个回合，不能说成已经学会分配。
 
-旧测试分支记录过一个缺陷：LinUCB 仍可能选中到达概率为 0 的配对，因为 UCB 的乐观项盖过了很负的距离分。本分支的公平主表没有单独把该缺陷标成已修复。bandit 的平均到达概率约 0.15，低于 eer_reach。报告不声称这个缺陷已经消失。
+终稿修订前，LinUCB 的候选短名单包含到达概率为 0 的配对。UCB 的乐观项可以盖过很负的基础分，于是不可达的人仍会被分配。这一点已经改掉：基础分和短名单都要求到达概率大于 0，并且人必须在线，成本不能超过剩余预算，同一人和同一格子不能重复入选。公平主表 `fair_main/summary.json` 没有重写。那里的 bandit 行仍是修订前的数字，regular 三个预算的成功次数都停在 1.00，平均到达概率约 0.15。
+
+修订后的复核只重跑了 bandit，训练设置与主表相同：alpha 0.75，两个 regular 训练回合，然后冻结。结果在 `experiments/results/phase2/bandit_reach_gate/results.json`。regular 预算 8 的 MAE 是 11.087±2.102，成功 3.33 次，平均到达概率 0.467。complex 预算 8 的 MAE 是 10.203±1.351，成功 2.00 次。到达概率不再出现 0。它仍然不是 regular 上 eer_reach 的 10.081，也没有因此宣布 LinUCB 获胜。其他方法的 210 行主表、80 个真实轨迹回合和 135 个鲁棒性回合都没有重跑。
 
 ## 6.9 伪代码
 
@@ -546,7 +550,21 @@ score MAE using truth and the predictions from past obs
 
 ## 7.6 关键接口
 
-健康检查是 `GET /api/health`。登录是 `POST /api/auth/login`。场景选择会校验数据模式，fully_real 不满足重叠条件时是 409，正文含有 `scenario_unavailable`。任务转移不合法时是 409，正文来自 `TaskStateError`。OpenAPI 在 `/docs`。完整路径以代码里的路由装饰器为准，本报告不另造一套未实现的 REST 资源。
+健康检查是 `GET /api/health`。登录是 `POST /api/auth/login`。场景选择会校验数据模式。真实数据缺失，或 fully_real 不满足时间和地理重叠时，返回 409，错误码是 `scenario_data`。正文以“数据未切换”开头，数据库里的上一场世界不会被删掉，也不会改写成合成轨迹。任务转移不合法时是 409，正文来自 `TaskStateError`。OpenAPI 在 `/docs`。
+
+## 7.7 终稿浏览器复核
+
+2026-11-10 在当前代码上又走了一遍浏览器。API 使用本机已经预处理的 YJMob parquet，不是夹具。图 7-14 是 Fully-Real 被拒绝之后的画面：红字说明数据未切换，状态行仍是上一次的世界，因为这次重置没有成功。图 7-15 是同一次会话里随后成功的 YJMob 重置，10 个真实用户，噪声标记为 synthetic_field，时钟回到评估期起点。图 7-16 是 eer_reach 对下一时间片新提出的三条自动采样，到达概率都是 1.00，剩余预算 19.60。手工发布的“答辩采样点”仍保持 published，分配器不会把它改写成这三条自动任务。图 7-17 是前进 4 步之后：模式仍是 real_mobility，已花费 3.40，预算剩余 20.60，当前片 MAE 9.56，覆盖 2.5%。日志里 U001 因 not_at_target 失败并退回 1.00，M03 与 M04 成功，读数是 63.1 dB 和 63.5 dB。这组数字是这一场演示的现场读数，不是第 9 章的多种子平均。
+
+图 7-10 仍然只代表 simcheck 分支的夹具回退，不能当作这次复核。
+
+![图 7-14 当前系统拒绝 Fully-Real，世界没有被换成成功状态。来源 docs/screenshots/final/04-fully-real-refused.png。](assets/ui_final_refused.png)
+
+![图 7-15 当前系统加载 YJMob100K 的 10 人子集，噪声仍是合成场。来源 docs/screenshots/final/05-sim-yjmob.png。](assets/ui_final_yjmob.png)
+
+![图 7-16 eer_reach 分配结果，到达概率来自接口返回值。来源 docs/screenshots/final/09-assign-eer.png。](assets/ui_final_assign.png)
+
+![图 7-17 推进仿真后的 YJMob 世界。失败任务退回预算，成功任务写入分贝。来源 docs/screenshots/final/10-sim-stepped.png。](assets/ui_final_step.png)
 
 # 第 8 章 前端 UI 与交互
 
@@ -617,17 +635,19 @@ score MAE using truth and the predictions from past obs
 | min_cost | 11.710±2.725 | 11.710±2.725 | 11.710±2.725 |
 | mupsa | 11.685±1.682 | 11.224±1.861 | 11.083±2.055 |
 | eer_reach | 10.373±1.931 | 10.081±1.965 | 10.124±1.908 |
-| bandit | 11.674±1.966 | 11.674±1.966 | 11.674±1.966 |
+| bandit（修订前） | 11.674±1.966 | 11.674±1.966 | 11.674±1.966 |
 
-![图 9-1 regular 场景 MAE。来源 experiments/figures/phase2/fair_main/main_regular.png。](assets/exp_regular_mae.png)
+表中 bandit 行来自修订前的 `fair_main/summary.json`。到达门控之后的 bandit 不在这张表里，见 6.8 节和 `bandit_reach_gate/results.json`。图 9-1 与图 9-2 也是修订前的主表图，没有把新的 bandit 点画进去。
+
+![图 9-1 regular 场景 MAE。来源 experiments/figures/phase2/fair_main/main_regular.png。图中的 bandit 是修订前结果。](assets/exp_regular_mae.png)
 
 ![图 9-2 regular 的成本与 MAE。来源 cost_mae_regular.png。](assets/exp_cost.png)
 
 预算 8 时 eer_reach 的平均 MAE 最低。预算 4 也是它最低。预算 12 仍是它最低，但只比预算 8 的 10.081 高到 10.124，没有随着预算继续下降。reach_nearest 在三个预算上都比“几乎不成功的 nearest”更差：预算 12 时它成功 7.00 次、到达概率 1.000、成本 11.90，MAE 却是 13.485。多采到的点提高了误差。nearest 在三个预算上成功次数都是 0，MAE 保持 12.065。它把任务派给当前距离近、但下一片到不了的人。
 
-greedy、uncertainty、min_cost 和 bandit 的成功次数不随预算变化：分别是 1.33、1.67、2.33 和 1.00。额外预算没有变成新的成功观测，所以 MAE 也不变。bandit 的平均到达概率约 0.15。图 9-3 是它的回报曲线，回报没有表现出稳定上升后的更低地图误差。
+greedy、uncertainty 和 min_cost 的成功次数不随预算变化：分别是 1.33、1.67 和 2.33。修订前的 bandit 成功次数停在 1.00，平均到达概率约 0.15，所以三个预算的 MAE 相同。图 9-3 是这次主表训练的回报，不是到达门控之后的新训练。新训练的两个回报是 1.474 和 1.024，写在 `bandit_reach_gate/results.json` 的 `train_reward`。修订后 regular 预算 8 的 MAE 是 11.087±2.102，成功 3.33 次，仍然高于 eer_reach 的 10.081。
 
-![图 9-3 LinUCB 回报。来源 bandit_reward.png。训练回合数是 2。](assets/exp_bandit.png)
+![图 9-3 修订前 LinUCB 回报。来源 bandit_reward.png。训练回合数是 2。](assets/exp_bandit.png)
 
 ## 9.3 合成 complex
 
@@ -640,7 +660,9 @@ greedy、uncertainty、min_cost 和 bandit 的成功次数不随预算变化：�
 | reach_greedy | 9.817±1.400 | 9.343±1.529 | 9.299±1.520 |
 | mupsa | 9.507±1.477 | 9.911±1.078 | 9.717±1.050 |
 | eer_reach | 9.463±1.576 | 9.294±1.698 | 9.294±1.698 |
-| bandit | 10.842±1.750 | 10.842±1.750 | 10.842±1.750 |
+| bandit（修订前） | 10.842±1.750 | 10.842±1.750 | 10.842±1.750 |
+
+complex 的 bandit 行同样是修订前主表。到达门控之后，三个预算的 MAE 都是 10.203±1.351，成功 2.00 次，平均到达概率 0.458。它仍高于预算 4 的 reach_random（9.248）和预算 8 的 eer_reach（9.294）。
 
 ![图 9-4 complex 场景 MAE。来源 main_complex.png。](assets/exp_complex_mae.png)
 
@@ -754,19 +776,19 @@ low_acceptance 把接受概率降到 0.3。nearest 成功 0 次。eer_reach 仍�
 PYTHONPATH=src .venv/bin/python -m pytest -q --tb=no
 ```
 
-结果：21 passed，1 warning，4.15 秒。警告是 Starlette 提示 `httpx` 与 `TestClient` 的搭配将过时，不是失败。测试模块是 `tests/test_api.py`、`tests/test_algorithms.py`、`tests/test_phase2.py`。
+终稿复核结果：25 passed，1 warning，5.00 秒。警告是 Starlette 提示 `httpx` 与 `TestClient` 的搭配将过时，不是失败。测试模块是 `tests/test_api.py`、`tests/test_algorithms.py`、`tests/test_phase2.py`。新增的测试覆盖 LinUCB 不可达配对、GeoLife 非法坐标、真实数据缺失时不替换当前世界，以及重置后预算和时钟回到起点。
 
 phase2 测试覆盖共享环境哈希、预算和方法名不再进入环境种子、fully_real 在缺少重叠清单时不可用，以及 YJMob 坐标不会被写成经纬度。算法测试覆盖状态机非法边、IDW 的能量域和分配分数的基本不变量。API 测试用 TestClient 作为上下文管理器，这样启动时会建表。
 
 ## 10.2 没有在本次重跑的测试
 
-浏览器脚本 `scripts/shoot_phase2.mjs` 在更早的一轮已经对活动的 API 跑过，退出码当时为 0，并写出第 7 章使用的 round1 截图。本次写报告时没有再次启动浏览器。因此“截图与当前工作区代码一致”依赖这些文件已经在同一分支上，而不是依赖一次新的点击。
+浏览器脚本 `scripts/shoot_final_demo.mjs` 在 2026-11-10 对活动的 API 和 Vite 再跑了一次，退出码为 0。截图在 `docs/screenshots/final/`，其中四张进入第 7.7 节。更早的 `scripts/shoot_phase2.mjs` 截图仍然留在第 7 章前面几节。图 7-10 仍是 simcheck 夹具回退，不能当成这次复核。
 
-Windows 脚本在本 Linux 环境没有执行。`scripts/setup_windows.ps1`、`start_windows.ps1`、`test_windows.ps1` 和 `stop_windows.ps1` 只经过阅读，没有在 Windows 11 上跑通。第 11 章把它们写成操作说明，不写成已通过的测试。
+Windows 脚本在本 Linux 环境没有执行。`scripts/setup_windows.ps1`、`start_windows.ps1`、`test_windows.ps1` 和 `stop_windows.ps1` 只经过阅读和修改，没有在 Windows 11 上跑通。第 11 章把它们写成操作说明，不写成已通过的测试。当前环境没有 PowerShell 解析器，因此也没有做语法解析，只做了路径和启动方式审查。
 
-`cursor/phase2-tests-63b5` 上曾有 41 passed 和 2 个 xfail。那两个 xfail 记录的是旧代码：bandit 仍分配到达概率为 0 的配对，以及旧的按方法扰动种子。那些测试不在当前分支的 21 个通过数里。本报告不把 41 加到 21 上。
+`cursor/phase2-tests-63b5` 上曾有 41 passed 和 2 个 xfail。那两个 xfail 记录的是旧代码：bandit 仍分配到达概率为 0 的配对，以及旧的按方法扰动种子。当前 25 个通过数不包含那 41 个，也不把它们相加。到达概率为 0 的问题现在由 `test_linucb_skips_unreachable_pairs` 覆盖。
 
-前端 `npm run build` 在阶段二曾成功。本次没有改前端，也没有重跑 build。
+前端 `npm run build` 在终稿复核时再次成功。`tsc -b` 通过，Vite 8.3.7 写出生产包。超过 500 kB 的块大小提示是既有警告，不是编译失败。
 
 ## 10.3 数据泄漏
 
@@ -780,7 +802,7 @@ NoiseCapture 留出按时间分位切开，训练段和测试段不是同一些�
 
 状态机测试拒绝非法边和错误角色。系统角色被允许核验，这是为了仿真，测试必须把这条写成允许，而不是把 409 当成缺陷。
 
-已知且未在本分支用新测试关掉的问题：LinUCB 的乐观项可能盖过极低的到达概率。第 9 章 bandit 的到达概率约 0.15、成功次数停在 1，与这个缺陷相容，但主表本身不是该缺陷的单元测试。
+LinUCB 到达概率为 0 仍被选中的问题已经用候选过滤关掉，单元测试是 `test_linucb_skips_unreachable_pairs`。第 9 章主表里 bandit 的到达概率约 0.15、成功次数停在 1，是修订前的结果，保留作对照，不再表示当前代码还会分配不可达任务。离线、超预算和同一人重复接单仍由原有约束处理。
 
 端口方面，启动脚本若发现 8000 已被占用会失败。应用的环境变量 `UNLAB_API_PORT` 和 `UNLAB_WEB_PORT` 可以改端口。停止脚本只结束自己写下的 pid，避免误杀别人的进程。
 
@@ -867,7 +889,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start_windows.ps1
 
 耗时：`experiments/results/phase2/timing.json`。
 
-原始 parquet 和 zip 不在 Git 中。换一台机器只克隆仓库，可以阅读结果和报告，不能重画第 5 章的热力图，除非重新下载并预处理。
+原始 parquet 和 zip 不在 Git 中，也不在 GitHub 的持久化仓库里。它们只存在于做过预处理的那台机器的 `data/raw` 与 `data/processed`。云端代理的工作区结束后，这些大文件可能消失。克隆仓库仍然可以阅读清单、质量报告和实验结果，但不能重画第 5 章的热力图，也不能切换到真实轨迹，直到重新执行：
+
+```
+python scripts/download_datasets.py --help
+python scripts/preprocess_datasets.py --help
+python scripts/verify_datasets.py --help
+```
+
+已经校验通过的文件不要重复下载。`.gitignore` 忽略 `data/raw`、`data/processed` 和 `data/external`，小的清单与 `data/reports` 可以提交。系统在文件缺失时返回 409，不会用合成轨迹冒充 YJMob 或 GeoLife。
 
 ## 11.4 演示账号
 

@@ -1,5 +1,7 @@
 # 人机混合城市噪音预测采样与智能任务分配系统：系统设计、算法实现与实验验证报告
 
+> 历史版本。这是第一阶段报告，不是最终入口。最终报告是 `docs/final-report/UrbanNoiseLab_完整系统报告.md`。
+
 UrbanNoiseLab 是一套可运行的毕业设计系统。它把虚拟城市里的人与机器轨迹、噪声预测和预算约束放进同一次任务分配，并用真实接口把任务从草稿推进到完成。本报告只写已经在仓库里运行过的部分。内部方法名 MU-PSA 表示 Mobility- and Uncertainty-Aware Predictive Sampling and Assignment，不表示已经证明的学术创新。
 
 ## 第一章 项目背景与研究目标

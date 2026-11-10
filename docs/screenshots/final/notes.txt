@@ -1,0 +1,19 @@
+shot 01-login.png
+shot 02-dashboard.png
+shot 03-data.png
+shot 04-fully-real-refused.png
+fully_real refused and previous world kept
+shot 05-sim-yjmob.png
+yjmob reset ok
+shot 06-tracks.png
+shot 07-map.png
+shot 08-task-published.png
+task published
+assign text snippet: D1 00:00 · complex · paused 深色 退出 智能分配 分配使用当前观测和历史轨迹预测下一时间片的到达概率。到达概率、接受概率和执行成功被分开计算。 策略 eer_reach mupsa mupsa_constrained greedy uncertainty nearest random min_cost bandit 本轮上限 执行分配 剩余预算 19.60。新分配 3 条。 分配记录 任务 参与者 到达概率 成本 分数 状态 6 M04 1.00 1.70 83.19 assigned 5 M03 1.00 1.70 113.38 assigned 4 U001 1.00 1.00 157.49 assigned
+shot 09-assign-eer.png
+step budget_left=20.6 spent=3.4 mae=9.556547677549858
+shot 10-sim-stepped.png
+after step: D1 02:00 · complex · paused 深色 退出 仿真控制台 重置会按所选数据源重建世界，而不是只改标签。单步推进执行到期任务。决策不读取未来轨迹；真值只在采样成功或评估时使用。 数据模式 Synthetic Demo Real-Mobility Real-Noise Fully-Real 移动来源 YJMob dataset1 匿名网格 YJMob dataset2 匿名网格 GeoLife WGS84 场景 regular complex shift 种子 算法 eer_reach mupsa reach_nearest reach_greedy reach_random greedy uncertainty nearest random min_cost 预算 真实用户上限 机器数 接受概率 单步 前进 4 步 暂停 继续 按参数重置 D1 02:00 来源 real_mobility · 移动 YJMob100K · 噪声 synthetic_field · 用户 10 状态 paused · 算法 eer_reach · 预算剩余 20.60 · 已花费 3
+shot 11-map-after-step.png
+shot 12-experiments.png
+experiments: D1 02:00 · complex · paused 深色 退出 算法实验 公平协议曲线读取 experiments/results/phase2 的结果文件。旧协议数字单独标为 legacy，页面不会覆盖那份归档。 运行 phase2 运行 smoke 刷新 当前图：phase2 / mae_available_at_t（历史列名 mae_causal） 旧协议文件 experiments/results/main/summary.json 保留，不参与这张图。图中的 bandit 仍是到达门控修订前的主表，修订后的复核不在这张图里。 公平协议 MAE 运行记录 编号 名称 配置 状态 还没有从页面启动的实验。下方曲线如果存在，来自命令行已经生成的归档结果。

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from urbannoise.acoustics import arithmetic_mean_db, energy_mean_db, validate_distribution
-from urbannoise.assignment import AgentView, allocate
+from urbannoise.assignment import AgentView, LinUCB, allocate
 from urbannoise.dataio import (
     deduplicate_trajectories,
     quality_report,
@@ -42,6 +42,77 @@ def test_noise_field_is_finite_and_spatially_structured():
     near_corr = np.corrcoef(center, neighbor)[0, 1]
     far_corr = np.corrcoef(center, far)[0, 1]
     assert near_corr > far_corr
+
+
+def test_linucb_skips_unreachable_pairs():
+    agents = [
+        AgentView("gone", "human", 0.95, 1.0, True, 1.0, loc=0),
+        AgentView("here", "human", 0.95, 1.0, True, 1.0, loc=1),
+        AgentView("offline", "human", 0.95, 1.0, False, 1.0, loc=2),
+    ]
+    grids = np.array([2, 3])
+    values = np.array([8.0, 0.2])
+    unc = np.array([3.0, 0.2])
+    dup = np.array([0.0, 0.0])
+    reach = np.array(
+        [
+            [0.0, 0.0],
+            [0.05, 0.61],
+            [0.99, 0.99],
+        ]
+    )
+    bandit = LinUCB(alpha=8.0)
+    result = allocate(
+        "bandit",
+        agents,
+        grids,
+        values,
+        unc,
+        dup,
+        reach,
+        width=4,
+        radius=1,
+        budget=5,
+        cap=2,
+        rng=np.random.default_rng(0),
+        bandit=bandit,
+    )
+    assert result.assignments
+    assert all(item.reach > 0 for item in result.assignments)
+    assert all(item.agent == 1 for item in result.assignments)
+    assert {item.grid for item in result.assignments} <= {2, 3}
+    blocked = allocate(
+        "bandit",
+        agents[:1],
+        grids,
+        values,
+        unc,
+        dup,
+        reach[:1],
+        width=4,
+        radius=1,
+        budget=5,
+        cap=2,
+        rng=np.random.default_rng(1),
+        bandit=LinUCB(alpha=8.0),
+    )
+    assert blocked.assignments == []
+    too_expensive = allocate(
+        "bandit",
+        [AgentView("here", "human", 0.95, 4.0, True, 1.0, loc=1)],
+        grids[:1],
+        values[:1],
+        unc[:1],
+        dup[:1],
+        np.array([[0.8]]),
+        width=4,
+        radius=1,
+        budget=1,
+        cap=1,
+        rng=np.random.default_rng(2),
+        bandit=LinUCB(alpha=0.1),
+    )
+    assert too_expensive.assignments == []
 
 
 def test_assignment_constraints():

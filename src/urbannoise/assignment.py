@@ -177,7 +177,12 @@ def _score_matrix(
             elif method == "min_cost":
                 if spatial_ok or p_reach >= min_reach:
                     scores[i, j] = -(agent.cost + 0.12 * min(dist, 30))
-            elif method in {"mupsa", "bandit"}:
+            elif method == "bandit":
+                # UCB is only allowed to reorder pairs that can actually be reached.
+                # A zero reach probability stays at the infeasible sentinel.
+                if p_reach > 1e-12:
+                    scores[i, j] = p_success * value - weights.get("cost", 0.35) * agent.cost
+            elif method == "mupsa":
                 scores[i, j] = p_success * value - weights.get("cost", 0.35) * agent.cost
             elif method == "mupsa_constrained":
                 if p_reach >= min_reach:
@@ -310,7 +315,12 @@ def _bandit_select(
     budget_frac: float,
     time_frac: float,
 ) -> list[Allocation]:
-    flat = [(float(scores[i, j]), i, j) for i in range(scores.shape[0]) for j in range(scores.shape[1]) if scores[i, j] > -1e8]
+    flat = [
+        (float(scores[i, j]), i, j)
+        for i in range(scores.shape[0])
+        for j in range(scores.shape[1])
+        if scores[i, j] > -1e8 and agents[i].online and float(reach[i, j]) > 1e-12
+    ]
     flat.sort(reverse=True)
     shortlist = flat[:20]
     if not shortlist:

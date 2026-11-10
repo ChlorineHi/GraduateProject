@@ -5,14 +5,14 @@
 | 文件 | 作用 |
 | --- | --- |
 | docs/final-report/UrbanNoiseLab_完整系统报告.md | Markdown 源 |
-| docs/final-report/UrbanNoiseLab_完整系统报告.pdf | 排版 PDF，文泉驿微米黑，50 页 |
-| docs/final-report/UrbanNoiseLab_完整系统报告.docx | 可编辑 Word，40 张嵌入图，13 张表 |
+| docs/final-report/UrbanNoiseLab_完整系统报告.pdf | 排版 PDF，文泉驿微米黑。2026-11-10 终稿复核渲染为 55 页 |
+| docs/final-report/UrbanNoiseLab_完整系统报告.docx | 可编辑 Word。终稿复核嵌入 44 张图，13 张表 |
 | docs/final-report/assets/ | 正文引用的图 |
 | scripts/render_report.py | Markdown 到 PDF |
 | scripts/render_docx.py | Markdown 到 DOCX |
 | scripts/build_report_assets.py | 从 parquet 和已有图生成 assets |
 
-PDF 页数以渲染脚本打印的 `pages=` 为准，本次是 50。正文图片标记 40 处，DOCX 嵌入 40 张。页数不是凑出来的目标，图多的章节会自然变长。
+PDF 页数以渲染脚本打印的 `pages=` 为准。2026-11-10 终稿复核是 55 页。正文图片标记 44 处，DOCX 嵌入 44 张。新增的 4 张是当前系统的浏览器复核，不是为了凑页数。页数不是目标。
 
 ## 图与来源
 
@@ -30,6 +30,7 @@ PDF 页数以渲染脚本打印的 `pages=` 为准，本次是 50。正文图片
 | fig_runtime.png | experiments/results/phase2/timing.json |
 | ui_sim_yjmob.png、ui_map_yjmob.png、ui_data.png、ui_login.png、ui_experiments.png | scripts/shoot_phase2.mjs 对活动 API 的第一轮，10 个 YJMob 用户 |
 | ui_select_real.png、ui_fully_real_409.png | simcheck 分支。real_mobility 那次是夹具回退，不是全量 YJMob。fully_real 是 409 |
+| ui_final_refused.png、ui_final_yjmob.png、ui_final_assign.png、ui_final_step.png | 2026-11-10 `scripts/shoot_final_demo.mjs`，本机 YJMob parquet 的 10 人窗口，不是夹具 |
 | uml_*.png | docs/uml/png |
 
 simcheck 的截图不能当作 PR #2 已经跑完下载数据的证据。YJMob 界面证据是 round1 的两张图。
@@ -38,7 +39,8 @@ simcheck 的截图不能当作 PR #2 已经跑完下载数据的证据。YJMob �
 
 | 数字 | 文件 |
 | --- | --- |
-| 合成 MAE、成功次数、消融逐种子 | experiments/results/phase2/fair_main/summary.json |
+| 合成 MAE、成功次数、消融逐种子 | experiments/results/phase2/fair_main/summary.json。其中 bandit 行是到达门控修订前 |
+| 修订后的 LinUCB | experiments/results/phase2/bandit_reach_gate/results.json。不覆盖 fair_main |
 | 协议名称 mae_available_at_t，列名仍为 mae_causal | 同文件的 protocol |
 | 真实窗口的用户、行数、坐标系统 | experiments/results/phase2/real_runs.json 的 worlds |
 | 法国 MAE 18.260、R² −0.352；卢森堡 MAE 15.524、R² −0.432 | 同文件 noise_holdout |
@@ -50,7 +52,7 @@ simcheck 的截图不能当作 PR #2 已经跑完下载数据的证据。YJMob �
 | 小时箱 204121，level 最小 −5.162、最大 147.359 | hourly_500m.parquet |
 | 鲁棒性 135 回合，墙钟 0.980 秒 | robust_fair/results.json |
 | 小网格回合约 7.6–11.0 毫秒 | timing.json |
-| 测试 21 passed，1 warning，4.15 秒 | 2026-11-10 在本分支执行 pytest |
+| 测试 25 passed，1 warning，5.00 秒 | 2026-11-10 终稿复核。新增 LinUCB 不可达、GeoLife 非法坐标、缺失数据不切换世界、重置恢复预算 |
 
 公平主实验没有打开 robustness。第 9.8 节是 sidecar，不覆盖 fair_main。
 
@@ -72,4 +74,4 @@ assets 里如果有 exp_legacy_robust.png，它来自第一阶段的不公平种
 
 ## 测试与未验证
 
-本次 pytest：21 passed。没有重跑浏览器，没有在 Windows 上执行 ps1，没有重跑 `npm run build`。前端截图是此前脚本的产物。
+本次 pytest：25 passed。`npm run build` 成功。浏览器脚本 `scripts/shoot_final_demo.mjs` 退出码 0，截图在 `docs/screenshots/final/`。Windows ps1 没有执行，本环境也没有 PowerShell 解析器。
