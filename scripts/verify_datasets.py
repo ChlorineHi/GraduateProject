@@ -1,208 +1,191 @@
-"""Check processed datasets and write the data reports from those files.
+#!/usr/bin/env python3
+"""Check download manifests and preprocess summaries against files on disk.
 
-Hashes are copied from data/manifests/download_manifest.json after the file
-size is checked. This script does not invent row counts.
+Examples
+--------
+python scripts/verify_datasets.py --dataset all --data-dir data --recheck
+python scripts/verify_datasets.py --dataset yjmob100k --data-dir data --resume
 """
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
+import sys
 from pathlib import Path
 
+import pyarrow.parquet as pq
+
+DATASETS = ("all", "yjmob100k", "geolife", "noisecapture")
 ROOT = Path(__file__).resolve().parents[1]
-DATA = Path(__import__("os").environ.get("UNLAB_DATA_DIR", ROOT / "data"))
-DOCS = ROOT / "docs" / "data"
+CHUNK = 1024 * 1024
 
 
-def load(path: Path):
-    if not path.exists():
-        return None
-    return json.loads(path.read_text(encoding="utf-8"))
+def check(results: list[dict], name: str, ok: bool, detail: str) -> None:
+    results.append({"check": name, "ok": bool(ok), "detail": detail})
+    print(f"{'PASS' if ok else 'FAIL'} {name}: {detail}", flush=True)
 
 
-def main() -> int:
-    manifest = load(DATA / "manifests" / "download_manifest.json")
-    preprocess = load(DATA / "manifests" / "preprocess_summary.json")
-    noise = load(DATA / "processed" / "noisecapture" / "summary.json")
-    if manifest is None:
-        raise SystemExit("download_manifest.json is missing")
-    items = []
-    for item in manifest["items"]:
-        path = Path(item["path"])
-        size = path.stat().st_size if path.exists() else None
-        items.append(
-            {
-                "dataset": item.get("dataset"),
-                "name": item.get("name"),
-                "bytes": item.get("bytes"),
-                "size_on_disk": size,
-                "size_matches": size == item.get("bytes"),
-                "sha256": item.get("sha256"),
-                "md5": item.get("md5"),
-                "md5_matches_expected": item.get("md5_matches_expected"),
-                "status": item.get("status"),
-                "url": item.get("url"),
-                "license": item.get("license"),
-                "error": item.get("error"),
-                "elapsed_sec": item.get("elapsed_sec"),
-            }
-        )
-    bin_check = None
-    geolife_all = DATA / "processed" / "geolife" / "slots_all.parquet"
-    if geolife_all.exists():
-        import duckdb
-
-        bin_check = duckdb.execute(
-            """
-            SELECT count(*) AS bins,
-                   count(*) FILTER (WHERE lat BETWEEN -90 AND 90 AND lon BETWEEN -180 AND 180) AS valid_bins,
-                   min(lat) AS lat_min, max(lat) AS lat_max,
-                   min(lon) AS lon_min, max(lon) AS lon_max,
-                   count(DISTINCT user_id) AS users
-            FROM read_parquet(?)
-            """,
-            [str(geolife_all)],
-        ).fetchdf().to_dict("records")[0]
-        for key, value in list(bin_check.items()):
-            if hasattr(value, "item"):
-                bin_check[key] = value.item()
-    hourly = DATA / "processed" / "noisecapture" / "hourly_500m.parquet"
-    hourly_counts = None
-    if hourly.exists():
-        import duckdb
-
-        hourly_counts = duckdb.execute(
-            """
-            SELECT country, count(*) AS hourly_rows
-            FROM read_parquet(?)
-            WHERE indicator = 'laeq_1s'
-            GROUP BY 1
-            ORDER BY 1
-            """,
-            [str(hourly)],
-        ).fetchdf().to_dict("records")
-    report = {
-        "manifest_items": len(items),
-        "failed_downloads": [item for item in items if item["status"] != "downloaded" or item["error"]],
-        "size_mismatches": [item["name"] for item in items if not item["size_matches"]],
-        "items": items,
-        "preprocess_generated_at": None if preprocess is None else preprocess.get("generated_at"),
-        "yjmob": None if preprocess is None else preprocess.get("yjmob"),
-        "geolife_summary": None if preprocess is None else preprocess.get("geolife"),
-        "geolife_bins": bin_check,
-        "noise_point_rows": None if noise is None else noise.get("point_rows"),
-        "noise_track_rows": None if noise is None else noise.get("track_rows"),
-        "noise_hourly_rows": None if noise is None else noise.get("hourly_rows"),
-        "hourly_counts": hourly_counts,
-    }
-    out = DATA / "reports"
-    out.mkdir(parents=True, exist_ok=True)
-    (out / "verify_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    DOCS.mkdir(parents=True, exist_ok=True)
-    write_download(DOCS / "dataset_download_report.md", items, manifest)
-    write_quality(DOCS / "dataset_quality_report.md", preprocess, noise, bin_check, hourly_counts)
-    write_licenses(DOCS / "dataset_licenses.md", items)
-    print(json.dumps({"items": len(items), "size_mismatches": report["size_mismatches"], "failed": len(report["failed_downloads"])}, ensure_ascii=False))
-    return 0
+def hash_file(path: Path) -> dict:
+    md5 = hashlib.md5()
+    sha = hashlib.sha256()
+    size = 0
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(CHUNK), b""):
+            md5.update(block)
+            sha.update(block)
+            size += len(block)
+    return {"bytes": size, "md5": md5.hexdigest(), "sha256": sha.hexdigest()}
 
 
-def write_download(path: Path, items: list[dict], manifest: dict) -> None:
-    lines = [
-        "# 数据集下载报告",
-        "",
-        f"清单生成时间：{manifest.get('generated_at')}。数据目录：{manifest.get('data_dir')}。",
-        "下面每一行都来自 `data/manifests/download_manifest.json`，并在这次校验中重新核对了磁盘字节数。sha256 是下载脚本在写完文件后计算的，这次校验没有重算哈希。",
-        "失败次数：" + str(sum(1 for item in items if item["status"] != "downloaded")),
-        "",
-        "| 文件 | 状态 | 字节 | sha256 | 错误 |",
-        "| --- | --- | --- | --- | --- |",
-    ]
-    for item in items:
-        lines.append(
-            f"| {item['name']} | {item['status']} | {item['bytes']} | {item['sha256']} | {item['error']} |"
-        )
-    lines.extend(
-        [
-            "",
-            "YJMob100K 的四个文件来自 Zenodo record 10836269，许可证字段为 cc-by-4.0。",
-            "GeoLife 的 zip 来自 Microsoft 下载页 `https://www.microsoft.com/en-us/download/details.aspx?id=52367` 里的 `downloadFile.url`。",
-            "NoiseCapture 的 zip 使用 `https://data.noise-planet.org/dump/{Country}.zip`。HTTP 而不是 HTTPS 的同名地址会返回网页而不是 zip，因此下载脚本使用 HTTPS。",
-            "这次清单里没有失败项。`noisecapture_exploit.html` 没有出现在清单中，因为官方数据页指向的是国家 zip，而不是一份可下载的 exploit 归档。",
-            "",
-        ]
-    )
-    path.write_text("\n".join(lines), encoding="utf-8")
-
-
-def write_quality(path: Path, preprocess, noise, bin_check, hourly_counts) -> None:
-    y1 = {} if not preprocess else preprocess["yjmob"]["dataset1"]
-    y2 = {} if not preprocess else preprocess["yjmob"]["dataset2"]
-    geo = {} if not preprocess else preprocess["geolife"]
-    lines = [
-        "# 数据集质量报告",
-        "",
-        "计数来自 `scripts/preprocess_datasets.py` 写出的 JSON，以及本脚本对 Parquet 的复核。没有采用论文或网页上的人数来替换这些计数。",
-        "",
-        "## YJMob100K",
-        "",
-        f"- dataset1：{y1.get('rows')} 行，{y1.get('users')} 个 user_id，day {y1.get('day_min')}–{y1.get('day_max')}（{y1.get('days')} 天），timeslot {y1.get('slot_min')}–{y1.get('slot_max')}，x {y1.get('x_min')}–{y1.get('x_max')}，y {y1.get('y_min')}–{y1.get('y_max')}。",
-        f"- dataset2：{y2.get('rows')} 行，{y2.get('users')} 个 user_id，day {y2.get('day_min')}–{y2.get('day_max')}（{y2.get('days')} 天），网格范围与 dataset1 相同。",
-        "- 列只有 user_id, day, timeslot, x, y。`latitude_assigned` 为 false。坐标系统是 `yjmob_virtual_500m`。没有把网格标成北京、东京或其他真实城市。",
-        "- dataset2 的去重人数是预处理脚本数出来的 25000。本报告不把它改成记录页面上的描述性文字。",
-        "",
-        "## GeoLife",
-        "",
-        f"- plt 文件 {geo.get('plt_files')}，用户目录 {geo.get('user_folders')}，原始点 {geo.get('point_rows')}，30 分钟均值箱 {geo.get('bin_rows')}。",
-        f"- 原始扫描的时间范围 {geo.get('time_min')} 到 {geo.get('time_max')}。原始包围盒 {geo.get('bbox')}。纬度最大值 400.166666666667 不是合法 WGS84 纬度，说明至少有一个原始点没有通过坐标合法性检查就被扫进了包围盒。",
-        f"- 全局最忙的两个日历日是 {geo.get('episode_dates')}，对应 episode 行数 {geo.get('episode_rows')}，用户 {geo.get('episode_users')}。这是预处理时按箱数选出的两天，不是算法运行时改写的轨迹。",
-        f"- 对 `slots_all.parquet` 的复核：{bin_check}。箱内均值都落在合法经纬度范围内；一个坏点和同槽的正常点求平均后，坏点不会单独留在箱里。",
-        "- 距离使用赤道半径 6371000 m 的等距圆柱投影。仿真重新按所选子集的最小经纬度编号，避免用这个全球包围盒当原点。",
-        "",
-        "## NoiseCapture",
-        "",
-        f"- 点测量（laeq_1s）{None if noise is None else noise.get('point_rows')} 行。轨迹级 Laeq（laeq_track）{None if noise is None else noise.get('track_rows')} 行，没有和 1 秒等效声级混在一起。",
-        f"- 小时、500 m 能量平均后 {None if noise is None else noise.get('hourly_rows')} 行。能量平均是 10*log10(mean(10^(L/10)))。",
-        "- 这些是手机采样，不是连续噪声场。预测指标只在留出的测量上计算。",
-        "",
-        "按国家的小时箱复核：",
-        "",
-    ]
-    for row in hourly_counts or []:
-        lines.append(f"- {row['country']}: {row['hourly_rows']}")
-    if noise:
-        lines.append("")
-        lines.append("按国家的点测量时间范围来自 summary.json：")
-        lines.append("")
-        for name, info in (noise.get("countries") or {}).items():
-            lines.append(f"- {name}: points {info.get('point_rows')}, tracks {info.get('track_rows')}, {info.get('time_min')} → {info.get('time_max')}")
-    lines.append("")
-    path.write_text("\n".join(lines), encoding="utf-8")
-
-
-def write_licenses(path: Path, items: list[dict]) -> None:
-    lines = [
-        "# 数据集许可",
-        "",
-        "许可文本以下载清单里记录的字段和官方页面说明为准。本文件不转载许可全文。",
-        "",
-    ]
-    seen = set()
-    for item in items:
-        key = (item["dataset"], item["license"])
-        if key in seen:
+def verify(dataset: str, data_dir: Path, recheck: bool) -> dict:
+    results: list[dict] = []
+    manifest_path = data_dir / "manifests" / "download_manifest.json"
+    check(results, "manifest_exists", manifest_path.exists(), str(manifest_path))
+    if not manifest_path.exists():
+        return {"ok": False, "checks": results}
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    selected = {"yjmob100k", "geolife", "noisecapture"} if dataset == "all" else {dataset}
+    files = [item for item in manifest.get("files", []) if item.get("dataset") in selected]
+    ok_status = {"downloaded", "skipped_existing", "skipped_duplicate"}
+    for entry in files:
+        name = f"{entry.get('dataset')}:{entry.get('filename')}"
+        status = entry.get("status")
+        if status not in ok_status:
+            check(results, f"recorded_non_success:{name}", bool(entry.get("error")), entry.get("error") or "missing error text")
             continue
-        seen.add(key)
-        lines.append(f"- {item['dataset']}: {item['license']}")
-    lines.extend(
-        [
-            "",
-            "YJMob100K 的 Zenodo 记录号是 10836269，清单中的许可证 id 是 cc-by-4.0。论文 DOI 10.1038/s41597-024-03237-9 是数据论文，不是本仓库测得的行数来源。",
-            "GeoLife 的使用条件以 Microsoft 下载页为准。清单没有给出一个 SPDX 标识。",
-            "NoiseCapture 国家包按 `https://noise-planet.org/noisecapture_data.html` 所述使用 ODbL。手机测量不能被当成市政监测站的完整真值。",
-            "",
-        ]
-    )
-    path.write_text("\n".join(lines), encoding="utf-8")
+        path = Path(entry.get("path") or "")
+        exists = path.exists()
+        check(results, f"exists:{name}", exists, str(path))
+        if not exists:
+            continue
+        size_ok = path.stat().st_size == entry.get("bytes")
+        check(results, f"size:{name}", size_ok, f"disk={path.stat().st_size} manifest={entry.get('bytes')}")
+        official = entry.get("official_checksum") or {}
+        if official.get("algorithm") == "md5":
+            check(results, f"official_md5_flag:{name}", official.get("match") is True, str(official))
+        if recheck:
+            hashed = hash_file(path)
+            recorded_sha = ((entry.get("hashes") or {}).get("sha256") or {}).get("value")
+            recorded_md5 = ((entry.get("hashes") or {}).get("md5") or {}).get("value")
+            check(results, f"sha256:{name}", hashed["sha256"] == recorded_sha, hashed["sha256"])
+            check(results, f"md5:{name}", hashed["md5"] == recorded_md5, hashed["md5"])
+            if official.get("algorithm") == "md5":
+                check(results, f"official_md5_bytes:{name}", hashed["md5"] == official.get("value"), hashed["md5"])
+    summary_path = data_dir / "reports" / "preprocess_summary.json"
+    summary = json.loads(summary_path.read_text(encoding="utf-8")) if summary_path.exists() else None
+    check(results, "preprocess_summary", summary is not None, str(summary_path))
+    if summary is None:
+        payload = {"ok": False, "checks": results}
+        write_report(data_dir, payload)
+        return payload
+    if "yjmob100k" in selected:
+        verify_yjmob(results, summary.get("datasets", {}).get("yjmob100k") or {}, data_dir)
+    if "geolife" in selected:
+        verify_geolife(results, summary.get("datasets", {}).get("geolife") or {})
+    if "noisecapture" in selected:
+        verify_noise(results, summary.get("datasets", {}).get("noisecapture") or {})
+    quality = ROOT / "docs" / "data" / "dataset_quality_report.md"
+    check(results, "quality_report", quality.exists(), str(quality))
+    if quality.exists() and summary:
+        text = quality.read_text(encoding="utf-8")
+        for item in (summary.get("datasets", {}).get("yjmob100k") or {}).get("files") or []:
+            if item.get("status") == "ok":
+                needle = f"Rows: {item['stats']['n_rows']}"
+                check(results, f"quality_mentions:{item.get('filename')}", needle in text, needle)
+    failed = [item for item in results if not item["ok"]]
+    payload = {"ok": not failed, "failed": len(failed), "checks": results}
+    write_report(data_dir, payload)
+    print(json.dumps({"event": "verify", "ok": payload["ok"], "failed": payload["failed"]}), flush=True)
+    return payload
+
+
+def verify_yjmob(results: list[dict], summary: dict, data_dir: Path) -> None:
+    if summary.get("status") == "not_downloaded":
+        check(results, "yjmob_present", False, summary.get("error") or "not downloaded")
+        return
+    for item in summary.get("files") or []:
+        if item.get("status") != "ok":
+            check(results, f"yjmob_file:{item.get('filename')}", False, item.get("error") or item.get("status"))
+            continue
+        for label, expected in (("10", 10), ("100", 100), ("1000", 1000)):
+            subset = item["subsets"][label]
+            path = Path(subset["path"])
+            schema = pq.read_schema(path)
+            forbidden = [name for name in schema.names if name.lower() in {"lat", "lon", "latitude", "longitude"}]
+            check(results, f"yjmob_no_latlon:{item.get('filename')}:{label}", not forbidden, str(schema.names))
+            import duckdb
+
+            frame = duckdb.query(
+                f"SELECT count(*)::BIGINT AS n_rows, count(DISTINCT uid)::BIGINT AS n_users FROM read_parquet('{path.as_posix()}')"
+            ).fetchone()
+            check(
+                results,
+                f"yjmob_subset_count:{item.get('filename')}:{label}",
+                frame[0] == subset["n_rows"] and frame[1] == subset["n_users"] == expected,
+                f"parquet rows={frame[0]} users={frame[1]} summary rows={subset['n_rows']} users={subset['n_users']}",
+            )
+
+
+def verify_geolife(results: list[dict], summary: dict) -> None:
+    if summary.get("status") != "ok":
+        check(results, "geolife_status", False, str(summary.get("status") or summary.get("error")))
+        return
+    balance = summary.get("raw_points") == summary.get("accepted_points", 0) + summary.get("rejected_points", 0)
+    check(results, "geolife_balance", bool(summary.get("balance_raw_equals_accepted_plus_rejected")) and balance, str(summary.get("raw_points")))
+    check(results, "geolife_grids", set((summary.get("grid_cell_counts") or {})) == {"250", "500", "1000"}, str(summary.get("grid_cell_counts")))
+    points = Path(summary.get("points_parquet") or "")
+    if points.exists():
+        schema = pq.read_schema(points)
+        check(results, "geolife_wgs_columns", "latitude" in schema.names and "longitude" in schema.names, str(schema.names))
+        check(results, "geolife_row_count", summary.get("accepted_rows_written") == summary.get("accepted_points"), f"written={summary.get('accepted_rows_written')} accepted={summary.get('accepted_points')}")
+    else:
+        check(results, "geolife_points_parquet", False, str(points))
+
+
+def verify_noise(results: list[dict], summary: dict) -> None:
+    if summary.get("status") not in {"ok", "partial"}:
+        check(results, "noise_status", False, str(summary.get("status") or summary.get("error")))
+        return
+    indicators = summary.get("indicators") or {}
+    required = ["points.noise_level", "tracks.noise_level", "areas.laeq", "areas.la50", "areas.lden"]
+    check(results, "noise_indicators_separate", all(name in indicators for name in required), ",".join(indicators))
+    for name in required:
+        bucket = indicators.get(name) or {}
+        has_both = "energy_mean_db" in bucket and "arithmetic_mean_db" in bucket
+        check(results, f"noise_means:{name}", has_both, f"energy={bucket.get('energy_mean_db')} arithmetic={bucket.get('arithmetic_mean_db')}")
+    totals = summary.get("totals") or {}
+    check(results, "noise_point_count_recorded", "point_features" in totals, str(totals))
+
+
+def write_report(data_dir: Path, payload: dict) -> None:
+    path = data_dir / "reports" / "verify_report.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Verify downloaded and preprocessed datasets.")
+    parser.add_argument("--dataset", required=True, choices=DATASETS)
+    parser.add_argument("--data-dir", default="data")
+    parser.add_argument("--resume", action="store_true", help="Accepted for a consistent CLI.")
+    parser.add_argument("--recheck", action="store_true", help="Recompute MD5 and SHA-256 for every successful file.")
+    parser.add_argument("--preprocess", action="store_true", help="Run preprocessing before verification.")
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+    data_dir = Path(args.data_dir).resolve()
+    if args.preprocess:
+        from preprocess_datasets import run_preprocess
+
+        run_preprocess(args.dataset, data_dir, args.resume, args.recheck)
+    payload = verify(args.dataset, data_dir, args.recheck)
+    return 0 if payload["ok"] else 1
 
 
 if __name__ == "__main__":
