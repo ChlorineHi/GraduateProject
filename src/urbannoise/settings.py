@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://127.0.0.1:5173,http://localhost:5173"
     auto_seed: bool = True
     data_dir: str = "./data"
+    phase2_dir: str = "experiments/results/phase2"
     log_level: str = "INFO"
 
     @property

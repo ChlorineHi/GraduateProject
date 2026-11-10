@@ -17,6 +17,13 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from urbannoise.catalog import (
+    EXECUTABLE_SCENARIO_MODES,
+    SCENARIO_MODES,
+    annotate_scenario_mode,
+    read_download_manifest,
+    read_phase2,
+)
 from urbannoise.db import healthcheck, init_db, make_engine, make_session_factory
 from urbannoise.errors import AppError
 from urbannoise.experiment import run_suite
@@ -92,6 +99,7 @@ class SimulationBody(BaseModel):
     action: str
     steps: int = Field(default=1, ge=1, le=48)
     scenario: str | None = None
+    scenario_mode: str | None = None
     seed: int | None = None
     algorithm: str | None = None
     budget: float | None = None
@@ -254,6 +262,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/datasets")
     def datasets(db: Session = Depends(get_db), _user: User = Depends(current_user)):
         return {"items": dataset_list(db)}
+
+    @app.get("/api/data/downloads")
+    def data_downloads(_user: User = Depends(current_user)):
+        return read_download_manifest(Path(settings.data_dir) / "manifests" / "download_manifest.json", "download")
+
+    @app.get("/api/data/preprocess")
+    def data_preprocess(_user: User = Depends(current_user)):
+        return read_download_manifest(Path(settings.data_dir) / "manifests" / "download_manifest.json", "preprocess")
 
     @app.get("/api/datasets/{kind}/{dataset_id}/quality")
     def dataset_quality(kind: str, dataset_id: int, db: Session = Depends(get_db), _user: User = Depends(current_user)):
@@ -478,11 +494,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/simulation")
     def get_simulation(db: Session = Depends(get_db), _user: User = Depends(current_user)):
-        return simulation_dict(db, active_run(db))
+        return annotate_scenario_mode(simulation_dict(db, active_run(db)), None)
 
     @app.post("/api/simulation/control")
     def control_simulation(body: SimulationBody, db: Session = Depends(get_db), user: User = Depends(require("admin", "publisher"))):
         run = active_run(db)
+        requested = (body.scenario_mode or "").strip() or None
+        if requested is not None and requested not in SCENARIO_MODES:
+            raise AppError(
+                "bad_mode",
+                "未知的数据模式。服务器只会执行 Synthetic Demo。",
+                422,
+                {"requested_scenario_mode": requested, "actual_mode": "synthetic_demo"},
+            )
+        if body.action == "reset" and requested not in EXECUTABLE_SCENARIO_MODES and requested is not None:
+            return annotate_scenario_mode(simulation_dict(db, run), requested)
         if body.action == "pause":
             run.status = "paused"
         elif body.action == "resume":
@@ -490,24 +516,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 raise AppError("finished", "仿真已经结束", 409)
             run.status = "running"
         elif body.action == "step":
-            return step_simulation(db, user, body.steps)
+            return annotate_scenario_mode(step_simulation(db, user, body.steps), requested)
         elif body.action == "reset":
             params = json.loads(run.config_json)
             for field in ("scenario", "seed", "algorithm", "budget", "n_human", "n_machine", "accept_human"):
                 value = getattr(body, field)
                 if value is not None:
                     params[field] = value
+            params["scenario_mode"] = "synthetic_demo"
             rebuilt = rebuild_world(db, settings, params, user.id)
-            return simulation_dict(db, rebuilt)
+            return annotate_scenario_mode(simulation_dict(db, rebuilt), requested)
         else:
             raise AppError("bad_action", "不支持的仿真操作", 422)
-        return simulation_dict(db, run)
+        return annotate_scenario_mode(simulation_dict(db, run), requested)
 
     @app.get("/api/experiments")
     def experiments(db: Session = Depends(get_db), _user: User = Depends(current_user)):
         rows = db.query(ExperimentRun).order_by(ExperimentRun.id.desc()).limit(20).all()
         archived = _archived_summary()
         return {"items": [_experiment(row) for row in rows], "archived": archived}
+
+    @app.get("/api/experiments/phase2")
+    def experiment_phase2(_user: User = Depends(current_user)):
+        return read_phase2(Path(settings.phase2_dir))
 
     @app.post("/api/experiments")
     def start_experiment(body: ExperimentBody, db: Session = Depends(get_db), user: User = Depends(require("admin", "publisher"))):

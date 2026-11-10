@@ -130,3 +130,157 @@ def test_idempotent_transition(tmp_path):
         third = client.post(f"/api/tasks/{task_id}/transition", headers=publisher, json={"to_status": "published"})
         assert third.status_code == 409
         _ = json.dumps(third.json())
+
+
+def test_manifest_phase2_and_scenario_mode(tmp_path):
+    phase2 = tmp_path / "phase2"
+    settings = Settings(
+        database_url=f"sqlite:///{tmp_path / 'api.db'}",
+        data_dir=str(tmp_path / "data"),
+        phase2_dir=str(phase2),
+        jwt_secret="test-secret-not-production-32bytes!!",
+        auto_seed=True,
+        cors_origins="http://localhost:5173",
+    )
+    with TestClient(create_app(settings)) as client:
+        admin = _login(client, "admin", "DemoAdmin#2026")
+        missing = client.get("/api/data/downloads", headers=admin)
+        assert missing.status_code == 200, missing.text
+        assert missing.json()["present"] is False
+        assert missing.json()["items"] == []
+        assert missing.json()["path"] == "data/manifests/download_manifest.json"
+        preprocess = client.get("/api/data/preprocess", headers=admin).json()
+        assert preprocess["present"] is False
+        assert preprocess["items"] == []
+        assert preprocess["view"] == "preprocess"
+
+        manifest = tmp_path / "data" / "manifests" / "download_manifest.json"
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "name": "YJMob100K",
+                            "regime": "real_mobility",
+                            "download_status": "absent",
+                            "preprocess_status": "not_started",
+                            "license": "see the data paper",
+                            "spatial_span": "anonymous 500 m grid",
+                            "quality_flags": ["virtual_grid"],
+                        },
+                        {
+                            "name": "Aligned pair",
+                            "regime": "fully_real",
+                            "download_status": "complete",
+                            "license": "fixture",
+                            "user_count": 12,
+                            "time_start": "2020-01-01",
+                            "time_end": "2020-01-02",
+                        },
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        downloaded = client.get("/api/data/downloads", headers=admin).json()
+        assert downloaded["present"] is True
+        first, second = downloaded["items"]
+        assert first["regime"] == "real_mobility"
+        assert first["license"] == "see the data paper"
+        assert first["quality_flags"] == ["virtual_grid"]
+        assert "user_count" not in first
+        assert "station_count" not in first
+        assert "time_start" not in first
+        assert second["user_count"] == 12
+        assert second["regime"] == "fully_real"
+        assert "station_count" not in second
+        processed = client.get("/api/data/preprocess", headers=admin).json()
+        assert processed["items"][0]["preprocess_status"] == "not_started"
+        assert "user_count" not in processed["items"][0]
+
+        manifest.write_text(
+            json.dumps(
+                {
+                    "downloads": [{"name": "Only download", "download_status": "partial", "license": "L"}],
+                    "preprocess": [{"name": "Only preprocess", "preprocess_status": "ready", "station_count": 4}],
+                }
+            ),
+            encoding="utf-8",
+        )
+        split_download = client.get("/api/data/downloads", headers=admin).json()["items"]
+        split_preprocess = client.get("/api/data/preprocess", headers=admin).json()["items"]
+        assert split_download[0]["name"] == "Only download"
+        assert "station_count" not in split_download[0]
+        assert split_preprocess[0]["station_count"] == 4
+        assert "user_count" not in split_preprocess[0]
+
+        empty_phase = client.get("/api/experiments/phase2", headers=admin).json()
+        assert empty_phase["present"] is False
+        assert empty_phase["files"] == []
+        assert empty_phase["path"] == "experiments/results/phase2"
+        phase2.mkdir()
+        (phase2 / "summary.json").write_text(
+            json.dumps({"summary": [{"method": "mupsa", "mae": 1.5}, {"method": "random", "mae": 2.5}]}),
+            encoding="utf-8",
+        )
+        filled = client.get("/api/experiments/phase2", headers=admin).json()
+        assert filled["present"] is True
+        assert filled["message"] is None
+        assert filled["files"][0]["payload"]["summary"][0]["method"] == "mupsa"
+
+        datasets = client.get("/api/datasets", headers=admin).json()["items"]
+        assert {item["regime"] for item in datasets} == {"synthetic_demo"}
+        mobility = next(item for item in datasets if item["kind"] == "mobility")
+        noise = next(item for item in datasets if item["kind"] == "noise")
+        assert mobility["regime_label"] == "Synthetic Demo"
+        assert mobility["user_count"] > 0
+        assert "user_count" not in noise
+
+        before = client.get("/api/simulation", headers=admin).json()
+        assert before["scenario_mode"] == "synthetic_demo"
+        assert before["mode_label"] == "Synthetic Demo"
+        assert before["real_run"] is False
+        refused = client.post(
+            "/api/simulation/control",
+            headers=admin,
+            json={"action": "reset", "scenario_mode": "fully_real", "scenario": "shift", "seed": 99, "budget": 3},
+        )
+        assert refused.status_code == 200, refused.text
+        refused_body = refused.json()
+        assert refused_body["scenario_mode"] == "synthetic_demo"
+        assert refused_body["mode_label"] == "Synthetic Demo"
+        assert refused_body["requested_scenario_mode"] == "fully_real"
+        assert refused_body["mode_honored"] is False
+        assert refused_body["real_run"] is False
+        assert refused_body["real_city"] is False
+        assert refused_body["seed"] == before["seed"]
+        assert refused_body["scenario"] == before["scenario"]
+        unknown = client.post("/api/simulation/control", headers=admin, json={"action": "reset", "scenario_mode": "beijing"})
+        assert unknown.status_code == 422
+        slot = client.get("/api/simulation", headers=admin).json()["current_slot"]
+        stepped = client.post(
+            "/api/simulation/control",
+            headers=admin,
+            json={"action": "step", "steps": 1, "scenario_mode": "real_noise"},
+        )
+        assert stepped.status_code == 200, stepped.text
+        assert stepped.json()["scenario_mode"] == "synthetic_demo"
+        assert stepped.json()["requested_scenario_mode"] == "real_noise"
+        assert stepped.json()["current_slot"] == slot + 1
+        reset = client.post(
+            "/api/simulation/control",
+            headers=admin,
+            json={"action": "reset", "scenario_mode": "synthetic_demo", "scenario": "shift", "seed": 11},
+        )
+        assert reset.status_code == 200, reset.text
+        assert reset.json()["scenario"] == "shift"
+        assert reset.json()["seed"] == 11
+        assert reset.json()["scenario_mode"] == "synthetic_demo"
+        assert reset.json()["mode_honored"] is True
+        frame = client.get("/api/map/frame", params={"slot": 10}, headers=admin).json()
+        assert frame["anonymous"] is True
+        assert frame["basemap"] is None
+        assert frame["real_city"] is False
+        assert "匿名" in frame["warning"]
+        assert "YJMob" in frame["warning"]

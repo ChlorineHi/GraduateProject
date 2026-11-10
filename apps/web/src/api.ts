@@ -12,6 +12,8 @@ export type Frame = {
   real_city: boolean;
   evaluation_only: boolean;
   warning: string;
+  anonymous?: boolean;
+  basemap?: string | null;
   cells: { x: number; y: number; zone: string; prediction: number; uncertainty: number; truth?: number }[];
   participants: { id: number; name: string; kind: string; x: number; y: number; online: boolean }[];
   observations: { x: number; y: number; db: number; source: string }[];
@@ -57,6 +59,79 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (type.includes("text/csv")) return (await response.text()) as T;
   return (await response.json()) as T;
 }
+
+export type ScenarioMode = "synthetic_demo" | "real_mobility" | "real_noise" | "mixed_experiment" | "fully_real";
+
+export const SCENARIO_MODES: { id: ScenarioMode; label: string }[] = [
+  { id: "synthetic_demo", label: "Synthetic Demo" },
+  { id: "real_mobility", label: "Real Mobility" },
+  { id: "real_noise", label: "Real Noise" },
+  { id: "mixed_experiment", label: "Mixed Experiment" },
+  { id: "fully_real", label: "Fully Real" },
+];
+
+export type ManifestItem = {
+  id?: string;
+  name?: string;
+  kind?: string;
+  regime?: string;
+  download_status?: string | null;
+  preprocess_status?: string | null;
+  license?: string | null;
+  user_count?: number | null;
+  station_count?: number | null;
+  time_start?: string | null;
+  time_end?: string | null;
+  time_span?: string | null;
+  spatial_span?: string | null;
+  quality_flags?: unknown;
+};
+
+export type ManifestReport = {
+  present: boolean;
+  path: string;
+  view: "download" | "preprocess";
+  items: ManifestItem[];
+  parse_error?: boolean;
+  message: string | null;
+};
+
+export type Phase2File = {
+  name: string;
+  payload?: unknown;
+  parse_error?: boolean;
+  skipped?: boolean;
+  bytes?: number;
+};
+
+export type Phase2Report = {
+  present: boolean;
+  path: string;
+  files: Phase2File[];
+  message: string | null;
+};
+
+export type DatasetRow = {
+  id: number;
+  kind: string;
+  name: string;
+  source: string;
+  license: string;
+  is_synthetic: boolean;
+  regime: ScenarioMode | string;
+  regime_label: string;
+  real_city: boolean;
+  coordinate_system: string;
+  record_count: number;
+  user_count?: number;
+  time_start: string;
+  time_end: string;
+  spatial_desc: string;
+  missing_rate: number;
+  status: string;
+  notes: string;
+  quality: Record<string, unknown>;
+};
 
 export async function download(path: string, filename: string) {
   const text = await api<string>(path);

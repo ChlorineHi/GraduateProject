@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { Frame } from "./api";
 
+// Grid canvas only. YJMob stays on its anonymous virtual grid and is never drawn on a geographic basemap.
+
 const ZONE: Record<string, string> = {
   residential: "#d7c4a3",
   commercial: "#c98455",

@@ -12,6 +12,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from urbannoise.acoustics import clip_measurement, energy_mean_db
+from urbannoise.catalog import dataset_regime
 from urbannoise.experiment import METHOD_LABELS
 from urbannoise.dataio import (
     quality_report,
@@ -134,6 +135,7 @@ def _world_params(raw: dict | None = None) -> dict:
     params["n_days"] = int(params["n_days"])
     params["slots_per_day"] = int(params["slots_per_day"])
     params["budget"] = float(params["budget"])
+    params["scenario_mode"] = "synthetic_demo"
     return params
 
 
@@ -1080,8 +1082,10 @@ def map_frame(db: Session, slot: int, include_truth: bool, role: str) -> dict:
         "participants": participants,
         "observations": observations,
         "tasks": tasks,
+        "anonymous": True,
+        "basemap": None,
         "evaluation_only": False,
-        "warning": "虚拟网格。预测层只使用已有观测，不读取未采样真值。",
+        "warning": "匿名虚拟网格，不是真实城市。地图不使用地理底图，也不会把 YJMob 画到真实经纬度上。预测层只使用已有观测。",
     }
     if include_truth:
         if role not in {"admin", "publisher"}:
@@ -1089,7 +1093,7 @@ def map_frame(db: Session, slot: int, include_truth: bool, role: str) -> dict:
         for cell, value in zip(cells, arrays["truth"].ravel()):
             cell["truth"] = float(value)
         payload["evaluation_only"] = True
-        payload["warning"] = "仿真真值仅用于评估显示。预测算法的输入不包含该层。"
+        payload["warning"] = "匿名虚拟网格，不是真实城市。仿真真值仅用于评估显示，预测算法的输入不包含该层。地图不使用地理底图。"
     return payload
 
 
@@ -1264,13 +1268,16 @@ def dataset_list(db: Session) -> list[dict]:
 
 
 def _dataset_payload(item, kind: str) -> dict:
-    return {
+    regime, regime_label = dataset_regime(bool(item.is_synthetic), str(item.source), kind)
+    payload = {
         "id": item.id,
         "kind": kind,
         "name": item.name,
         "source": item.source,
         "license": item.license,
         "is_synthetic": item.is_synthetic,
+        "regime": regime,
+        "regime_label": regime_label,
         "real_city": getattr(item, "real_city", False),
         "coordinate_system": item.coordinate_system,
         "record_count": item.record_count,
@@ -1282,3 +1289,6 @@ def _dataset_payload(item, kind: str) -> dict:
         "notes": item.notes,
         "quality": json.loads(item.quality_json or "{}"),
     }
+    if kind == "mobility":
+        payload["user_count"] = item.participant_count
+    return payload
