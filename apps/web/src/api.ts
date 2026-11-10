@@ -60,6 +60,68 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return (await response.json()) as T;
 }
 
+export type SimulationMode = "synthetic" | "real_mobility" | "real_noise" | "fully_real";
+export type SyntheticDemoField = "regular" | "complex" | "shift";
+
+export const SIMULATION_MODES: { id: SimulationMode; detail: string }[] = [
+  { id: "synthetic", detail: "合成轨迹与合成噪声" },
+  { id: "real_mobility", detail: "真实轨迹，噪声仍为合成；没有真实文件时后端会用带标记的 schema 示例" },
+  { id: "real_noise", detail: "真实噪声观测上的留出评估" },
+  { id: "fully_real", detail: "仅当清单声明地理和时间都重叠；否则服务器应 409" },
+];
+
+export const SYNTHETIC_DEMO_FIELDS: SyntheticDemoField[] = ["regular", "complex", "shift"];
+
+export const SERVER_MODE_FIELDS = [
+  "scenario_mode",
+  "mode_label",
+  "requested_scenario_mode",
+  "mode_honored",
+  "mode_note",
+  "real_run",
+  "data_origin",
+  "real_city",
+] as const;
+
+export type ServerModeField = (typeof SERVER_MODE_FIELDS)[number];
+
+export function selectScenarioRequest(mode: SimulationMode, seed?: number) {
+  const body: { action: "select_scenario"; mode: SimulationMode; scenario: SimulationMode; seed?: number } = {
+    action: "select_scenario",
+    mode,
+    scenario: mode,
+  };
+  if (seed !== undefined) body.seed = seed;
+  return body;
+}
+
+export function resetSyntheticDemoRequest(
+  field: SyntheticDemoField,
+  params: { seed: number; algorithm: string; budget: number; n_human: number; n_machine: number; accept_human: number },
+) {
+  return {
+    action: "reset" as const,
+    scenario: field,
+    seed: params.seed,
+    algorithm: params.algorithm,
+    budget: params.budget,
+    n_human: params.n_human,
+    n_machine: params.n_machine,
+    accept_human: params.accept_human,
+  };
+}
+
+export function stepSimulationRequest(steps: number) {
+  return { action: "step" as const, steps };
+}
+
+export function formatServerField(value: unknown) {
+  if (value === null) return "null";
+  if (typeof value === "string") return value === "" ? "空字符串" : value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
+}
+
 export type ScenarioMode = "synthetic_demo" | "real_mobility" | "real_noise" | "mixed_experiment" | "fully_real";
 
 export const SCENARIO_MODES: { id: ScenarioMode; label: string }[] = [

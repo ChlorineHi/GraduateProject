@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { NavLink, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import * as echarts from "echarts";
-import { api, download, setToken, SCENARIO_MODES, type DatasetRow, type Frame, type ManifestItem, type ManifestReport, type Phase2Report, type ScenarioMode, type User } from "./api";
+import { ApiError, api, download, formatServerField, resetSyntheticDemoRequest, selectScenarioRequest, SERVER_MODE_FIELDS, setToken, SCENARIO_MODES, SIMULATION_MODES, stepSimulationRequest, SYNTHETIC_DEMO_FIELDS, type DatasetRow, type Frame, type ManifestItem, type ManifestReport, type Phase2Report, type ScenarioMode, type SimulationMode, type SyntheticDemoField, type User } from "./api";
 import { CityMap } from "./CityMap";
 
 type Dash = {
@@ -593,65 +593,115 @@ function modeLabel(value: string) {
 function SimPage({ role }: { role: string }) {
   const [state, setState] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ scenario: "complex", scenario_mode: "synthetic_demo" as ScenarioMode, seed: 7, algorithm: "mupsa", budget: 24, n_human: 14, n_machine: 4, accept_human: 0.72 });
+  const [refusal, setRefusal] = useState<{ status: number; message: string } | null>(null);
+  const [mode, setMode] = useState<SimulationMode>("synthetic");
+  const [field, setField] = useState<SyntheticDemoField>("complex");
+  const [seed, setSeed] = useState(7);
+  const [algorithm, setAlgorithm] = useState("mupsa");
+  const [budget, setBudget] = useState(24);
+  const [nHuman, setNHuman] = useState(14);
+  const [nMachine, setNMachine] = useState(4);
+  const [acceptHuman, setAcceptHuman] = useState(0.72);
   const load = useCallback(() => api<Record<string, unknown>>("/api/simulation").then(setState).catch((reason: Error) => setError(reason.message)), []);
   useEffect(() => { void load(); }, [load]);
-  async function control(action: string, steps = 1) {
+  async function send(body: Record<string, unknown>) {
     setError("");
+    setRefusal(null);
     try {
-      setState(await api("/api/simulation/control", { method: "POST", body: JSON.stringify({ action, steps, ...form }) }));
+      setState(await api<Record<string, unknown>>("/api/simulation/control", { method: "POST", body: JSON.stringify(body) }));
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "仿真操作失败");
+      if (reason instanceof ApiError) setRefusal({ status: reason.status, message: reason.message });
+      else setError(reason instanceof Error ? reason.message : "仿真操作失败");
     }
   }
   const metrics = (state?.metrics || {}) as { mae_current_slot?: number; coverage?: number };
-  const log = (state?.log || []) as string[];
+  const log = Array.isArray(state?.log) ? state.log.filter((line): line is string => typeof line === "string") : [];
+  const serverHeading = serverModeHeading(state);
   return (
-    <Page title="仿真控制台" lede="重置会按种子重建虚拟城市。数据模式会随请求发给服务器，页面显示服务器返回的实际模式。合成运行保持 Synthetic Demo。">
+    <Page title="仿真控制台" lede="切换场景发送 select_scenario，模式名为 synthetic、real_mobility、real_noise 或 fully_real。regular、complex、shift 只作为 synthetic 下面的 Synthetic Demo 噪声场。状态区只写服务器返回的字段。">
+      <p className="note">合成虚拟网格保持匿名，不是真实城市。</p>
+      <p className="note">real_mobility 的任务成功是 on_task_cell，来自已存储轨迹。成功之后抽到的噪声是 synthetic_noise_field。</p>
       {error && <p className="error">{error}</p>}
+      {refusal && <p className="error">服务器拒绝（{refusal.status}）：{refusal.message} 这次没有改标成已成功。</p>}
       <section className="panel">
         <div className="form-grid">
-          <label className="field">数据模式
-            <select value={form.scenario_mode} onChange={(event) => setForm({ ...form, scenario_mode: event.target.value as ScenarioMode })}>
-              {SCENARIO_MODES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          <label className="field">场景模式
+            <select value={mode} onChange={(event) => setMode(event.target.value as SimulationMode)}>
+              {SIMULATION_MODES.map((item) => <option key={item.id} value={item.id}>{item.id}（{item.detail}）</option>)}
             </select>
           </label>
-          <label className="field">场景<select value={form.scenario} onChange={(event) => setForm({ ...form, scenario: event.target.value })}><option>regular</option><option>complex</option><option>shift</option></select></label>
-          <label className="field">种子<input type="number" value={form.seed} onChange={(event) => setForm({ ...form, seed: Number(event.target.value) })} /></label>
-          <label className="field">算法<select value={form.algorithm} onChange={(event) => setForm({ ...form, algorithm: event.target.value })}>{["mupsa", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}</select></label>
-          <label className="field">预算<input type="number" value={form.budget} onChange={(event) => setForm({ ...form, budget: Number(event.target.value) })} /></label>
-          <label className="field">人数<input type="number" value={form.n_human} onChange={(event) => setForm({ ...form, n_human: Number(event.target.value) })} /></label>
-          <label className="field">机器数<input type="number" value={form.n_machine} onChange={(event) => setForm({ ...form, n_machine: Number(event.target.value) })} /></label>
-          <label className="field">接受概率<input type="number" step="0.05" value={form.accept_human} onChange={(event) => setForm({ ...form, accept_human: Number(event.target.value) })} /></label>
+          <label className="field">种子<input type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value))} /></label>
+          <label className="field">算法<select value={algorithm} onChange={(event) => setAlgorithm(event.target.value)}>{["mupsa", "greedy", "uncertainty", "nearest", "random", "min_cost"].map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label className="field">预算<input type="number" value={budget} onChange={(event) => setBudget(Number(event.target.value))} /></label>
+          <label className="field">人数<input type="number" value={nHuman} onChange={(event) => setNHuman(Number(event.target.value))} /></label>
+          <label className="field">机器数<input type="number" value={nMachine} onChange={(event) => setNMachine(Number(event.target.value))} /></label>
+          <label className="field">接受概率<input type="number" step="0.05" value={acceptHuman} onChange={(event) => setAcceptHuman(Number(event.target.value))} /></label>
         </div>
+        {mode === "synthetic" && (
+          <div className="empty-state" style={{ marginTop: 12 }}>
+            <b>Synthetic Demo 噪声场</b>
+            <p className="note">regular、complex、shift 嵌在 synthetic 下面，只重建合成噪声场。</p>
+            <label className="field">噪声场
+              <select value={field} onChange={(event) => setField(event.target.value as SyntheticDemoField)}>
+                {SYNTHETIC_DEMO_FIELDS.map((item) => <option key={item} value={item}>{item} · Synthetic Demo</option>)}
+              </select>
+            </label>
+            {(role === "admin" || role === "publisher") && (
+              <button className="btn-danger" onClick={() => void send(resetSyntheticDemoRequest(field, { seed, algorithm, budget, n_human: nHuman, n_machine: nMachine, accept_human: acceptHuman }))}>按 Synthetic Demo 参数重置</button>
+            )}
+          </div>
+        )}
         {(role === "admin" || role === "publisher") && (
           <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-            <button className="btn" onClick={() => void control("step", 1)}>单步</button>
-            <button className="btn" onClick={() => void control("step", 4)}>前进 4 步</button>
-            <button className="btn-ghost" onClick={() => void control("pause")}>暂停</button>
-            <button className="btn-ghost" onClick={() => void control("resume")}>继续</button>
-            <button className="btn-danger" onClick={() => void control("reset")}>按参数重置</button>
+            <button className="btn" onClick={() => void send(selectScenarioRequest(mode, seed))}>切换场景</button>
+            <button className="btn" onClick={() => void send(stepSimulationRequest(1))}>单步</button>
+            <button className="btn" onClick={() => void send(stepSimulationRequest(4))}>前进 4 步</button>
+            <button className="btn-ghost" onClick={() => void send({ action: "pause" })}>暂停</button>
+            <button className="btn-ghost" onClick={() => void send({ action: "resume" })}>继续</button>
           </div>
         )}
       </section>
-      {state && (
-        <div className="grid-2">
-          <section className="panel">
-            <h2>{String(state.mode_label || state.scenario_mode || "—")}</h2>
-            <p className="note">{String(state.mode_note || "")}</p>
-            <p>请求模式 {modeLabel(String(state.requested_scenario_mode || ""))} · 场景 {String(state.scenario || "—")} · 种子 {String(state.seed ?? "—")}</p>
-            <p>时钟 {String(state.current_label || "")} · 状态 {String(state.status)} · 预算剩余 {Number(state.budget_left).toFixed(2)} · 已花费 {Number(state.budget_spent).toFixed(2)}</p>
-            <p>当前片 MAE {metrics.mae_current_slot?.toFixed(2) ?? "尚未计算"} · 覆盖 {metrics.coverage ? `${(metrics.coverage * 100).toFixed(1)}%` : "—"}</p>
-          </section>
-          <section className="panel">
-            <h2>日志</h2>
-            <ul className="tape">{log.slice(-12).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
-            {log.length === 0 && <p className="note">还没有步进日志。</p>}
-          </section>
-        </div>
-      )}
+      <div className="grid-2">
+        <section className="panel">
+          <h2>{serverHeading}</h2>
+          <p className="note">标题和下面的字段来自最近一次成功响应。下拉选项不会补上缺失字段，拒绝也不会被写成已成功。</p>
+          {refusal && <p className="note">刚才的请求被拒绝，所以上面这份响应没有被换成所选模式。</p>}
+          <ul className="tape">
+            {SERVER_MODE_FIELDS.map((key) => (
+              <li key={key}>{key} · {state && Object.prototype.hasOwnProperty.call(state, key) ? formatServerField(state[key]) : "响应未包含该字段"}</li>
+            ))}
+          </ul>
+          <p>时钟 {textField(state, "current_label")} · 状态 {textField(state, "status")} · 场景 {textField(state, "scenario")} · 种子 {textField(state, "seed")}</p>
+          <p>预算剩余 {numberField(state, "budget_left")} · 已花费 {numberField(state, "budget_spent")}</p>
+          <p>当前片 MAE {metrics.mae_current_slot?.toFixed(2) ?? "尚未计算"} · 覆盖 {metrics.coverage ? `${(metrics.coverage * 100).toFixed(1)}%` : "—"}</p>
+          {state?.real_city === false && <p className="note">real_city 为 false。虚拟网格不是真实城市。</p>}
+        </section>
+        <section className="panel">
+          <h2>日志</h2>
+          <ul className="tape">{log.slice(-12).map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}</ul>
+          {log.length === 0 && <p className="note">还没有步进日志。</p>}
+        </section>
+      </div>
     </Page>
   );
+}
+
+function serverModeHeading(state: Record<string, unknown> | null) {
+  if (!state) return "尚未收到仿真响应";
+  if (typeof state.mode_label === "string" && state.mode_label) return state.mode_label;
+  if (typeof state.scenario_mode === "string" && state.scenario_mode) return state.scenario_mode;
+  if (typeof state.mode === "string" && state.mode) return state.mode;
+  return "响应未包含模式名";
+}
+
+function textField(state: Record<string, unknown> | null, key: string) {
+  if (!state || !Object.prototype.hasOwnProperty.call(state, key)) return "响应未包含该字段";
+  return formatServerField(state[key]);
+}
+
+function numberField(state: Record<string, unknown> | null, key: string) {
+  const value = state?.[key];
+  return typeof value === "number" ? value.toFixed(2) : "—";
 }
 
 function ExperimentsPage({ role }: { role: string }) {
