@@ -1,0 +1,7 @@
+participant_id,day,timeslot,x,y,data_source,coordinate_system,slots_per_day,schema_example
+exa,0,0,0,0,synthetic_shaped_real_schema_example,fixture_virtual_grid,4,not_a_city_extract
+exa,0,1,1,0,synthetic_shaped_real_schema_example,fixture_virtual_grid,4,not_a_city_extract
+exa,0,2,1,0,synthetic_shaped_real_schema_example,fixture_virtual_grid,4,not_a_city_extract
+exb,0,0,2,2,synthetic_shaped_real_schema_example,fixture_virtual_grid,4,not_a_city_extract
+exb,0,1,2,2,synthetic_shaped_real_schema_example,fixture_virtual_grid,4,not_a_city_extract
+exb,0,2,0,2,synthetic_shaped_real_schema_example,fixture_virtual_grid,4,not_a_city_extract

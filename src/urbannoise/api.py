@@ -33,6 +33,7 @@ from urbannoise.models import (
     utcnow,
 )
 from urbannoise.security import create_token, decode_token
+from urbannoise.scenarios import SCENARIO_MODES
 from urbannoise.services import (
     active_run,
     apply_transition,
@@ -48,6 +49,7 @@ from urbannoise.services import (
     rebuild_world,
     safe_import,
     seed_if_needed,
+    select_scenario_mode,
     simulation_dict,
     step_simulation,
     task_dict,
@@ -98,6 +100,33 @@ class SimulationBody(BaseModel):
     n_human: int | None = None
     n_machine: int | None = None
     accept_human: float | None = None
+    mode: str | None = None
+    mobility_path: str | None = None
+    noise_path: str | None = None
+    manifest_path: str | None = None
+
+
+def _scenario_mode(body: SimulationBody) -> str | None:
+    if body.mode and body.mode.strip():
+        return body.mode.strip().lower()
+    if body.scenario and body.scenario.strip().lower() in SCENARIO_MODES:
+        return body.scenario.strip().lower()
+    return None
+
+
+def _select_scenario(body: SimulationBody) -> dict:
+    mode = _scenario_mode(body)
+    if mode is None:
+        raise AppError("bad_mode", "需要场景模式 synthetic、real_mobility、real_noise 或 fully_real", 422)
+    if mode not in SCENARIO_MODES:
+        raise AppError("bad_mode", f"未知场景模式 {mode}", 422)
+    return select_scenario_mode(
+        mode,
+        mobility_path=body.mobility_path,
+        noise_path=body.noise_path,
+        manifest_path=body.manifest_path,
+        seed=7 if body.seed is None else int(body.seed),
+    )
 
 
 class UserBody(BaseModel):
@@ -491,12 +520,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             run.status = "running"
         elif body.action == "step":
             return step_simulation(db, user, body.steps)
+        elif body.action == "select_scenario":
+            return _select_scenario(body)
         elif body.action == "reset":
+            requested = _scenario_mode(body)
+            if requested in {"real_mobility", "real_noise", "fully_real"}:
+                return _select_scenario(body)
             params = json.loads(run.config_json)
             for field in ("scenario", "seed", "algorithm", "budget", "n_human", "n_machine", "accept_human"):
                 value = getattr(body, field)
-                if value is not None:
-                    params[field] = value
+                if value is None:
+                    continue
+                if field == "scenario" and str(value).strip().lower() in SCENARIO_MODES:
+                    continue
+                params[field] = value
             rebuilt = rebuild_world(db, settings, params, user.id)
             return simulation_dict(db, rebuilt)
         else:

@@ -220,7 +220,42 @@ def seed_if_needed(db: Session, settings: Settings) -> None:
     db.commit()
 
 
+def select_scenario_mode(
+    mode: str,
+    *,
+    mobility_path: str | None = None,
+    noise_path: str | None = None,
+    manifest_path: str | None = None,
+    seed: int = 7,
+    world: dict | None = None,
+) -> dict:
+    """Select a scenario mode. Real modes do not call the synthetic world builder."""
+    from urbannoise.scenarios import ScenarioUnavailable, open_scenario
+
+    extra = dict(world or {})
+    extra.pop("seed", None)
+    try:
+        session = open_scenario(
+            mode,
+            mobility_path=mobility_path or None,
+            noise_path=noise_path or None,
+            manifest_path=manifest_path or None,
+            seed=int(seed),
+            **extra,
+        )
+    except ScenarioUnavailable as exc:
+        raise AppError(exc.code, exc.message, 409, exc.detail) from exc
+    return session.to_summary()
+
+
 def rebuild_world(db: Session, settings: Settings, raw_params: dict, actor_id: int | None) -> SimulationRun:
+    requested_scenario = str((raw_params or {}).get("scenario") or "").strip().lower()
+    if requested_scenario in {"real_mobility", "real_noise", "fully_real"}:
+        raise AppError(
+            "scenario_mode",
+            "real_mobility、real_noise 和 fully_real 由场景模式选择，不会调用合成 build_world。",
+            409,
+        )
     params = _world_params(raw_params)
     world = build_world(
         seed=int(params["seed"]),

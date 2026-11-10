@@ -1,0 +1,17 @@
+grid_id,x,y,latitude,longitude,time,db,indicator,source,coordinate_system,schema_example,full_city_truth
+0,0,0,0.01,0.02,2020-01-01T00:00:00,40.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+1,1,0,0.01,0.03,2020-01-01T00:00:00,43.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+2,0,1,0.02,0.02,2020-01-01T00:00:00,46.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+3,1,1,0.02,0.03,2020-01-01T00:00:00,49.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+0,0,0,0.01,0.02,2020-01-01T01:00:00,41.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+1,1,0,0.01,0.03,2020-01-01T01:00:00,44.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+2,0,1,0.02,0.02,2020-01-01T01:00:00,47.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+3,1,1,0.02,0.03,2020-01-01T01:00:00,50.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+0,0,0,0.01,0.02,2020-01-01T02:00:00,42.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+1,1,0,0.01,0.03,2020-01-01T02:00:00,45.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+2,0,1,0.02,0.02,2020-01-01T02:00:00,48.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+3,1,1,0.02,0.03,2020-01-01T02:00:00,51.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+0,0,0,0.01,0.02,2020-01-01T03:00:00,43.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+1,1,0,0.01,0.03,2020-01-01T03:00:00,46.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+2,0,1,0.02,0.02,2020-01-01T03:00:00,49.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
+3,1,1,0.02,0.03,2020-01-01T03:00:00,52.0,laeq,synthetic_shaped_real_schema_example,fixture_unanchored_degrees,not_a_city,false
