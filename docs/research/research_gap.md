@@ -15,8 +15,8 @@
 [full-text read] 派给谁，在已读论文里通常优化的不是噪声地图误差：
 
 - Li 等（ToN 2022，DOI `10.1109/tnet.2022.3169180`）在预算和容量下选择能力未知的工人，奖励是样本是否合格。[author claim]
-- Simon 等（TCOM 2024，DOI `10.1109/tcomm.2024.3381718`）用报价表示愿意参加，摘要中的结果是任务完成时间。[author claim]
-- Wang 等（ICDCS 2018，DOI `10.1109/icdcs.2018.00164`）和 Liu 等（Computer Networks 2019，DOI `10.1016/j.comnet.2019.06.010`；IEEE Access 2019，DOI `10.1109/access.2019.2924184`）选择格子或格子–任务对。读过的部分把参与者写成能提供这些格子的人。
+- Simon 等（TCOM 2024，DOI `10.1109/tcomm.2024.3381718`）的摘要用报价表示愿意参加，报告的是任务完成时间。正文没有读到，所以这是 [abstract-only] [author claim]。
+- Wang 等（ICDCS 2018，DOI `10.1109/icdcs.2018.00164`）和 Liu 等（Computer Networks 2019，DOI `10.1016/j.comnet.2019.06.010`）选择格子。读过的引言或结论把参与者写成能提供这些格子的人。IEEE Access 2019（DOI `10.1109/access.2019.2924184`）只有摘要被读到，决策单位在摘要里是格子和任务类型。
 - Huang 等（2026，DOI `10.1007/s42486-025-00202-2`）选择对下游分类有用的子区域，并写明员工会去这些位置。[author claim]
 - Zhang 等（2023，DOI `10.3934/mbe.2023533`）在轨迹已知的前提下招募用户。[author claim]
 

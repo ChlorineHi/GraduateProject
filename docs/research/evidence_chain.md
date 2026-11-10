@@ -32,7 +32,7 @@
 
 [full-text read] [author claim] Li 等，ToN 2022，DOI `10.1109/tnet.2022.3169180`，读 arXiv:2107.01385 的第 1–2 节。目标是预算和容量下合格样本的期望收益。选择被假定产生观测。
 
-[full-text read] [author claim] Simon 等，TCOM 2024，DOI `10.1109/tcomm.2024.3381718`，读 arXiv:2309.10594 的摘要。报价表示意愿。平均任务完成时间至少降低 16% 是作者主张，指标不是地图 MAE。
+[abstract-only] [author claim] Simon 等，TCOM 2024，DOI `10.1109/tcomm.2024.3381718`。arXiv:2309.10594 的 PDF 已下载，正文标题没有解析出来，只采用摘要：报价表示意愿，平均任务完成时间至少降低 16%。指标不是地图 MAE。
 
 [full-text read] [author claim] Zhang 等，MBE 2023，DOI `10.3934/mbe.2023533`。结论的前提是用户轨迹已知。
 

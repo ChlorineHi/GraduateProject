@@ -118,8 +118,8 @@ CDRI 项目目录是这个 worktree。`config check` 仍然没有 mailto、OpenA
 | Zhang 等, Mathematical Biosciences and Engineering | 10.3934/mbe.2023533 | published, 2023 | full-text read（摘要与第 6 节结论；STGCN 公式没有逐式核对） |
 | Nishida, Ueno, Koyama, Saruwatari, IEEE TSP | 10.1109/tsp.2022.3156012 | published, 2022 | full-text read（PDF 第 1 页摘要和问题陈述） |
 | Verburg, Elvander, van Waterschoot, Fernández-Grande | 10.1186/s13636-024-00364-4 | published, 2024 | full-text read（摘要、引言、重建问题的开头） |
-| Simon, Ortiz, Saad, Klein, IEEE TCOM | 10.1109/tcomm.2024.3381718 | published, 2024；读的是 arXiv:2309.10594 PDF | full-text read（摘要：意愿、报价、努力未知） |
-| Liu 等, IEEE Access | 10.1109/access.2019.2924184 | published, 2019 | full-text read（PDF 摘要：多任务格子与推断） |
+| Simon, Ortiz, Saad, Klein, IEEE TCOM | 10.1109/tcomm.2024.3381718 | published, 2024；文件是 arXiv:2309.10594 PDF | abstract-only（正文标题没有解析出来，只采用摘要里的句子） |
+| Liu 等, IEEE Access | 10.1109/access.2019.2924184 | published, 2019；PDF 已下载 | abstract-only（双栏正文没有解析成方法节，只采用 PDF 摘要） |
 | Alexanderian, Inverse Problems | 10.1088/1361-6420/abe10c | published, 2021；读的是 arXiv:2005.12998 PDF | full-text read（第 1 节：设计用来降低参数不确定性） |
 | Ao, Li, AAAI | 10.1609/aaai.v38i18.30012 | published, 2024 | full-text read（摘要和引言：效用可以是 A/D、二次损失或 EIG；本文做的是 EIG 梯度） |
 | Wu, Liang, Yang | arXiv:2604.21849 | preprint | full-text read（第 1 节：EIG 的 KL 形式有它自己的失败方式） |
@@ -156,7 +156,7 @@ CDRI 项目目录是这个 worktree。`config check` 仍然没有 mailto、OpenA
 
 [full-text read] [author claim] Computer Networks 2019 的 HAL 稿用 Q-learning 和带 LSTM 的 DQN 做格子选择，结论说实验显示采集成本下降，并把“完全在线、不再需要预先采集训练数据”留作未来工作。稿件没有把人的未来轨迹改写成任务路径。
 
-[full-text read] [author claim] IEEE Access 2019 同时做多任务压缩感知推断和 `<cell, task>` 的强化学习选择，利用任务内部和任务之间的相关。决策单位是格子和任务类型，不是一个可能拒绝的具体的人。
+[abstract-only] [author claim] IEEE Access 2019 的 PDF 摘要说：用多任务压缩感知利用任务内部和任务之间的相关，再用强化学习在 `<cell, task>` 上选择。正文没有读到，所以不描述网络结构或实验数字。摘要里的决策单位是格子和任务类型。
 
 [full-text read] [author claim] MBBALD 批评稀疏群智感知只用覆盖或补全价值，而下游任务需要的是对决策有用的子区域集合。框架里，员工前往被选位置、采集、再由专家标注，分类器是下游任务。作者在摘要中报告：缺失率超过 60% 后 MBBALD 开始优于其他算法；交通流数据在 50% 缺失时比第二名高 4% 以上的准确率。这些百分比是作者对三个真实数据集分类准确率的主张，不是噪声地图的 MAE，也没有拒绝概率。作者还写 BatchBALD 的限制：它看的是模型被排除的速度，而且原方法假定样本更独立，而感知子区域是相关的。
 
@@ -166,7 +166,7 @@ CDRI 项目目录是这个 worktree。`config check` 仍然没有 mailto、OpenA
 
 [full-text read] [author claim] Li 等人的 CAWS 在预算和每人容量约束下，从大量能力未知的工人里选择。奖励是样本是否合格的 Bernoulli 变量，目标是期望累计收益，不是空间场的重建误差。上下文相似的工人被假定能力相似。作者强调预算小到不够把每个工人探索一次。选择被假定会产生一次观测。
 
-[full-text read] [author claim] Simon 等人让移动单元用报价表示愿意参加，平台再分配。不确定的是努力和偏好。摘要中的作者主张包括：平均任务完成时间至少降低 16%。这不是噪声地图 MAE。报价是一次显式的接受信号；本项目的数据没有这种标签。
+[abstract-only] [author claim] Simon 等人的摘要写：移动单元用报价表示愿意参加，平台再分配；不确定的是努力和偏好；仿真里平均任务完成时间至少降低 16%。正文没有读到。这不是噪声地图 MAE。报价是摘要里的显式接受信号；本项目的数据没有这种标签。
 
 ### 对本项目意味着什么
 

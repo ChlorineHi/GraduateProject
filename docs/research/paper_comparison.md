@@ -48,11 +48,11 @@ CDRI 的审计规则要求不同协议的指标不要并排成“谁赢了”。
 | Mussmann 等，arXiv:2211.09283 | 分类样本池中的查询 | 被查询的标签会被观测到 | 期望测试误差下降；对照是 BALD/EIG | [author claim] 参数互信息不是期望测试误差。任务不是空间场 | full-text read |
 | Wang 等，ICDCS 2018 | 稀疏 MCS 的格子 | 招募参与者采集已选格子 | 使推断误差低于阈值的格子集合 | [author claim] 同样质量保证下感知格子最多少 15%。读过的部分没有到达概率乘进地图误差 | full-text read |
 | Liu 等，Computer Networks 2019 | 格子 | HAL 作者稿，不是出版商 PDF | Q-learning / DQN 的格子选择 | 结论把完全在线学习留作未来工作 | full-text read |
-| Liu 等，IEEE Access 2019 | `<cell, task>` | 假定能采到所选格子 | 多任务压缩感知推断加强化学习 | 决策单位不是一个可能拒绝的具体的人 | full-text read |
+| Liu 等，IEEE Access 2019 | 摘要中的 `<cell, task>` | 正文未读 | 摘要中的多任务压缩感知与强化学习 | 不描述摘要之外的步骤 | abstract-only（PDF 已下载，正文未解析） |
 | Huang 等，MBBALD 2026 | 对下游分类有用的子区域 | 员工前往所选位置，专家再标注 | 参数不确定性与概率间隔 | [author claim] 交通流在 50% 缺失时准确率比第二名高 4% 以上。指标不是噪声 MAE | full-text read |
 | Zhang 等，MBE 2023 | 预算内的用户集合 | [author claim] 结论的前提是用户轨迹已知 | STGCN-GRU 预测轨迹，ADQN 招募 | [our interpretation] “轨迹已知”不能改写成平台可以改写未来轨迹 | full-text read |
 | Zhu 等，IoT Journal | 成本不同的格子 | 正文未读 | 仓库摘要中的成本–质量格子选择 | 不描述摘要之外的步骤。Crossref 年 2021 | abstract-only |
 | Li 等，ToN 2022 | 预算和容量下的工人 | 选中后得到一次观测 | 样本是否合格的期望 Bernoulli 收益 | 奖励不是空间重建误差 | full-text read |
-| Simon 等，TCOM 2024 | 报价之后的任务分配 | 报价表示愿意参加 | 在线学习努力和偏好 | [author claim] 平均任务完成时间至少降低 16%。不是地图 MAE | full-text read |
+| Simon 等，TCOM 2024 | 摘要中的报价和分配 | 正文未读 | 摘要中的在线学习 | [author claim] 平均任务完成时间至少降低 16%。不是地图 MAE | abstract-only（arXiv PDF 已下载，正文未解析） |
 
 `compare methods` 的 structural similarity 只是检索辅助，CLI 自己注明它不是迁移能成功的证据。高斯过程互信息对分类期望误差下降是 0.257（词汇 0.121）；对 CAWS 是 0.08（词汇 0.062）。两边没有共享的必要假设。
